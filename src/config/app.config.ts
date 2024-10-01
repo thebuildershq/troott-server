@@ -6,6 +6,8 @@ import ENV from "../utils/env.util";
 
 config();
 
+
+
 const app = express();
 
 app.get("/", (req: Request, res: Response, next: NextFunction) => {
