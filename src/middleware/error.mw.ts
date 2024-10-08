@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import ENV from "../utils/env.util";
 import ErrorResponse from "../utils/error.util";
+import logger from "../utils/logger.utils";
 
 const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) =>{
 
@@ -21,7 +22,7 @@ const errorHandler = (err: any, req: Request, res: Response, next: NextFunction)
         })
 
         if(ENV.isDevelopment() || ENV.isStaging()) {
-            console.log('ERR', err)
+            logger.log({data: err, label: 'ERR'})
         }
 
         if (err.name === 'CastError') {
