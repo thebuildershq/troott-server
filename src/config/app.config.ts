@@ -2,6 +2,7 @@ import { config } from "dotenv";
 import express, { Request, Response, NextFunction } from "express";
 import { ENVType } from "../utils/enums.util";
 import ENV from "../utils/env.util";
+import errorHandler from "../middleware/error.mw";
 
 
 config();
@@ -36,5 +37,7 @@ app.get("/", (req: Request, res: Response, next: NextFunction) => {
 
 
 })
+
+app.use(errorHandler)
 
 export default app;
