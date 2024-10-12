@@ -3,11 +3,18 @@
 import colors from 'colors'
 import { LogRequestDTO } from '../dtos/system.dto';
 
+
 class Logger {
 
     constructor(){}
 
-    public log (payload: LogRequestDTO) {
+/**
+ * @name log
+ * @description logs out the data aupplied to console
+ * @param payload
+ * @returns {void} - void
+ */
+   public log (payload: LogRequestDTO) {
         const { data, label, type } = payload
 
         if(data){

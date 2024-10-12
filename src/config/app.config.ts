@@ -2,7 +2,7 @@ import { config } from "dotenv";
 import express, { Request, Response, NextFunction } from "express";
 import { ENVType } from "../utils/enums.util";
 import ENV from "../utils/env.util";
-import errorHandler from "../middleware/error.mw";
+import errorHandler from "../middleware/error.mdw";
 
 
 config();
