@@ -62,6 +62,5 @@ RoleSchema.methods.findByName = async (name: string) => {
     return role ? role: null
 }
     
-
 const Role: Model<IRoleDoc> = mongoose.model<IRoleDoc>('Role', RoleSchema)
 export default Role
