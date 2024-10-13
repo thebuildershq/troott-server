@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import asyncHandler from "../middleware/async.mdw";
-import logger from "../utils/logger.utils";
+import logger from "../utils/logger.util";
 import { RegisterDTO } from "../dtos/auth.dtos";
 
 

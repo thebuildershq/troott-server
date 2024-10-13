@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import ENV from "../utils/env.util";
 import ErrorResponse from "../utils/error.util";
-import logger from "../utils/logger.utils";
+import logger from "../utils/logger.util";
 
 const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) =>{
 
