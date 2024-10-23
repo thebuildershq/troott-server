@@ -1,0 +1,6 @@
+install cookie-parser and body-parser
+npm i --force cookie-parser body-parser @types/cookie-parser
+file upload
+npm i –force express-fileupload @types/express-fileupload express-mongo-sanitize
+
+ - npm i –force helmetnpm
