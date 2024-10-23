@@ -1,4 +1,4 @@
-## StreamSqr ( Frontend )
+## StreamSqr ( Backend )
 
 ### Stream unlimited sermons and christian content on the go
 
@@ -19,7 +19,7 @@ To build this enhanced product experience, we asking the following questions:
 - How can we help people gain control of their spiritual life by listening to sermons seamlessly so that they can improve their lifestyle?
 - How can we help people to share a common spiritual experience by sharing messages to their loved ones on their mobile device?
 
-\*[Contributor's wiki](https://github.com/)
+\*[Contributor's wiki](https://github.com)
 
 ## Techonologies
 
