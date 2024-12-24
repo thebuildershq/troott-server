@@ -24,7 +24,7 @@ const connectDB = async () => {
       );
       console.log(
         colors.cyan.bold.underline(
-          `Database Connected: ${dbConn.connection.host} `
+          `Globitt Database Connected: ${dbConn.connection.host} `
         )
       );
     } catch (error) {
