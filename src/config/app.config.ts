@@ -83,11 +83,11 @@ app.get("/", (req: Request, res: Response, next: NextFunction) => {
         error: false,
         errors: [],
         data: {
-            name: "STREAMSQR API - DEFAULT",
+            name: "GLOBITT API - DEFAULT",
             version: "1.0.0",
 
         },
-        message: 'StreamSqr api v1.0.0',
+        message: 'GLOBITT api v1.0.0',
         status: 200
 
     })

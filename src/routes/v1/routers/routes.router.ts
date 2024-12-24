@@ -8,16 +8,6 @@ router.use('/auth', authRoutes)
 
 router.get("/", (req: Request, res: Response, next: NextFunction) => {
 
-    // let enviornemnt = ENVType.DEVELOPMENT
-
-    // if (ENV.isProduction()) {
-    //     enviornemnt = ENVType.PRODUCTION
-    // } else if (ENV.isStaging()) {
-    //     enviornemnt = ENVType.STAGING
-    // } else if (ENV.isDevelopment()) {
-    //     enviornemnt = ENVType.DEVELOPMENT
-    // }
-
     res.status(200).json({
         error: false,
         errors: [],
