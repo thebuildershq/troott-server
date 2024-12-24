@@ -1,0 +1,40 @@
+[
+    {
+      "name": "superadmin",
+      "description": "Superadmin can access and manage everything in the system",
+      "permissions": [
+        "manage_users",
+        "view_reports",
+        "manage_roles",
+        "view_content",
+        "manage_sermons",
+        "manage_playlists",
+        "system_settings",
+        "view_financials"
+      ]
+    },
+    {
+      "name": "admin",
+      "description": "Admin has extensive access but less than superadmin",
+      "permissions": [
+        "manage_users",
+        "view_reports",
+        "manage_roles",
+        "view_content",
+        "manage_sermons",
+        "manage_playlists"
+      ]
+    },
+    {
+      "name": "user",
+      "description": "Users can access and use the platform to listen to sermons and create playlists",
+      "permissions": [
+        "view_content",
+        "create_playlists",
+        "edit_playlists",
+        "delete_playlists", 
+        "like_sermons",
+        "share_sermons"
+      ]
+    }
+  ]
