@@ -7,13 +7,14 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
   },
   "keywords": [
-    "StreamSqr",
+    "troott",
     "Sermon Streaming App"
   ],
   "author": "team-streamsqr",
   "license": "ISC",
   "description": "> StreamSqr provides audio streaming services worldwide, with a premium subscription offering and free ad-supported plan. The Premium segment offers unlimited online and offline streaming access to its catalogue of sermon, and sermon reels without commercial break.",
   "dependencies": {
+    "@types/app-root-path": "^1.2.8",
     "@types/bcrypt": "^5.0.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/body-parser": "^1.19.5",
@@ -23,6 +24,7 @@
     "@types/hpp": "^0.2.6",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/morgan": "^1.9.9",
+    "app-root-path": "^3.1.0",
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
@@ -44,6 +46,7 @@
     "multer": "^1.4.5-lts.1",
     "node-geocoder": "^4.4.0",
     "nodemailer": "^6.9.15",
+    "redis": "^4.7.0",
     "slugify": "^1.6.6",
     "typescript": "^5.6.2",
     "winston": "^3.15.0",

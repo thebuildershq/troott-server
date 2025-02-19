@@ -61,3 +61,14 @@ export interface IUserDoc extends Document {
 	_id: ObjectId;
 	id: ObjectId;
 }
+
+export interface IOptions {
+	host: string;
+	port: number | string;
+	password: string;
+	user: string
+}
+export interface IData {
+	key: string;
+	value: any;
+}

@@ -1,13 +1,20 @@
 [
-    {
-      "username": "superadmin",
-      "email": "thetrott@gmail.com",
-      "password": "p6vzH^51$B@;",
-      "firstName": "Super",
-      "lastName": "Administrator",
-      "phoneNumber": "09061590172",
-      "phoneCode": "+234",
-      "role": "superadmin"
-    }
-  ]
-  
+  {
+    "username": "superadmin",
+    "email": "thetroott@gmail.com",
+    "password": "p6vzH^51$B@;",
+    "firstName": "Super",
+    "lastName": "Administrator",
+    "gender": "male",
+    "phoneNumber": "09061590172",
+    "phoneCode": "+234",
+    "role": "superadmin",
+    "isSuper": "true",
+    "isActivated": "true",
+    "isAdmin": "false",
+    "isCreator": "false",
+    "isListener": "false",
+    "isUser": "true",
+    "isActive": "true"
+  }
+]

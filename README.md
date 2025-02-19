@@ -1,10 +1,10 @@
-## StreamSqr ( Backend )
+## troott ( Server-side )
 
 ### Stream unlimited sermons and christian content on the go
 
-> StreamSqr provides audio streaming services worldwide, with a premium subscription offering and free ad-supported plan. The Premium segment offers unlimited online and offline streaming access to its catalogue of sermon, and sermon reels without commercial break.
+> troott provides audio streaming services worldwide, with a premium subscription offering and free ad-supported plan. The Premium segment offers unlimited online and offline streaming access to its catalogue of sermon, and sermon reels without commercial break.
 
-With StreamSqr, users can listen to old and new sermons from their favorite preachers, gain control over how they listen to sermons and messages, and share sermons with the people they love!
+With troott, users can listen to old and new sermons from their favorite preachers, gain control over how they listen to sermons and messages, and share sermons with the people they love!
 
 
 ## Introduction
@@ -34,7 +34,7 @@ To get it up and running on your local machine, follow the steps below:
 - Clone the repo with the command `git clone`
 - An issue must have been assigned to you before you start working on it.
 - Open a feature branch from the 'staging' branch. eg ft/[issue-number]-[your-branch-name]
-- Make sure the name is descriptive for your branch but not too long. Lead with what the the branch is doing eg new feature or bug but follow this pattern `type/[issue-number]-[your-branch-name]` eg `ft/502-streamsqr-landing-page`.
+- Make sure the name is descriptive for your branch but not too long. Lead with what the the branch is doing eg new feature or bug but follow this pattern `type/[issue-number]-[your-branch-name]` eg `ft/502-troott-landing-page`.
 - Ensure your branch is up to date with latest changes on staging, then merge your branch into staging. NB: All these should be done locally.
 - Push your local staging to remote.
 - Create a pull request against master branch (but do not merge)
