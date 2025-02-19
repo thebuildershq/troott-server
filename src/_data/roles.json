@@ -2,49 +2,59 @@
   {
     "name": "superadmin",
     "description": "Superadmin can access and manage everything in the system",
+    "slug": "super-admin",
     "permissions": [
-      "manage_users",
-      "view_reports",
-      "manage_roles",
-      "view_content",
-      "manage_sermons",
-      "manage_playlists",
-      "system_settings",
-      "view_financials"
+      "system_administration",
+      "user_management",
+      "sermon_management",
+      "sermon_analytics",
+      "content_management",
+      "playlist_management",
+      "audience_insights",
+      "revenue_tracking",
+      "ads_management",
+      "system_management"
     ]
   },
   {
     "name": "admin",
     "description": "Admin has extensive access but less than superadmin",
+    "slug": "admin",
     "permissions": [
-      "manage_users",
-      "view_reports",
-      "manage_roles",
-      "view_content",
-      "manage_sermons",
-      "manage_playlists"
+      "user_management",
+      "sermon_management",
+      "sermon_analytics",
+      "content_management",
+      "playlist_management",
+      "audience_insights",
+      "revenue_tracking",
+      "ads_management",
+      "system_management"
     ]
   },
   {
-    "name": "user",
-    "description": "Users can access and use the platform to listen to sermons and create playlists",
+    "name": "creator",
+    "description": "Creator can access and manage everything in their own account",
+    "slug": "creator",
     "permissions": [
-      "view_content",
-      "create_playlists",
-      "edit_playlists",
-      "delete_playlists",
-      "like_sermons",
-      "share_sermons"
+      "sermon_management",
+      "sermon_analytics",
+      "content_management",
+      "playlist_management",
+      "audience_insights",
+      "revenue_tracking",
+      "ads_management"
     ]
   },
   {
-    "name": "guest",
-    "description": "Guests can explore and listen to a limited selection of content without creating an account.",
+    "name": "listeners",
+    "description": "Users who want to explore, stream and share sermons and other content",
+    "slug": "listeners",
     "permissions": [
-      "view_limited_content",
-      "create_playlists_limited",
-      "like_tracks_limited",
-      "share_tracks_limited"
+      "content_management",
+      "playlist_management",
+      "subscription_management",
+      "engagement_management"
     ]
   }
 ]

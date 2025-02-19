@@ -17,3 +17,34 @@ export enum UserType {
     ADMIN = "admin"
     }
     
+export enum DbModels {
+    USER = "User",
+    ROLE = "Role"
+}
+
+
+export enum Currency {
+    NGN = "NGN", 
+    USD = "USD",
+    EUR = "EUR",
+    GBP = "GBP",
+    JPY = "JPY",
+    AUD = "AUD",
+    CAD = "CAD",
+    CHF = "CHF",
+    CNY = "CNY",
+    INR = "INR",
+    ZAR = "ZAR"
+}
+
+
+export enum PaymentPartners {
+    PAYSTACK = "Paystack",
+    FLUTTERWAVE = "Flutterwave",
+    STRIPE = "Stripe",
+    PAYPAL = "PayPal",
+    SQUARE = "Square",
+    ALIPAY = "Alipay",
+    WECHAT_PAY = "WeChat Pay"
+}
+

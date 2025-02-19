@@ -1,18 +1,21 @@
 import mongoose, {Schema, Types, Model, ObjectId} from "mongoose";
 import { IRoleDoc } from "../utils/interface.util";
 import slugify from "slugify";
+import { DbModels } from "../utils/enums.util";
 
-const RoleSchema = new mongoose.Schema({
+const RoleSchema = new mongoose.Schema<IRoleDoc>({
 
     name: {
         type: String,
-        unique: [true, 'role already exists with this name']
+        required: [true, 'please add a role name'],
+        unique: true
     },
 
     description: {
         type: String,
-        maxLength: 200,
-        default: ''
+        required: [true, 'please add a role description'],
+        maxlength: [250, 'role description cannot be more than 255 characters']
+        
     },
 
     slug: {
@@ -20,7 +23,7 @@ const RoleSchema = new mongoose.Schema({
         default: ''
     },
 
-    users: [
+    user: [
         {
             type: Schema.Types.Mixed,
             ref: 'User'
@@ -40,27 +43,28 @@ const RoleSchema = new mongoose.Schema({
 
 RoleSchema.set('toJSON', {virtuals: true, getters: true})
 
-RoleSchema.pre<IRoleDoc>("insertMany", async function (next) {
-    this.slug = slugify(this.name, { lower: true, replacement: "-" });
-  
-    next();
-  });  
-
 RoleSchema.pre<IRoleDoc>('save', async function (next) {
     this.slug = slugify(this.name, {lower: true, replacement: '-'})
     
     next()
 })
 
+RoleSchema.pre<IRoleDoc>("insertMany", async function (next) {
+    this.slug = slugify(this.name, { lower: true, replacement: "-" });
+    next();
+});  
+
 RoleSchema.methods.getAll = async () => {
     return await Role.find({})
 }
 
 RoleSchema.methods.findByName = async (name: string) => {
-
     const role = await Role.findOne({name: name})
     return role ? role: null
 }
     
-const Role: Model<IRoleDoc> = mongoose.model<IRoleDoc>('Role', RoleSchema)
+const Role: Model<IRoleDoc> = mongoose.model<IRoleDoc>(
+    DbModels.ROLE, 
+    RoleSchema
+)
 export default Role

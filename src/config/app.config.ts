@@ -83,11 +83,11 @@ app.get("/", (req: Request, res: Response, next: NextFunction) => {
         error: false,
         errors: [],
         data: {
-            name: "GLOBITT API - DEFAULT",
+            name: "troott API",
             version: "1.0.0",
 
         },
-        message: 'GLOBITT api v1.0.0',
+        message: 'trott api v1.0.0 is running',
         status: 200
 
     })
