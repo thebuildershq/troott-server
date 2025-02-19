@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import asyncHandler from "../middleware/async.mdw";
 import logger from "../utils/logger.util";
-import { RegisterDTO } from "../dtos/auth.dtos";
+import { RegisterDTO } from "../dtos/auth.dto";
 
 
 export const register = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
