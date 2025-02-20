@@ -7,6 +7,7 @@ export interface IRoleDoc extends Document {
     description: string,
     slug: string,
     user: Array<ObjectId | any>
+	permissions: Array<string>
 
     createdAt: string,
     updatedAt: string,
@@ -22,41 +23,59 @@ export interface IUserDoc extends Document {
 
     firstName: string;
     lastName: string;
-	phoneNumber: string;
-	phoneCode: string;
 	email: string;
 	password: string;
+	phoneNumber: string;
+	phoneCode: string;
+	dateOfBirth: Date;
+	gender: string;
+	profileImage: string;
+	device: string;
+
 	passwordType: string;
 	savedPassword: string;
 	userType: string;
 
-	activationToken: string | undefined;
-	activationTokenExpire: Date | undefined;
+	activationCode: string;
+	activationCodeExpire: Date
 
-	resetPasswordToken: string | undefined;
-	resetPasswordTokenExpire: Date | undefined;
+	activationToken: string
+	activationTokenExpire: Date
 
-	emailCode: string | undefined;
-	emailCodeExpire: Date | number | undefined;
+	resetPasswordToken: string
+	resetPasswordTokenExpire: Date;
 
-	inviteToken: string | undefined;
-	inviteTokenExpire: Date | undefined;
+	emailCode: string
+	emailCodeExpire: Date | number
 
-	isSuper: boolean;
+	inviteToken: string
+	inviteTokenExpire: Date
+
 	isActivated: boolean;
-	isAdmin: boolean;
-	isUser: boolean;
+	isSuper: string;
+	isAdmin: string;
+	isCreator: string;
+	isUser: string;
 
 	isActive: boolean;
 	loginLimit: number;
 	isLocked: boolean;
+	lockedUntil: Date;
+	lastLogin: Date;
 
 	// relationships
 	roles: Array<ObjectId | any>;
 
-    // time stamps
-    createdAt: string;
-    updatedAt: string;
+	// functions
+	matchPassword(password: string): boolean;
+	getAuthToken: () => string;
+	getResetPasswordToken: () => string;
+	getActivationCode: () => string;
+	getInviteToken: () => string;
+
+	// time stamps
+	createdAt: string;
+	updatedAt: string;
 	_version: number;
 	_id: ObjectId;
 	id: ObjectId;

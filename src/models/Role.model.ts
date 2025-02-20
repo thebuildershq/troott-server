@@ -1,13 +1,14 @@
 import mongoose, {Schema, Types, Model, ObjectId} from "mongoose";
 import { IRoleDoc } from "../utils/interface.util";
 import slugify from "slugify";
-import { DbModels } from "../utils/enums.util";
+import { DbModels, ModelEnums, UserType } from "../utils/enums.util";
 
 const RoleSchema = new mongoose.Schema<IRoleDoc>({
 
     name: {
         type: String,
         required: [true, 'please add a role name'],
+        default: UserType.LISTENER,
         unique: true
     },
 
@@ -18,17 +19,14 @@ const RoleSchema = new mongoose.Schema<IRoleDoc>({
         
     },
 
-    slug: {
-        type: String,
-        default: ''
-    },
+    slug: { type: String, default: '' },
 
     user: [
         {
             type: Schema.Types.Mixed,
-            ref: 'User'
+            ref: ModelEnums.USER
         }
-    ]
+    ], permissions: [{ type: String}]
 },
 {
     timestamps: true,

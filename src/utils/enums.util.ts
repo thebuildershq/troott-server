@@ -12,14 +12,24 @@ export enum AppChannel {
     }
     
 export enum UserType {
-    USER = "user",
-    SUPER = "superadmin",
-    ADMIN = "admin"
+    SUPERADMIN = "superadmin",
+    ADMIN = "admin",
+    CREATOR = "creator",
+    LISTENER ="listener",
     }
     
 export enum DbModels {
     USER = "User",
+    ROLE = "Role",
+    CATALOG = "Catalog",
+    PLAYLIST = "Playlist",
+    SERMON = "Sermon"
+}
+
+export enum ModelEnums {
+    USER = "User",
     ROLE = "Role"
+
 }
 
 
