@@ -1,5 +1,5 @@
 import { RegisterDTO } from "../dtos/auth.dto";
-import authMappers from "../mappers/auth.mapper";
+import authMapper from "../mappers/auth.mapper";
 import User from "../models/User.model";
 import { IResult } from "../utils/interface.util";
 import userService from "./user.service";
@@ -46,7 +46,7 @@ class AuthService {
       return this.handleInvalidCredentials(result);
     }
     const authToken = await user.getAuthToken();
-    const mappedData = await authMappers.mapRegisteredUser(user);
+    const mappedData = await authMapper.mapRegisteredUser(user);
     
     result.data = { ...mappedData, token: authToken };
     return result;

@@ -1,11 +1,39 @@
+import { ObjectId } from "mongoose";
+
 export interface RegisterDTO {
-    name: string,
-    age: number,
-    gender: string,
-    complexion: string,
-    functions: {
-        waalk: string,
-        sleep: string,
-        talk: string
-    }
+    firstName: string;
+    lastName: string;
+	email: string;
+	password: string;
+	phoneNumber: string;
+	phoneCode: string;
+	dateOfBirth: Date;
+	gender: string;
+}
+
+export interface MapRegisteredUserDTO {
+    id: ObjectId;
+
+    firstName: string;
+    lastName: string;
+	email: string;
+	phoneNumber: string;
+	phoneCode: string;
+	dateOfBirth: Date;
+	gender: string;
+	profileImage?: string;
+	device?: string;
+
+	passwordType: string;
+	userType: string;
+
+	isActivated: boolean;
+	isSuper: string;
+	isAdmin: string;
+	isCreator: string;
+	isUser: string;
+
+	isActive: boolean;
+	lastLogin: Date;
+    role: any
 }

@@ -1,10 +1,11 @@
 import { Model, Schema } from "mongoose";
 import { IUserDoc } from "../utils/interface.util";
-import { DbModels, UserType } from "../utils/enums.util";
+import { DbModels, ModelEnums, UserType } from "../utils/enums.util";
 import mongoose from "mongoose";
 import slugify from "slugify";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { Types } from "mongoose";
 
 const UserSchema = new Schema<IUserDoc>(
     {
@@ -45,6 +46,7 @@ const UserSchema = new Schema<IUserDoc>(
         isLocked: { type: Boolean, default: false },
         lockedUntil: { type: Date },
         lastLogin: { type: Date },
+        role: { type: Schema.Types.ObjectId, ref: DbModels.ROLE }
     },
     {
         timestamps: true,

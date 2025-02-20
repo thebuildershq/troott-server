@@ -7,7 +7,7 @@ export interface IRoleDoc extends Document {
     name: string,
     description: string,
     slug: string,
-    user: Array<ObjectId | any>
+    user: ObjectId | any
 	permissions: Array<string>
 
     createdAt: string,
@@ -65,7 +65,7 @@ export interface IUserDoc extends Document {
 	lastLogin: Date;
 
 	// relationships
-	roles: Array<ObjectId | any>;
+	role: ObjectId | any;
 
 	// functions
 	matchPassword(password: string): boolean;
@@ -93,6 +93,13 @@ export interface IData {
 	value: any;
 }
 
+export interface IResult {
+	error: boolean;
+	message: string;
+	code: number;
+	data: any;
+  }
+
 export interface ISearchQuery {
 	model: Model<any>;
 	ref: string | null | undefined;
@@ -104,7 +111,13 @@ export interface ISearchQuery {
 	operator: string | null;
 	fields?: Array<string>;
   }
-  
+
+export interface IResult {
+  error: boolean;
+  message: string;
+  code: number;
+  data: any;
+}
   export interface IPagination {
 	total: number;
 	count: number;
