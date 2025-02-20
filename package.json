@@ -15,6 +15,7 @@
   "description": "> StreamSqr provides audio streaming services worldwide, with a premium subscription offering and free ad-supported plan. The Premium segment offers unlimited online and offline streaming access to its catalogue of sermon, and sermon reels without commercial break.",
   "dependencies": {
     "@btffamily/pacitude": "^1.0.19",
+    "@sendgrid/mail": "^8.1.4",
     "@types/app-root-path": "^1.2.8",
     "@types/bcryptjs": "^2.4.6",
     "@types/body-parser": "^1.19.5",
