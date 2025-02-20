@@ -1,3 +1,4 @@
+import { Model } from 'mongoose'
 import {Document, ObjectId} from 'mongoose'
 
 
@@ -91,3 +92,26 @@ export interface IData {
 	key: string;
 	value: any;
 }
+
+export interface ISearchQuery {
+	model: Model<any>;
+	ref: string | null | undefined;
+	value: any | null | undefined;
+	data: any;
+	query: any;
+	queryParam: any;
+	populate: Array<any>;
+	operator: string | null;
+	fields?: Array<string>;
+  }
+  
+  export interface IPagination {
+	total: number;
+	count: number;
+	pagination: {
+	  next: { page: number; limit: number };
+	  prev: { page: number; limit: number };
+	};
+	data: Array<any>;
+  }
+  
