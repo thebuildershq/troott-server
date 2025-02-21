@@ -1,7 +1,7 @@
 import { Model } from 'mongoose'
 import {Document, ObjectId} from 'mongoose'
 
-
+export type Nullable<T> = T | null;
 export interface IRoleDoc extends Document {
 
     name: string,
@@ -16,7 +16,7 @@ export interface IRoleDoc extends Document {
     id: ObjectId
 
     getAll(): Array<IRoleDoc>
-    findByName(name: string): IRoleDoc | null
+    findByName(name: string): Nullable<IRoleDoc>
 }
 
 
@@ -29,7 +29,7 @@ export interface IUserDoc extends Document {
 
 	phoneNumber: string;
 	phoneCode: string;
-	
+
 	dateOfBirth: Date;
 	gender: string;
 	profileImage: string;
@@ -63,7 +63,7 @@ export interface IUserDoc extends Document {
 	isActive: boolean;
 	loginLimit: number;
 	isLocked: boolean;
-	lockedUntil: Date;
+	lockedUntil: Nullable<Date>
 	lastLogin: Date;
 
 	// relationships
@@ -104,13 +104,13 @@ export interface IResult {
 
 export interface ISearchQuery {
 	model: Model<any>;
-	ref: string | null | undefined;
-	value: any | null | undefined;
+	ref: Nullable<string> | undefined;
+	value: Nullable<any> | undefined;
 	data: any;
 	query: any;
 	queryParam: any;
 	populate: Array<any>;
-	operator: string | null;
+	operator: Nullable<string>;
 	fields?: Array<string>;
   }
 

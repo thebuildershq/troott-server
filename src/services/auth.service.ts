@@ -1,7 +1,9 @@
 import { RegisterDTO } from "../dtos/auth.dto";
 import authMapper from "../mappers/auth.mapper";
 import User from "../models/User.model";
-import { IResult } from "../utils/interface.util";
+import { generateRandomCode } from "../utils/helper.util";
+import { IResult, IUserDoc } from "../utils/interface.util";
+import emailService from "./email.service";
 import userService from "./user.service";
 
 const user = new User();
@@ -15,8 +17,8 @@ class AuthService {
    */
   public async validateRegister(data: RegisterDTO): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
-    const { email, password, firstName, lastName } = data;
-    this.validateEmailAndPassword(email, password, firstName, lastName, result);
+    const { email, password, firstName, lastName, dateOfBirth, gender }= data;
+    this.validateEmailAndPassword(email, password, firstName, lastName, dateOfBirth, gender, result);
 
     return result;
   }
@@ -36,21 +38,109 @@ class AuthService {
 
 
     if (!user) {
-      console.log("No User:", email)
       return this.handleInvalidCredentials(result);
+    }
 
+    if (user.isLocked && user.lockedUntil) {
+      const lockedUntilTimestamp = user.lockedUntil.getTime();
+      const nowTimestamp = Date.now();
+
+      if (lockedUntilTimestamp > nowTimestamp) {
+        const minutesRemaining = Math.floor(
+          (lockedUntilTimestamp - nowTimestamp) / 1000 / 60
+        );
+
+        return this.handleAccountLocked(result, minutesRemaining);
+      }
     }
 
     const isPasswordCorrect = await user.matchPassword(password);
     if (!isPasswordCorrect) {
+      await this.handleIncorrectPassword(user)
       return this.handleInvalidCredentials(result);
     }
+
+    if (!user.isActivated) {
+      return this.handleAccountNotActivated(result);
+    }
+
+    await this.resetLoginLimit(user);
     const authToken = await user.getAuthToken();
     const mappedData = await authMapper.mapRegisteredUser(user);
-    
     result.data = { ...mappedData, token: authToken };
+
     return result;
   }
+
+
+   /**
+   * @name sendVerificationEmail
+   * @param data
+   * @returns {Promise<IResult>}
+   */
+   public async sendVerificationCodeToEmail(data: RegisterDTO): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+    const { email } = data;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      result.error = true;
+      result.code = 404;
+      result.message = "user does not exist";
+      result.data = {};
+    } else {
+      const { activationCode, activationCodeExpire } = this.getActivationCode();
+      user.activationCode = activationCode;
+      user.activationCodeExpire = activationCodeExpire;
+      await user.save();
+
+      await emailService.sendEmail(
+        user.email,
+        "Verify Your Email",
+        `Your verification code is: ${activationCode}`,
+        `<p>Your verification code is:</p><h3>${activationCode}</h3>
+        <p>Please enter this code in the app to verify your email address.</p>`
+      );
+
+      result.message = "Verification code sent to your email successfully";
+    }
+
+    return result;
+  }
+
+
+
+  
+  /**
+   * @name sendVerificationEmail
+   * @param data
+   * @returns {Promise<IResult>}
+   */
+  public async sendVerificationEmail(data: RegisterDTO): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+    const { email } = data;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      result.error = true;
+      result.code = 404;
+      result.message = "user does not exist";
+      result.data = {};
+    } else {
+      const { activationCode, activationCodeExpire } = this.getActivationCode();
+      user.activationCode = activationCode;
+      user.activationCodeExpire = activationCodeExpire;
+      await user.save();
+      
+      await emailService.sendVerificationCodeEmail(user.email, activationCode);
+
+      result.message = "Verification email sent successfully";
+    }
+
+    return result;
+  }
+
+
 
   /**
    * @name validateEmailAndPassword
@@ -64,6 +154,8 @@ class AuthService {
     password: string,
     firstName: string,
     lastName: string,
+    dateOfBirth: Date,
+    gender: string,
     result: IResult
   ) {
     if (!email) {
@@ -91,17 +183,50 @@ class AuthService {
       result.error = true;
       result.message = "Last name is a required field";
       result.code = 400;
-    } 
-  
-    else {
+    } else if (!dateOfBirth) {
+      result.error = true;
+      result.message = "Date of birth is a required field";
+      result.code = 400;
+    } else if (!gender || !gender.trim()) {
+      result.error = true;
+      result.message = "Gender is a required field";
+      result.code = 400;
+    } else {
       result.error = false;
       result.message = "";
       result.code = 200;
     }
 
-    return console.log(result)
+    return result
   }
-  
+
+  private async handleAccountNotActivated(result: IResult) {
+    result.error = true;
+    result.message = "Your account is not activated";
+    result.code = 400;
+
+    return result;
+  }
+
+  private async handleIncorrectPassword(user: IUserDoc) {
+    user.loginLimit -= 1;
+    await user.save();
+
+    if (user.loginLimit === 0) {
+      user.isLocked = true;
+      user.lockedUntil = new Date(Date.now() + 5 * 60 * 1000);
+      await user.save();
+    }
+  }
+
+  private async handleAccountLocked(result: IResult, lockedUntil: number) {
+    result.error = true;
+    result.message = `Your account is locked. Try again in ${lockedUntil}`;
+    result.code = 401;
+
+    return result;
+  }
+
   private handleInvalidCredentials(result: IResult) {
     result.error = true;
     result.message = "Invalid Credentials";
@@ -110,6 +235,57 @@ class AuthService {
     return result;
   }
 
+
+  private async resetLoginLimit(user: IUserDoc) {
+    user.loginLimit = 5;
+    user.lockedUntil = null;
+    await user.save();
+  }
+
+  public getActivationCode() {
+    const activationCode = generateRandomCode(6);
+    const activationCodeExpire = new Date(Date.now() + 5 * 60 * 1000);
+    return {activationCode, activationCodeExpire};
+  }
+
+
+
+  public async verifyAccount(activationCode: string): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+    const user = await User.findOne({
+      activationCode,
+    });
+
+    if (!user) {
+      result.error = true;
+      result.code = 404;
+      result.message = "User not found";
+      result.data = {};
+    } else {
+      user.isActivated = true;
+      user.activationCode = "";
+      await user.save();
+    }
+
+    return result;
+  }
+
+  public async resendVerificationEmail(data: RegisterDTO): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+    const { email } = data;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      result.error = true;
+      result.code = 404;
+      result.message = "user does not exist";
+      result.data = {};
+    }
+
+    return result;
+  }
+  
+  
 }
 
 export default new AuthService();

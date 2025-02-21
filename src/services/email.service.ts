@@ -2,7 +2,6 @@ import sgMail from "@sendgrid/mail";
 import { IResult } from "../utils/interface.util";
 import appRootPath from "app-root-path";
 
-
 const BASE_FOLDER: string = `${appRootPath.path}/src`;
 class EmailService {
   private fromEmail: string;
@@ -65,22 +64,44 @@ class EmailService {
   }
 
   /**
+   * @name sendVerificationCodeEmail
+   * @description Sends a verification code email
+   * @param recipient - Recipient email address
+   * @param verificationCode - Verification code
+   * @returns {Promise<IResult>}
+   */
+  public async sendVerificationCodeEmail(
+    recipient: string,
+    verificationCode: string
+  ): Promise<IResult> {
+    const subject = "Your Verification Code";
+    const text = `Your verification code is: ${verificationCode}`;
+    const html = `
+      <p>Your verification code is:</p>
+      <h1>${verificationCode}</h1>
+      <p>Please enter this code on the app to verify your email address.</p>
+    `;
+
+    return await this.sendEmail(recipient, subject, text, html);
+  }
+
+  /**
    * @name sendPasswordForgotEmail
    * @description Sends a password forgot email
    * @param recipient - Recipient email address
-   * @param resetUrl - Password reset URL
+   * @param resetCode - Password reset code
    * @returns {Promise<IResult>}
    */
   public async sendPasswordForgotEmail(
     recipient: string,
-    resetUrl: string
+    resetCode: string
   ): Promise<IResult> {
     const subject = "Forgot Password Request";
-    const text = `You requested a password reset. Click the link below to reset your password: ${resetUrl}`;
+    const text = `Your password reset code is: ${resetCode}`;
     const html = `
-      <p>You requested a password reset.</p>
-      <p>Click the link below to reset your password:</p>
-      <a href="${resetUrl}">${resetUrl}</a>
+      <p>Your password reset code is:</p>
+      <h1>${resetCode}</h1>
+      <p>Please enter this code on the app to reset your password.</p>
     `;
 
     return await this.sendEmail(recipient, subject, text, html);
@@ -90,19 +111,19 @@ class EmailService {
    * @name sendPasswordResetEmail
    * @description Sends a password reset email
    * @param recipient - Recipient email address
-   * @param resetUrl - Password reset URL
+   * @param resetCode - Password reset code
    * @returns {Promise<IResult>}
    */
   public async sendPasswordResetEmail(
     recipient: string,
-    resetUrl: string
+    resetCode: string
   ): Promise<IResult> {
     const subject = "Password Reset Request";
-    const text = `You requested a password reset. Click the link below to reset your password: ${resetUrl}`;
+    const text = `Your password reset code is: ${resetCode}`;
     const html = `
-      <p>You requested a password reset.</p>
-      <p>Click the link below to reset your password:</p>
-      <a href="${resetUrl}">${resetUrl}</a>
+      <p>Your password reset code is:</p>
+      <h1>${resetCode}</h1>
+      <p>Please enter this code on the app to reset your password.</p>
     `;
 
     return await this.sendEmail(recipient, subject, text, html);
