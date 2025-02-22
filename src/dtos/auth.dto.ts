@@ -7,6 +7,16 @@ export interface RegisterDTO {
 	password: string;
 	dateOfBirth: Date;
 	gender: string;
+	userType: string;
+}
+
+export interface EditUserDTO {
+	firstName: string;
+	lastName: string;
+	email: string;
+	phoneNumber: string;
+	phoneCode: string;
+	dateOfBirth: Date
 }
 
 export interface MapRegisteredUserDTO {

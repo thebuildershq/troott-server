@@ -72,44 +72,6 @@ class AuthService {
     return result;
   }
 
-
-   /**
-   * @name sendVerificationEmail
-   * @param data
-   * @returns {Promise<IResult>}
-   */
-   public async sendVerificationCodeToEmail(data: RegisterDTO): Promise<IResult> {
-    let result: IResult = { error: false, message: "", code: 200, data: {} };
-    const { email } = data;
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      result.error = true;
-      result.code = 404;
-      result.message = "user does not exist";
-      result.data = {};
-    } else {
-      const { activationCode, activationCodeExpire } = this.getActivationCode();
-      user.activationCode = activationCode;
-      user.activationCodeExpire = activationCodeExpire;
-      await user.save();
-
-      await emailService.sendEmail(
-        user.email,
-        "Verify Your Email",
-        `Your verification code is: ${activationCode}`,
-        `<p>Your verification code is:</p><h3>${activationCode}</h3>
-        <p>Please enter this code in the app to verify your email address.</p>`
-      );
-
-      result.message = "Verification code sent to your email successfully";
-    }
-
-    return result;
-  }
-
-
-
   
   /**
    * @name sendVerificationEmail
@@ -132,8 +94,7 @@ class AuthService {
       user.activationCodeExpire = activationCodeExpire;
       await user.save();
       
-      await emailService.sendVerificationCodeEmail(user.email, activationCode);
-
+      await emailService.sendVerificationCodeEmail(user.email, activationCode, user.firstName);
       result.message = "Verification email sent successfully";
     }
 
@@ -269,22 +230,6 @@ class AuthService {
 
     return result;
   }
-
-  public async resendVerificationEmail(data: RegisterDTO): Promise<IResult> {
-    let result: IResult = { error: false, message: "", code: 200, data: {} };
-    const { email } = data;
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      result.error = true;
-      result.code = 404;
-      result.message = "user does not exist";
-      result.data = {};
-    }
-
-    return result;
-  }
-  
   
 }
 

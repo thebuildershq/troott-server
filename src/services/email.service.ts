@@ -72,11 +72,13 @@ class EmailService {
    */
   public async sendVerificationCodeEmail(
     recipient: string,
-    verificationCode: string
+    verificationCode: string,
+    firstName: string
   ): Promise<IResult> {
     const subject = "Your Verification Code";
-    const text = `Your verification code is: ${verificationCode}`;
+    const text = `Hi ${firstName}, Your verification code is: ${verificationCode}`;
     const html = `
+      <p>Hi ${firstName},</p>
       <p>Your verification code is:</p>
       <h1>${verificationCode}</h1>
       <p>Please enter this code on the app to verify your email address.</p>
@@ -130,6 +132,28 @@ class EmailService {
   }
 
   /**
+   * @name sendWelcomeEmail
+   * @description Sends a welcome email to the new user
+   * @param recipient - Recipient email address
+   * @param firstName - First name of the recipient
+   * @returns {Promise<IResult>}
+   */
+  public async sendWelcomeEmail(
+    recipient: string,
+    firstName: string
+  ): Promise<IResult> {
+    const subject = "Welcome to Our Service!";
+    const text = `Hi ${firstName},\n\nWelcome to our service! We're excited to have you on board.`;
+    const html = `
+      <p>Hi ${firstName},</p>
+      <p>Welcome to our service! We're excited to have you on board.</p>
+      <p>Feel free to explore and let us know if you have any questions.</p>
+    `;
+
+    return await this.sendEmail(recipient, subject, text, html);
+  }
+
+  /**
    * @name validateEmail
    * @description Validates an email address format
    * @param email - Email address to validate
@@ -142,3 +166,23 @@ class EmailService {
 }
 
 export default new EmailService();
+
+
+/***
+ * send creator verification status in review
+ * send creator verification status accepted
+ * send creator verification status rejection
+ * 
+ * send admin login invite (email, password)
+ * 
+ * send listener welcome email
+ * send creator welcome email
+ * send admin welcome email
+ * 
+ * send listener | creator | admin password reset email
+ * 
+ * send new sermon notification to listeners
+ * send new playlist notification to listeners
+ * 
+ * 
+ */

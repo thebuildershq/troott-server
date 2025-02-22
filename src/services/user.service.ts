@@ -1,6 +1,7 @@
 import { CreateUserDTO, EditUserDTO } from "../dtos/user.dto";
 import Role from "../models/Role.model";
 import User from "../models/User.model";
+import { UserType } from "../utils/enums.util";
 import ErrorResponse from "../utils/error.util";
 import { IUserDoc } from "../utils/interface.util";
 
@@ -126,6 +127,20 @@ class UserService {
       throw new ErrorResponse(`Role ${role} does not exist.`, 400, []);
     }
   }
+
+  
+  /**
+   * @name checkUserRole
+   * @description Checks if the user has the specified role
+   * @param user - User document
+   * @param role - Role to check
+   * @returns {boolean}
+   */
+  public async checkUserRole(user: IUserDoc, role: UserType): Promise<boolean> {
+    const populatedUser = await user.populate('role');
+    return populatedUser.role.name === role;
+  }
+
 }
 
 export default new UserService();
