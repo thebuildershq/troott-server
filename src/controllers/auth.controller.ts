@@ -22,8 +22,6 @@ export const registerUser = asyncHandler(
       lastName,
       email,
       password,
-      dateOfBirth,
-      gender,
       userType,
     }: RegisterDTO = req.body;
     const validate = await AuthService.validateRegister(req.body);
@@ -41,7 +39,7 @@ export const registerUser = asyncHandler(
 
     if (isSuperadmin) {
       return next(
-        new ErrorResponse("Error", 400, ["user already exists, use another email"])
+        new ErrorResponse("Error", 400, ["use another email"])
       );
     }
 
@@ -69,8 +67,6 @@ export const registerUser = asyncHandler(
       lastName,
       email,
       password,
-      dateOfBirth,
-      gender,
       userType,
       role,
     });

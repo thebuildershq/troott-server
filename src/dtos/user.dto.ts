@@ -5,12 +5,12 @@ export interface CreateUserDTO {
     lastName: string;
     email: string;
     password: string;
-
-    dateOfBirth: Date;
-    gender: string;
+ 
     userType: string;
     role: ObjectId | any;
 
+    dateOfBirth?: Date;
+    gender?: string;
     phoneNumber?: string;
     phoneCode?: string;
 
