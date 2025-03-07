@@ -17,8 +17,8 @@ class AuthService {
    */
   public async validateRegister(data: RegisterDTO): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
-    const { email, password, firstName, lastName, dateOfBirth, gender }= data;
-    this.validateEmailAndPassword(email, password, firstName, lastName, dateOfBirth, gender, result);
+    const { email, password, firstName, lastName }= data;
+    this.validateEmailAndPassword(email, password, firstName, lastName,result);
 
     return result;
   }
@@ -32,11 +32,11 @@ class AuthService {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
     const { email, password } = data;
 
-    const user = await User.findOne({ email }).populate([
+
+     const user = await User.findOne({ email }).populate([
       { path: "role", select: "name permissions" },
      ]);
-
-
+     
     if (!user) {
       return this.handleInvalidCredentials(result);
     }
@@ -82,11 +82,11 @@ class AuthService {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
     const { email } = data;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
     if (!user) {
       result.error = true;
       result.code = 404;
-      result.message = "user does not exist";
+      result.message = "user does not exist, please register";
       result.data = {};
     } else {
       const { activationCode, activationCodeExpire } = this.getActivationCode();
@@ -115,8 +115,6 @@ class AuthService {
     password: string,
     firstName: string,
     lastName: string,
-    dateOfBirth: Date,
-    gender: string,
     result: IResult
   ) {
     if (!email) {
@@ -143,14 +141,6 @@ class AuthService {
     } else if (!lastName || !lastName?.trim()) {
       result.error = true;
       result.message = "Last name is a required field";
-      result.code = 400;
-    } else if (!dateOfBirth) {
-      result.error = true;
-      result.message = "Date of birth is a required field";
-      result.code = 400;
-    } else if (!gender || !gender.trim()) {
-      result.error = true;
-      result.message = "Gender is a required field";
       result.code = 400;
     } else {
       result.error = false;

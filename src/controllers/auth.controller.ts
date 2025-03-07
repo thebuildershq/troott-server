@@ -8,6 +8,7 @@ import userService from "../services/user.service";
 import { UserType } from "../utils/enums.util";
 import AuthService from "../services/auth.service";
 import emailService from "../services/email.service";
+import tokenService from "../services/token.service";
 
 /**
  * @name registerUser
@@ -17,13 +18,8 @@ import emailService from "../services/email.service";
  */
 export const registerUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const {
-      firstName,
-      lastName,
-      email,
-      password,
-      userType,
-    }: RegisterDTO = req.body;
+    const { firstName, lastName, email, password, userType }: RegisterDTO =
+      req.body;
     const validate = await AuthService.validateRegister(req.body);
 
     if (validate.error) {
@@ -38,9 +34,7 @@ export const registerUser = asyncHandler(
     });
 
     if (isSuperadmin) {
-      return next(
-        new ErrorResponse("Error", 400, ["use another email"])
-      );
+      return next(new ErrorResponse("Error", 400, ["use another email"]));
     }
 
     const existingUser = await User.findOne({ email });
@@ -97,6 +91,7 @@ export const registerUser = asyncHandler(
   }
 );
 
+
 /**
  * @name loginUser
  * @description Logs in a user
@@ -107,35 +102,26 @@ export const loginUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
 
-    // Check if user exists
-    const user = await User.findOne({ email }).select("+password");
-    if (!user) {
+    const validate = await AuthService.validateLogin(req.body);
+
+    if (validate.error) {
       return next(
-        new ErrorResponse("error", 401, [
-          "User doesn't exist, please register",
-        ])
+        new ErrorResponse("Error", validate.code!, [validate.message])
       );
     }
+    
+    const tokenResult = await tokenService.attachToken(validate.data.user);
 
-
-
-    // Check if password matches
-    const isMatch = await user.matchPassword(password);
-    if (!isMatch) {
+    if (tokenResult.error) {
       return next(
-        new ErrorResponse("Invalid credentials", 401, [
-          "Invalid email or password",
-        ])
+        new ErrorResponse("Error", tokenResult.code!, [tokenResult.message])
       );
     }
-
-    // Generate token
-    const token = user.getAuthToken();
 
     res.status(200).json({
       error: false,
       errors: [],
-      data: { token },
+      data: { token: tokenResult.data.token},
       message: "User logged in successfully.",
       status: 200,
     });
@@ -143,3 +129,60 @@ export const loginUser = asyncHandler(
 );
 
 
+/**
+ * @name logoutUser
+ * @description Logs out a user and invalidates the session/token
+ * @route POST /api/auth/logout
+ * @access Private
+ */
+export const logoutUser = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return next(new ErrorResponse("error", 400, ["No token provided"]));
+    }
+
+    try {
+      await tokenService.invalidateToken(token); // Assuming you have a method to invalidate the token
+      res.status(200).json({
+        error: false,
+        errors: [],
+        message: "User logged out successfully.",
+        status: 200,
+      });
+    } catch (error) {
+      return next(new ErrorResponse("error", 500, ["Failed to log out user"]));
+    }
+  }
+);
+
+
+/**
+ * @name refreshToken
+ * @description Refreshes the authentication token
+ * @route POST /api/auth/refresh
+ * @access Private
+ */
+export const refreshToken = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return next(new ErrorResponse("error", 400, ["No token provided"]));
+    }
+
+    try {
+      const newToken = await tokenService.getAuthToken(token); // Assuming you have a method to refresh the token
+      res.status(200).json({
+        error: false,
+        errors: [],
+        data: { token: newToken },
+        message: "Token refreshed successfully.",
+        status: 200,
+      });
+    } catch (error) {
+      return next(new ErrorResponse("error", 500, ["Failed to refresh token"]));
+    }
+  }
+);

@@ -1,5 +1,3 @@
-
-
 import colors from 'colors'
 import { LogRequestDTO } from '../dtos/system.dto';
 
@@ -10,7 +8,7 @@ class Logger {
 
 /**
  * @name log
- * @description logs out the data aupplied to console
+ * @description logs out the data applied to console
  * @param payload
  * @returns {void} - void
  */

@@ -1,11 +1,9 @@
 import { Model, Schema } from "mongoose";
 import { IUserDoc } from "../utils/interface.util";
-import { DbModels, ModelEnums, UserType } from "../utils/enums.util";
+import { DbModels, UserType } from "../utils/enums.util";
 import mongoose from "mongoose";
-import slugify from "slugify";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import { Types } from "mongoose";
+import tokenService from "../services/token.service";
 
 const UserSchema = new Schema<IUserDoc>(
     {
@@ -26,15 +24,13 @@ const UserSchema = new Schema<IUserDoc>(
 
         activationCode: { type: String },
         activationCodeExpire: { type: Date },
-        activationToken: { type: String },
-        activationTokenExpire: { type: Date },
+        accessToken: { type: String },
+        accessTokenExpire: { type: Date },
 
         resetPasswordToken: { type: String },
         resetPasswordTokenExpire: { type: Date },
         emailCode: { type: String },
         emailCodeExpire: { type: Date },
-        inviteToken: { type: String },
-        inviteTokenExpire: { type: Date },
 
         isSuper: { type: String },
         isActivated: { type: Boolean, default: false },
@@ -79,37 +75,13 @@ UserSchema.methods.matchPassword = async function (password: string) {
 };
 
 UserSchema.methods.getAuthToken = async function () {
-
-  const secret = process.env.JWT_SECRET as string
-  const expire = process.env.JWT_EXPIRY as string
-
-  
-  let token: string = "";
-
-  if (!secret ) {
-    throw new Error("JWT_SECRET is not defined.");
+  const result = await tokenService.attachToken(this as IUserDoc);
+  if (result.error) {
+    throw new Error(result.message);
   }
-  if (!expire) {
-    throw new Error("JWT_EXPIRY is not defined.");
-  }
-   token = await jwt.sign(
-    {
-      id: this._id,
-      email: this.email,
-      isSuper: this.isSuper,
-      isAdmin: this.isAdmin,
-      isUser: this.isUser,
-      role: this.role,
-    },
-    secret,
-    {
-      algorithm: "HS512",
-      expiresIn: process.env.JWT_EXPIRY,
-    }
-  );
-
-  return token;
+  return result.data.token;
 };
+
 
 UserSchema.statics.getUsers = async () => {
     return await User.find({});
@@ -120,7 +92,9 @@ UserSchema.statics.getUsers = async () => {
     return User ? User : null;
   };
   
-const User: Model<IUserDoc> = mongoose.model<IUserDoc>(DbModels.USER, UserSchema);
-
+const User: Model<IUserDoc> = mongoose.model<IUserDoc>(
+  DbModels.USER, 
+  UserSchema
+);
 
 export default User

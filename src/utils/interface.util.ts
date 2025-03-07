@@ -27,6 +27,7 @@ export interface IUserDoc extends Document {
 	email: string;
 	password: string;
 
+	country: string
 	phoneNumber: string;
 	phoneCode: string;
 
@@ -42,17 +43,14 @@ export interface IUserDoc extends Document {
 	activationCode: string;
 	activationCodeExpire: Date
 
-	activationToken: string
-	activationTokenExpire: Date
-
+	accessToken: string
+	accessTokenExpirationDate: Date
+	
 	resetPasswordToken: string
 	resetPasswordTokenExpire: Date;
 
 	emailCode: string
 	emailCodeExpire: Date | number
-
-	inviteToken: string
-	inviteTokenExpire: Date
 
 	isActivated: boolean;
 	isSuper: string;
