@@ -156,6 +156,50 @@ class EmailService {
   }
 
   /**
+   * @name sendPasswordResetSuccessEmail
+   * @description Sends a password reset success email
+   * @param recipient - Recipient email address
+   * @param firstName - First name of the recipient
+   * @returns {Promise<IResult>}
+   */
+  public async sendPasswordResetSuccessEmail(
+    recipient: string,
+    firstName: string
+  ): Promise<IResult> {
+    const subject = "Password Reset Successful";
+    const text = `Hi ${firstName},\n\nYour password has been reset successfully. If you did not request this change, please contact our support team immediately.`;
+    const html = `
+      <p>Hi ${firstName},</p>
+      <p>Your password has been reset successfully. If you did not request this change, please contact our support team immediately.</p>
+    `;
+
+    return await this.sendEmail(recipient, subject, text, html);
+  }
+
+
+  /**
+   * @name sendPasswordChangedSuccessEmail
+   * @description Sends a password changed success email
+   * @param recipient - Recipient email address
+   * @param firstName - First name of the recipient
+   * @returns {Promise<IResult>}
+   */
+  public async sendPasswordChangedSuccessEmail(
+    recipient: string,
+    firstName: string
+  ): Promise<IResult> {
+    const subject = "Password Changed Successfully";
+    const text = `Hi ${firstName},\n\nYour password has been changed successfully. If you did not request this change, please contact our support team immediately.`;
+    const html = `
+      <p>Hi ${firstName},</p>
+      <p>Your password has been changed successfully. If you did not request this change, please contact our support team immediately.</p>
+    `;
+
+    return await this.sendEmail(recipient, subject, text, html);
+  }
+
+
+  /**
    * @name validateEmail
    * @description Validates an email address format
    * @param email - Email address to validate

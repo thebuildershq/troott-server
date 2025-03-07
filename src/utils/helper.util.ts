@@ -42,7 +42,7 @@ export const generateRandomCode = (length: number = 6) => {
     
     const shuffle = (str: string) => 
       str.split('').sort(() => 
-      0.5 - Math.random()).join('');
+      0.5 - Math.random()  * 1000000).join('');
   
     const shuffledChars = shuffle(allChars);
   

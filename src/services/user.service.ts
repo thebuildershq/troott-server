@@ -4,6 +4,7 @@ import User from "../models/User.model";
 import { UserType } from "../utils/enums.util";
 import ErrorResponse from "../utils/error.util";
 import { IUserDoc } from "../utils/interface.util";
+import bcrypt from 'bcryptjs';
 
 class UserService {
   constructor() {}
@@ -141,6 +142,16 @@ class UserService {
     return populatedUser.role.name === role;
   }
 
+  /**
+   * @name hashPassword
+   * @param password
+   * @returns {Promise<string>}
+   */
+  public async hashPassword(password: string): Promise<string> {
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    return hashedPassword;
+  }
 }
 
 export default new UserService();

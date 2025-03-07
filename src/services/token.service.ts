@@ -46,7 +46,7 @@ class TokenService {
     return result;
   }
 
-  
+
   public async refreshToken(accessToken: string): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
@@ -97,6 +97,24 @@ class TokenService {
 
     return timeLeft <= 5 * 60 * 60 * 1000;
   }
+
+  public async detachToken(user: IUserDoc): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    try {
+      await User
+        .findByIdAndUpdate(user.id, { accessToken: "" }); 
+      result.message = "Token detached successfully";
+    } catch (error: any) {
+      result.error = true;
+      result.code = 500;
+      result.message = `Failed to detach token: ${error.message}`;
+    }
+
+    return result
+  }
+
+
 }
 
 export default new TokenService();

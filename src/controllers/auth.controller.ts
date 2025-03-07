@@ -11,6 +11,7 @@ import emailService from "../services/email.service";
 import tokenService from "../services/token.service";
 import { generateRandomCode } from "../utils/helper.util";
 import { IUserDoc } from "../utils/interface.util";
+import otpService from "../services/otp.service";
 
 /**
  * @name registerUser
@@ -137,6 +138,8 @@ export const loginUser = asyncHandler(
  */
 export const logoutUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
+
+    
     return res.status(200).json({
       error: false,
       errors: [],
@@ -177,8 +180,6 @@ export const refreshToken = asyncHandler(
 );
 
 
-
-
 /**
  * @name forgotPassword
  * @description Allows user request to a link to reset their password
@@ -200,9 +201,9 @@ export const forgotPassword = asyncHandler(
       );
     }
 
-    const resetToken = generateRandomCode(6);
-    user.resetPasswordToken = resetToken;
-    user.resetPasswordTokenExpirationDate = new Date(
+    const forgotPasswordCode = generateRandomCode(6);
+    user.forgotOTP = forgotPasswordCode ;
+    user.forgotOTPExpirationDate = new Date(
       Date.now() + 15 * 60 * 1000
     );
 
@@ -211,7 +212,7 @@ export const forgotPassword = asyncHandler(
     const emailResult = await emailService.sendPasswordForgotEmail(
       user.email,
       user.firstName,
-      resetToken
+      forgotPasswordCode 
     );
 
     if (emailResult.error) {
@@ -225,6 +226,60 @@ export const forgotPassword = asyncHandler(
       errors: [],
       data: {},
       message: "Forgot Password link sent to your email",
+      status: 200,
+    });
+  }
+);
+
+
+/**
+ * @name resetPassword
+ * @description Allows user request to a link to reset their password
+ * @route POST /auth/forgot-password
+ * @access  Public
+ */
+export const resetPassword = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email, resetCode, newPassword } = req.body;
+
+    if (!emailService.validateEmail(email as string)) {
+      return next(new ErrorResponse("Invalid email format.", 400, []));
+    }
+
+    const validate = await otpService.verifyResetCode(email as string, resetCode)
+      if (validate.error) {
+        return next(new ErrorResponse("Error", validate.code, [validate.message]));
+      }
+    
+    const user = await User.findOne({ email });
+    if (!user) {
+      return next(
+        new ErrorResponse("Error", 404, ["User with this email does not exist"])
+      );
+    }
+
+    user.password = await userService.hashPassword(newPassword);
+    user.resetOTP = "";
+    user.resetOTPExpirationDate = new Date()
+    await user.save();
+
+
+    const emailResult = await emailService.sendPasswordResetSuccessEmail(
+      user.email,
+      user.firstName,
+    );
+
+    if (emailResult.error) {
+      return next(
+        new ErrorResponse("Error", emailResult.code, [emailResult.message])
+      );
+    }
+
+    res.status(200).json({
+      error: false,
+      errors: [],
+      data: {},
+      message: "Password reset successfully",
       status: 200,
     });
   }
@@ -266,12 +321,53 @@ export const changePassword = asyncHandler(
     user.password = newPassword;
     await user.save();
 
+    const sendEmail = await emailService.sendPasswordResetSuccessEmail(
+      user.email,
+      user.firstName,
+    );
+
+    if (sendEmail.error) {
+      return next(
+        new ErrorResponse("Error", sendEmail.code, [sendEmail.message])
+      );
+    }
+
     res.status(200).json({
       error: false,
       errors: [],
       data: {},
       message: "Password changed successfully",
       status: 200,
+    });
+  }
+);
+
+
+
+/**
+ * @name verifyResetCode
+ * @description API endpoint to verify the password reset code.
+ * @route POST /auth/verify-reset-code
+ * @access Public
+ */
+export const verifyResetCodeController = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email, resetCode } = req.body;
+
+    if (!email || !resetCode) {
+      return next(new ErrorResponse("Email and reset code are required", 400, []));
+    }
+
+    const result = await otpService.verifyResetCode(email, resetCode);
+
+    if (result.error) {
+      return next(new ErrorResponse("Error", result.code, [result.message]));
+    }
+
+    res.status(200).json({
+      error: false,
+      message: result.message,
+      data: {},
     });
   }
 );
