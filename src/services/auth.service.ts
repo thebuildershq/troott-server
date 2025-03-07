@@ -17,8 +17,8 @@ class AuthService {
    */
   public async validateRegister(data: RegisterDTO): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
-    const { email, password, firstName, lastName }= data;
-    this.validateEmailAndPassword(email, password, firstName, lastName,result);
+    const { email, password, firstName, lastName } = data;
+    this.validateEmailAndPassword(email, password, firstName, lastName, result);
 
     return result;
   }
@@ -32,11 +32,10 @@ class AuthService {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
     const { email, password } = data;
 
-
-     const user = await User.findOne({ email }).populate([
+    const user = await User.findOne({ email }).populate([
       { path: "role", select: "name permissions" },
-     ]);
-     
+    ]);
+
     if (!user) {
       return this.handleInvalidCredentials(result);
     }
@@ -56,7 +55,7 @@ class AuthService {
 
     const isPasswordCorrect = await user.matchPassword(password);
     if (!isPasswordCorrect) {
-      await this.handleIncorrectPassword(user)
+      await this.handleIncorrectPassword(user);
       return this.handleInvalidCredentials(result);
     }
 
@@ -72,7 +71,6 @@ class AuthService {
     return result;
   }
 
-  
   /**
    * @name sendVerificationEmail
    * @param data
@@ -91,17 +89,73 @@ class AuthService {
     } else {
       const { activationCode, activationCodeExpire } = this.getActivationCode();
       user.activationCode = activationCode;
-      user.activationCodeExpire = activationCodeExpire;
+      user.activationCodeExpirationDate = activationCodeExpire;
       await user.save();
-      
-      await emailService.sendVerificationCodeEmail(user.email, activationCode, user.firstName);
+
+      await emailService.sendVerificationCodeEmail(
+        user.email,
+        activationCode,
+        user.firstName
+      );
       result.message = "Verification email sent successfully";
     }
 
     return result;
   }
 
+  /**
+   * @name verifyActivationCode
+   * @param user
+   * @param activationCode
+   * @returns {Promise<IResult>}
+   */
+  public async verifyActivationCode(user: IUserDoc, activationCode: string): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+    
+    if (user.activationCode !== activationCode) {
+      result.error = true;
+      result.code = 400;
+      result.message = "Invalid activation code";
+      result.data = {};
+    } else if (user.activationCodeExpirationDate && user.activationCodeExpirationDate < new Date()) {
+      result.error = true;
+      result.code = 400;
+      result.message = "Activation code has expired";
+      result.data = {};
+    } else {
+      user.isActivated = true;
+      user.activationCode = "";
+      user.activationCodeExpirationDate = new Date();
+      await user.save();
+      result.message = "User activated successfully";
+    }
 
+    return result;
+  }
+
+
+  /**
+   * @name activateUser
+   * @param email
+   * @returns {Promise<IResult>}
+   */
+  public async activateUser(email: string): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      result.error = true;
+      result.code = 404;
+      result.message = "User not found";
+      result.data = {};
+    } else {
+      user.isActivated = true;
+      await user.save();
+      result.message = "User activated successfully";
+    }
+
+    return result;
+  }
 
   /**
    * @name validateEmailAndPassword
@@ -125,7 +179,7 @@ class AuthService {
       result.error = true;
       result.message = "password is required";
       result.code = 400;
-    }     else if (!userService.checkEmail(email)) {
+    } else if (!userService.checkEmail(email)) {
       result.error = true;
       result.message = "invalid email supplied";
       result.code = 400;
@@ -148,7 +202,7 @@ class AuthService {
       result.code = 200;
     }
 
-    return result
+    return result;
   }
 
   private async handleAccountNotActivated(result: IResult) {
@@ -186,7 +240,6 @@ class AuthService {
     return result;
   }
 
-
   private async resetLoginLimit(user: IUserDoc) {
     user.loginLimit = 5;
     user.lockedUntil = null;
@@ -196,10 +249,8 @@ class AuthService {
   public getActivationCode() {
     const activationCode = generateRandomCode(6);
     const activationCodeExpire = new Date(Date.now() + 5 * 60 * 1000);
-    return {activationCode, activationCodeExpire};
+    return { activationCode, activationCodeExpire };
   }
-
-
 
   public async verifyAccount(activationCode: string): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
@@ -220,9 +271,6 @@ class AuthService {
 
     return result;
   }
-  
 }
 
 export default new AuthService();
-
-    

@@ -40,8 +40,12 @@ export interface IUserDoc extends Document {
 	savedPassword: string;
 	userType: string;
 
+	favouritePreachers: Array<string>
+
+
+
 	activationCode: string;
-	activationCodeExpire: Date
+	activationCodeExpirationDate: Date
 
 	accessToken: string
 	accessTokenExpirationDate: Date

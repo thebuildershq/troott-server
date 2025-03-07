@@ -37,7 +37,7 @@ export const registerUser = asyncHandler(
     });
 
     if (isSuperadmin) {
-      return next(new ErrorResponse("Error", 400, ["use another email"]));
+      return next(new ErrorResponse("Error", 400, ["you cannot use this email, user already exist"]));
     }
 
     const existingUser = await User.findOne({ email });
@@ -77,8 +77,14 @@ export const registerUser = asyncHandler(
     }
 
     user.activationCode = activateInfo.data.verificationCode;
-    user.activationCodeExpire = activateInfo.data.verificationCodeExpire;
+    user.activationCodeExpirationDate = activateInfo.data.verificationCodeExpire;
+    
+    await AuthService.verifyActivationCode(user, activateInfo.data.verificationCode)
+
+
     await user.save();
+
+
 
     const mappedUser = await authMapper.mapRegisteredUser(user);
 
@@ -93,6 +99,11 @@ export const registerUser = asyncHandler(
     });
   }
 );
+
+
+
+
+
 
 /**
  * @name loginUser
@@ -159,7 +170,6 @@ export const logoutUser = asyncHandler(
     });
   }
 );
-
 
 
 /**
@@ -361,7 +371,7 @@ export const changePassword = asyncHandler(
  * @route POST /auth/verify-reset-code
  * @access Public
  */
-export const verifyResetCodeController = asyncHandler(
+export const verifyResetCode = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { email, resetCode } = req.body;
 
