@@ -46,6 +46,7 @@ class TokenService {
     return result;
   }
 
+  
   public async refreshToken(accessToken: string): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 

@@ -146,6 +146,39 @@ export const logoutUser = asyncHandler(
   }
 );
 
+
+
+/**
+ * @name RefreshToken
+ * @description Automatically generates a new token for a user if the current token is near expiry
+ * @route POST /auth/token
+ * @access Private
+ */
+export const refreshToken = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const accessToken = req.headers.authorization?.split(" ")[1];
+
+    if (!accessToken) {
+      return next(new ErrorResponse("Unauthorized", 401, ["Access token required"]));
+    }
+
+    const result = await tokenService.refreshToken(accessToken);
+
+    if (result.error) {
+      return next(new ErrorResponse("Error", result.code, [result.message]));
+    }
+
+    res.status(200).json({
+      error: false,
+      message: {"message": result.message},
+      data: { token: result.data.token },
+    });
+  }
+);
+
+
+
+
 /**
  * @name forgotPassword
  * @description Allows user request to a link to reset their password
