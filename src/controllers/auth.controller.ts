@@ -139,7 +139,18 @@ export const loginUser = asyncHandler(
 export const logoutUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
 
-    
+    const userId = (req as any).user.id as IUserDoc;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return next(new ErrorResponse("Error", 404, ["User not found"]));
+    }
+
+    const result = await tokenService.detachToken(user);
+
+    if (result.error) {
+      return next(new ErrorResponse("Error", result.code, [result.message]));
+    }
     return res.status(200).json({
       error: false,
       errors: [],
