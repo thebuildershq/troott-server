@@ -40,7 +40,7 @@ export interface IUserDoc extends Document {
 	savedPassword: string;
 	userType: string;
 
-	favouritePreachers: Array<string>
+	favoritePreachers: Array<string>
 
 
 
@@ -134,3 +134,18 @@ export interface IResult {
 	data: Array<any>;
   }
   
+
+  export interface IPreacher extends Document {
+	name: string;
+	bio: string;
+	churchName: string;
+	profileImage: string;
+	sermons: Array<string>; 
+	bites: Array<string>;
+	followers: Array<string>;
+	topSermons: Array<string>;
+	topBites: Array<string>;
+	monthlyListeners: number;
+	createdAt: Date;
+	updatedAt: Date;
+  }

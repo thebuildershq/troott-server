@@ -13,7 +13,7 @@ export interface CreateUserDTO {
     gender?: string;
     phoneNumber?: string;
     phoneCode?: string;
-
+    
     profileImage?: string;
     device?: string;
     isActivated?: boolean;

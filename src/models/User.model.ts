@@ -26,6 +26,7 @@ const UserSchema = new Schema<IUserDoc>(
         activationCodeExpire: { type: Date },
         accessToken: { type: String },
         accessTokenExpire: { type: Date },
+        favoritePreachers: {},
 
         resetPasswordToken: { type: String },
         resetPasswordTokenExpire: { type: Date },

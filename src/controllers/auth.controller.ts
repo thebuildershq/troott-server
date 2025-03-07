@@ -12,6 +12,8 @@ import tokenService from "../services/token.service";
 import { generateRandomCode } from "../utils/helper.util";
 import { IUserDoc } from "../utils/interface.util";
 import otpService from "../services/otp.service";
+import { PreferenceService } from "../services/preferences.service";
+
 
 /**
  * @name registerUser
@@ -79,12 +81,14 @@ export const registerUser = asyncHandler(
     user.activationCode = activateInfo.data.verificationCode;
     user.activationCodeExpirationDate = activateInfo.data.verificationCodeExpire;
     
-    await AuthService.verifyActivationCode(user, activateInfo.data.verificationCode)
-
-
+    const verifyCode = await AuthService.verifyActivationCode(user, activateInfo.data.verificationCode)
+      if (verifyCode.error) {
+      return next(
+        new ErrorResponse("Error", verifyCode.code!, [verifyCode.message])
+      );
+    }
+    
     await user.save();
-
-
 
     const mappedUser = await authMapper.mapRegisteredUser(user);
 
