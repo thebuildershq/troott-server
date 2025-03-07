@@ -47,7 +47,7 @@ export interface IUserDoc extends Document {
 	accessTokenExpirationDate: Date
 	
 	resetPasswordToken: string
-	resetPasswordTokenExpire: Date;
+	resetPasswordTokenExpirationDate: Date;
 
 	emailCode: string
 	emailCodeExpire: Date | number

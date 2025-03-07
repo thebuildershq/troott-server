@@ -9,6 +9,8 @@ import { UserType } from "../utils/enums.util";
 import AuthService from "../services/auth.service";
 import emailService from "../services/email.service";
 import tokenService from "../services/token.service";
+import { generateRandomCode } from "../utils/helper.util";
+import { IUserDoc } from "../utils/interface.util";
 
 /**
  * @name registerUser
@@ -91,7 +93,6 @@ export const registerUser = asyncHandler(
   }
 );
 
-
 /**
  * @name loginUser
  * @description Logs in a user
@@ -109,7 +110,7 @@ export const loginUser = asyncHandler(
         new ErrorResponse("Error", validate.code!, [validate.message])
       );
     }
-    
+
     const tokenResult = await tokenService.attachToken(validate.data.user);
 
     if (tokenResult.error) {
@@ -121,13 +122,12 @@ export const loginUser = asyncHandler(
     res.status(200).json({
       error: false,
       errors: [],
-      data: { token: tokenResult.data.token},
+      data: { token: tokenResult.data.token },
       message: "User logged in successfully.",
       status: 200,
     });
   }
 );
-
 
 /**
  * @name logoutUser
@@ -137,52 +137,108 @@ export const loginUser = asyncHandler(
  */
 export const logoutUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization?.split(" ")[1];
+    return res.status(200).json({
+      error: false,
+      errors: [],
+      message: "User logged out successfully.",
+      status: 200,
+    });
+  }
+);
 
-    if (!token) {
-      return next(new ErrorResponse("error", 400, ["No token provided"]));
+/**
+ * @name forgotPassword
+ * @description Allows user request to a link to reset their password
+ * @route POST /auth/forgot-password
+ * @access  Public
+ */
+export const forgotPassword = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email } = req.body;
+
+    if (!emailService.validateEmail(email)) {
+      return next(new ErrorResponse("Invalid email format.", 400, []));
     }
 
-    try {
-      await tokenService.invalidateToken(token); // Assuming you have a method to invalidate the token
-      res.status(200).json({
-        error: false,
-        errors: [],
-        message: "User logged out successfully.",
-        status: 200,
-      });
-    } catch (error) {
-      return next(new ErrorResponse("error", 500, ["Failed to log out user"]));
+    const user = await User.findOne({ email });
+    if (!user) {
+      return next(
+        new ErrorResponse("Error", 404, ["User with this email does not exist"])
+      );
     }
+
+    const resetToken = generateRandomCode(6);
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordTokenExpirationDate = new Date(
+      Date.now() + 15 * 60 * 1000
+    );
+
+    await user.save();
+
+    const emailResult = await emailService.sendPasswordForgotEmail(
+      user.email,
+      user.firstName,
+      resetToken
+    );
+
+    if (emailResult.error) {
+      return next(
+        new ErrorResponse("Error", emailResult.code, [emailResult.message])
+      );
+    }
+
+    res.status(200).json({
+      error: false,
+      errors: [],
+      data: {},
+      message: "Forgot Password link sent to your email",
+      status: 200,
+    });
   }
 );
 
 
 /**
- * @name refreshToken
- * @description Refreshes the authentication token
- * @route POST /api/auth/refresh
- * @access Private
+ * @name changePassword
+ * @description Allows user to change their password using their old password
+ * @route POST /auth/change-password
+ * @access  Private
  */
-export const refreshToken = asyncHandler(
+export const changePassword = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization?.split(" ")[1];
+    const { oldPassword, newPassword } = req.body;
+    const userId = (req as any).user.id as IUserDoc
 
-    if (!token) {
-      return next(new ErrorResponse("error", 400, ["No token provided"]));
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return next(new ErrorResponse("Error", 404, ["User not found"]));
     }
 
-    try {
-      const newToken = await tokenService.getAuthToken(token); // Assuming you have a method to refresh the token
-      res.status(200).json({
-        error: false,
-        errors: [],
-        data: { token: newToken },
-        message: "Token refreshed successfully.",
-        status: 200,
-      });
-    } catch (error) {
-      return next(new ErrorResponse("error", 500, ["Failed to refresh token"]));
+    const isMatch = await user.matchPassword(oldPassword);
+    if (!isMatch) {
+      return next(new ErrorResponse("Error", 400, ["Old password is incorrect"]));
     }
+
+    if (!userService.checkPassword(newPassword)) {
+      return next(
+        new ErrorResponse(
+          "Error",
+          400,
+          ["password must contain, 1 uppercase letter, one special character, one number and must be greater than 8 characters"]
+        )
+      );
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({
+      error: false,
+      errors: [],
+      data: {},
+      message: "Password changed successfully",
+      status: 200,
+    });
   }
 );

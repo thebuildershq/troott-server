@@ -72,8 +72,8 @@ class EmailService {
    */
   public async sendVerificationCodeEmail(
     recipient: string,
-    verificationCode: string,
-    firstName: string
+    firstName: string,
+    verificationCode: string    
   ): Promise<IResult> {
     const subject = "Your Verification Code";
     const text = `Hi ${firstName}, Your verification code is: ${verificationCode}`;
@@ -96,11 +96,13 @@ class EmailService {
    */
   public async sendPasswordForgotEmail(
     recipient: string,
+    firstName: string,
     resetCode: string
   ): Promise<IResult> {
     const subject = "Forgot Password Request";
     const text = `Your password reset code is: ${resetCode}`;
     const html = `
+      <p>Hi ${firstName},</p>
       <p>Your password reset code is:</p>
       <h1>${resetCode}</h1>
       <p>Please enter this code on the app to reset your password.</p>
