@@ -3,7 +3,6 @@ import { IUserDoc, IResult } from "../utils/interface.util";
 import ErrorResponse from "../utils/error.util";
 import User from "../models/User.model";
 
-
 class TokenService {
   private secret: string;
   private expire: string;
@@ -34,15 +33,14 @@ class TokenService {
         { algorithm: "HS512", expiresIn: this.expire }
       );
 
-      // Store refresh token in the DB
-      await User.findByIdAndUpdate(user.id);
+      await User.findByIdAndUpdate(user.id, { accessToken: token });
 
       result.data = { token };
       result.message = "Token generated successfully";
-    } catch (error) {
+    } catch (error: any) {
       result.error = true;
       result.code = 500;
-      result.message = `Failed to generate token: ${result.message}`;
+      result.message = `Failed to generate token: ${error.message}`;
     }
 
     return result;
@@ -52,33 +50,51 @@ class TokenService {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
     try {
-      const decoded = jwt.verify(this.secret, this.expire) as IUserDoc;
-        
-      // Verify if refresh token is still valid in the DB
-      const user = await User.findById(decoded._id);
+      const decoded = jwt.verify(accessToken, this.secret) as jwt.JwtPayload;
+
+      const user = await User.findById(decoded.id);
       if (!user || user.accessToken !== accessToken) {
-        throw new ErrorResponse("Unauthorized", 401, ["Invalid refresh token"]);
+        throw new ErrorResponse("Unauthorized", 401, [
+          "Please provide a token",
+        ]);
       }
 
-      const newToken = jwt.sign(
-        {
-          id: user._id,
-          email: user.email,
-          role: user.role,
-        },
-        this.secret,
-        { algorithm: "HS512", expiresIn: this.expire }
-      );
+      if (!this.checkTokenValidity(accessToken)) {
+       
+        const newToken = jwt.sign(
+          {
+            id: user._id,
+            email: user.email,
+            role: user.role,
+          },
+          this.secret,
+          { algorithm: "HS512", expiresIn: this.expire }
+        );
 
-      result.data = { token: newToken };
-      result.message = "Token refreshed successfully";
-    } catch (error) {
+        result.data = { token: newToken };
+        result.message = "Token refreshed successfully";
+      } else {
+        result.data = { token: accessToken };
+        result.message = "Token is still valid, no refresh needed";
+      }
+    } catch (error: any) {
       result.error = true;
       result.code = 401;
-      result.message = `Failed to refresh token: ${result.message}`;
+      result.message = `Failed to refresh token: ${error.message}`;
     }
 
     return result;
+  }
+
+  private checkTokenValidity(token: string): boolean {
+    const decoded = jwt.decode(token) as jwt.JwtPayload;
+    if (!decoded || !decoded.exp) return false;
+
+    const expirationTime = decoded.exp * 1000;
+    const currentTime = Date.now();
+    const timeLeft = expirationTime - currentTime;
+
+    return timeLeft <= 5 * 60 * 60 * 1000;
   }
 }
 
