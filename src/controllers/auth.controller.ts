@@ -12,7 +12,6 @@ import tokenService from "../services/token.service";
 import { generateRandomCode } from "../utils/helper.util";
 import { IUserDoc } from "../utils/interface.util";
 import otpService from "../services/otp.service";
-import { PreferenceService } from "../services/preferences.service";
 
 
 /**
@@ -60,7 +59,6 @@ export const registerUser = asyncHandler(
       role = UserType.LISTENER;
     }
 
-    // Create new user
     const user = await userService.createUser({
       firstName,
       lastName,

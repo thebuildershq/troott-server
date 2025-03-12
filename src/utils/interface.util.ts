@@ -34,26 +34,38 @@ export interface IUserDoc extends Document {
 	dateOfBirth: Date;
 	gender: string;
 	profileImage: string;
-	device: string;
-
 	passwordType: string;
 	savedPassword: string;
 	userType: string;
 
-	favoritePreachers: Array<string>
-
-
+	
 
 	activationCode: string;
 	activationCodeExpirationDate: Date
-
 	accessToken: string
 	accessTokenExpirationDate: Date
-	
 	resetOTP : string
 	resetOTPExpirationDate: Date;
 	forgotOTP : string
 	forgotOTPExpirationDate: Date;
+
+	subscriptionType: string;
+	subscriptionStatus: string;
+	
+	playlists: Array<string>
+	likedSermons: Array<string>
+	savedSermonBites: Array<string>
+	favoritePreachers: Array<string>
+	following: Array<string>
+	notifications: Array<string>
+
+	login: {
+		lastLogin: Date;
+		ip: string;
+		deviceType: string;
+	  };
+
+
 
 	emailCode: string
 	emailCodeExpire: Date | number
@@ -117,13 +129,6 @@ export interface ISearchQuery {
 	operator: Nullable<string>;
 	fields?: Array<string>;
   }
-
-export interface IResult {
-  error: boolean;
-  message: string;
-  code: number;
-  data: any;
-}
   export interface IPagination {
 	total: number;
 	count: number;
@@ -133,8 +138,6 @@ export interface IResult {
 	};
 	data: Array<any>;
   }
-  
-
   export interface IPreacher extends Document {
 	name: string;
 	bio: string;
@@ -149,3 +152,64 @@ export interface IResult {
 	createdAt: Date;
 	updatedAt: Date;
   }
+
+export interface ICatalog extends Document {
+  type: "Sermon" | "Bite" | "Preacher";
+  sermon?: string; // Sermon ID
+  bite?: string; // Sermon bite ID
+  preacher?: string; // Preacher ID
+  title: string;
+  category: string;
+  isTrending: boolean;
+  tags: string[];
+}
+
+export interface IStreaming extends Document {
+  user: string; // User ID
+  sermon: string; // Sermon ID
+  status: "Playing" | "Paused" | "Stopped";
+  lastPosition: number; // Timestamp (seconds)
+  duration: number; // Total sermon duration
+  deviceType: "Mobile" | "Web" | "Tablet" | "TV";
+  deviceId: string;
+  queue: string[]; // Array of sermon IDs in queue
+  currentIndex: number; // Current position in queue
+  quality: "Low" | "Medium" | "High";
+  playbackSpeed: 0.5 | 1 | 1.5 | 2;
+  repeatMode: "None" | "One" | "All";
+  shuffle: boolean;
+}
+
+
+
+
+export interface ISermon extends Document {
+  title: string;
+  preacher: string; // Preacher ID
+  collection?: string; // Collection/Series ID
+  description: string;
+  duration: number; // In seconds
+  category: string;
+  sermonURL: string;
+  tags: string[];
+  date: Date;
+  playCount: number;
+  shareCount: number;
+  playlist: string[]; // Playlist IDs where this sermon is added
+  library: string[]; // User IDs who saved this sermon
+}
+
+export interface ISermonBite extends Document {
+  title: string;
+  preacher: string; // Preacher ID
+  sermon: string; // Sermon ID
+  duration: number; // In seconds
+  category: string;
+  biteURL: string;
+  tags: string[];
+  date: Date;
+  playCount: number;
+  shareCount: number;
+  playlist: string[]; // Playlist IDs where this sermon bite is added
+  library: string[]; // User IDs who saved this sermon bite
+}

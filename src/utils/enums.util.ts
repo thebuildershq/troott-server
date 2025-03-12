@@ -7,6 +7,7 @@ export enum ENVType {
 export enum AppChannel {
     WEB = "web",
     MOBILE = "mobile",
+
     DESKTOP = "desktop",
     WATCH = "watch"
     }
@@ -58,3 +59,22 @@ export enum PaymentPartners {
     WECHAT_PAY = "WeChat Pay"
 }
 
+export enum SubcriptionType {
+    FREE = "free",
+    PREMIUM = "premium",
+    FAMILY = "family",
+    STUDENT = "student"
+}
+
+export enum SubscriptionStatus {
+    ACTIVE = "active",
+    INACTIVE = "inactive",
+    PENDING = "pending",
+    CANCELLED = "cancelled",
+    EXPIRED = "expired"
+}
+
+export enum deviceType {
+    ANDROID = "android",
+    IOS = "ios"
+}
