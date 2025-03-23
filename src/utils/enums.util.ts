@@ -17,6 +17,7 @@ export enum UserType {
     ADMIN = "admin",
     CREATOR = "creator",
     LISTENER ="listener",
+    USER = "user"
     }
     
 export enum DbModels {

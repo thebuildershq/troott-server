@@ -64,7 +64,7 @@ export const registerUser = asyncHandler(
       lastName,
       email,
       password,
-      userType,
+      userType: UserType.USER,
       role,
     });
 
