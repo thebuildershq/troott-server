@@ -57,7 +57,7 @@ export const generateRandomCode = (length: number = 6) => {
  * @param length - The length of the characters, numbers and special characters to generate.
  * @returns A randomly generated characters, numbers and special characters.
  */
-export const generateRandomCharsAndNumbersAndSpecialChars = (length: number = 20) => {
+export const generateRandomCharswithSpecialChars = (length: number = 20) => {
     const numberChars = "0123456789";
     const letterChars = "abcdefghijklmnopqrstuvwxyz";
     const specialChars = "!@#$%^&*()_+~`|}{[]\:;?><,./-=";
@@ -71,4 +71,24 @@ export const generateRandomCharsAndNumbersAndSpecialChars = (length: number = 20
   
     return randomChars;
 }
- 
+
+
+/**
+ * Generate a secure API key.
+ * @param {number} expiryDays - Number of days before the key expires (null for no expiration).
+ * @param {string[]} permissions - The access rights assigned to this key.
+ * @returns {string} - The generated API key.
+ */
+export const generateApiKey = () => {
+
+}
+
+
+
+export default {
+    generateRandomChars,
+    generateRandomNumbers,
+    generateRandomCode,
+    generateRandomCharswithSpecialChars,
+    generateApiKey,
+}

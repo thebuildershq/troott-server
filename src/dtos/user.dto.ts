@@ -7,7 +7,7 @@ export interface CreateUserDTO {
     password: string;
  
     userType: string;
-    role: ObjectId | any;
+    role?: ObjectId | any;
 
     dateOfBirth?: Date;
     gender?: string;

@@ -7,10 +7,11 @@ export enum ENVType {
 export enum AppChannel {
     WEB = "web",
     MOBILE = "mobile",
-
     DESKTOP = "desktop",
     WATCH = "watch"
     }
+
+
     
 export enum UserType {
     SUPERADMIN = "superadmin",
@@ -34,6 +35,25 @@ export enum ModelEnums {
 
 }
 
+export enum sermonType{
+    SERIES = 'series',
+    ONEOFF = 'one-off'
+}
+
+export enum partType{
+    ONE = 'one',
+    TW0 = 'two',
+    THREE = 'three',
+    FOUR = 'four',
+    FIVE = 'five',
+    SIX = 'six',
+    SEVEN = 'seven'
+}
+
+export enum playlistType {
+    SERMON = 'sermon',
+    SERMONBITE = 'sermonbite'
+}
 
 export enum Currency {
     NGN = "NGN", 
@@ -50,7 +70,7 @@ export enum Currency {
 }
 
 
-export enum PaymentPartners {
+export enum Providers {
     PAYSTACK = "Paystack",
     FLUTTERWAVE = "Flutterwave",
     STRIPE = "Stripe",
@@ -62,6 +82,7 @@ export enum PaymentPartners {
 
 export enum SubcriptionType {
     FREE = "free",
+    TRIAL = "trial",
     PREMIUM = "premium",
     FAMILY = "family",
     STUDENT = "student"
@@ -74,6 +95,34 @@ export enum SubscriptionStatus {
     CANCELLED = "cancelled",
     EXPIRED = "expired"
 }
+
+export enum TransactionsType {
+    CREDIT = 'credit',
+    DEBIT = 'debit',
+    DEFAULT = 'default'
+}
+
+export enum TransactionStatus {
+    PENDING = 'pending',
+    PROCESSING = 'processing',
+    FAILED = 'failed',
+    SUCCESSFUL = 'successful',
+    REFUNDED = 'refunded',
+    DEFAULT = 'default'
+}
+
+export enum TransactionReason {
+    PENDING = 'pending',
+    ABANDONED = 'abandoned',
+    FRAUDULENT = 'fraudulent',
+    REFUNDED = 'refunded',
+    COMPLETED = 'completed',
+    FAILED = 'failed',
+    ONGOING = 'ongoing',
+    CANCELLED = "cancelled",
+    DEFAULT = 'default'
+}
+
 
 export enum deviceType {
     ANDROID = "android",

@@ -1,5 +1,6 @@
 import { Model } from "mongoose";
 import { Document, ObjectId } from "mongoose";
+import { playlistType, TransactionsType, UserType } from "./enums.util";
 
 export type Nullable<T> = T | null;
 export interface IRoleDoc extends Document {
@@ -11,7 +12,7 @@ export interface IRoleDoc extends Document {
 
   getAll(): Array<IRoleDoc>;
   findByName(name: string): Nullable<IRoleDoc>;
-  
+
   // timestamps
   createdAt: string;
   updatedAt: string;
@@ -31,10 +32,10 @@ export interface IUserDoc extends Document {
 
   dateOfBirth: Date;
   gender: string;
-  profileImage: string;
+  avatar: string;
   passwordType: string;
   savedPassword: string;
-  userType: string;
+  userType: UserType;
 
   activationCode: string;
   activationCodeExpirationDate: Date;
@@ -44,17 +45,6 @@ export interface IUserDoc extends Document {
   resetOTPExpirationDate: Date;
   forgotOTP: string;
   forgotOTPExpirationDate: Date;
-
-  subscriptionType: string;
-  subscriptionStatus: string;
-
-  playlists: Array<string>;
-  likedSermons: Array<string>;
-  savedSermonBites: Array<string>;
-  favoritePreachers: Array<string>;
-  following: Array<string>;
-  notifications: Array<string>;
-
   login: {
     lastLogin: Date;
     ip: string;
@@ -68,7 +58,8 @@ export interface IUserDoc extends Document {
   isSuper: string;
   isAdmin: string;
   isCreator: string;
-  isUser: string;
+  isListener: true;
+  isUser: true;
 
   isActive: boolean;
   loginLimit: number;
@@ -77,7 +68,18 @@ export interface IUserDoc extends Document {
   lastLogin: Date;
 
   // relationships
-  role: ObjectId | any;
+  roles: Array<ObjectId | any>;
+
+  sermonHistory: Array<ISermonDoc>;
+  biteHistory: Array<ISermonBiteDoc>;
+  playlists: Array<ObjectId | any>;
+  likedSermons: Array<string>;
+  savedSermonBites: Array<string>;
+  favoritePreachers: Array<string>;
+  following: Array<string>;
+  notifications: Array<string>;
+
+  //systems & permissions
 
   // functions
   matchPassword(password: string): boolean;
@@ -92,6 +94,98 @@ export interface IUserDoc extends Document {
   _version: number;
   _id: ObjectId;
   id: ObjectId;
+}
+
+export interface IListenerProfile {
+
+  listenerID: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+
+  gender: string;
+  dateOfBirth: Date;
+  phoneNumber: string;
+  phoneCode: string;
+  location: {
+    address: string;
+    city: string;
+    state: string;
+  };
+  slug: string;
+  type: string;
+  card: IDebitCard;
+  invoices: Array<string>
+
+  //relationships
+  user: ObjectId | any;
+  subscription: ObjectId | any;
+  transactions: Array<ObjectId | any>;
+  createdBy: ObjectId | any;
+  settings: ObjectId | any;
+
+  // time stamps
+  createdAt: string;
+  updatedAt: string;
+  _version: number;
+  _id: ObjectId;
+  id: ObjectId;
+}
+
+export interface IPreacher extends Document {
+  // timestamps
+  createdAt: string;
+  updatedAt: string;
+
+}
+
+export interface ICreatorProfile {
+  
+  creatorID: string
+  bio: string;
+  ministry: string;
+  
+  sermons: Array<string>;
+  bites: Array<string>;
+  followers: Array<string>;
+  topSermons: Array<string>;
+  topBites: Array<string>;
+  monthlyListeners: number;
+
+  uploads: string;
+  published: string;
+  isVerfied: boolean;
+
+  identification: string;
+  historyUpload: string;
+
+  revenue: Array<number>;
+
+  //relationships
+  user: ObjectId | any;
+  createdBy: ObjectId | any;
+  settings: ObjectId | any;
+
+  // time stamps
+  createdAt: string;
+  updatedAt: string;
+  _version: number;
+  _id: ObjectId;
+  id: ObjectId;
+}
+
+export interface IStaffProfile {
+  apiKeys: string;
+
+  //relationships
+  user: ObjectId | any;
+  createdBy: ObjectId | any;
+  settings: ObjectId | any;
+
+  // time stamps
+  createdAt: string;
+  updatedAt: string;
+  _version: number;
 }
 
 export interface IOptions {
@@ -144,24 +238,6 @@ export interface IPagination {
   _id: ObjectId;
   id: ObjectId;
 }
-export interface IPreacher extends Document {
-  name: string;
-  bio: string;
-  churchName: string;
-  profileImage: string;
-  sermons: Array<string>;
-  bites: Array<string>;
-  followers: Array<string>;
-  topSermons: Array<string>;
-  topBites: Array<string>;
-  monthlyListeners: number;
- 
-  // timestamps
-  createdAt: string;
-  updatedAt: string;
-  _id: ObjectId;
-  id: ObjectId;
-}
 
 export interface ICatalog extends Document {
   type: "Sermon" | "Bite" | "Preacher";
@@ -202,20 +278,23 @@ export interface IStreaming extends Document {
   id: ObjectId;
 }
 
-export interface ISermon extends Document {
+export interface ISermonDoc extends Document {
   title: string;
-  preacher: string; // Preacher ID
-  collection?: string; // Collection/Series ID
+  theme?: string; 
   description: string;
   duration: number; // In seconds
   category: string;
   sermonURL: string;
-  tags: string[];
-  date: Date;
+  tags: Array<string>;
+  //date: Date;
   playCount: number;
   shareCount: number;
-  playlist: string[]; // Playlist IDs where this sermon is added
-  library: string[]; // User IDs who saved this sermon
+  sermonType: string;
+
+  // relatiionships
+  creator: ObjectId | any;
+  playlist: ObjectId | any;
+  library: ObjectId | any;
 
   // timestamps
   createdAt: string;
@@ -224,19 +303,29 @@ export interface ISermon extends Document {
   id: ObjectId;
 }
 
-export interface ISermonBite extends Document {
+export interface ISermonType {
+  title: string;
+  description: string;
+  category: string;
+  theme: string;
+  part: Array<string>;
+  coverImage: string;
+  duration: string;
+}
+
+export interface ISermonBiteDoc extends Document {
   title: string;
   preacher: string; // Preacher ID
   sermon: string; // Sermon ID
   duration: number; // In seconds
   category: string;
   biteURL: string;
-  tags: string[];
+  tags: Array<string>;
   date: Date;
   playCount: number;
   shareCount: number;
-  playlist: string[]; // Playlist IDs where this sermon bite is added
-  library: string[]; // User IDs who saved this sermon bite
+  playlist: Array<string>;
+  library: Array<string>;
 
   // timestamps
   createdAt: string;
@@ -245,7 +334,65 @@ export interface ISermonBite extends Document {
   id: ObjectId;
 }
 
-export interface ISubscription extends Document {
+export interface IPlaylist extends Document {
+
+  title: string;
+  description: string;
+  imageURL: string;
+  type: playlistType;
+  isDefault: boolean;
+  isPublic: boolean;
+
+  // relationships
+  user: ObjectId | any;
+  sermon: ObjectId | any;
+  bites: ObjectId | any;
+
+  // timestamps
+  createdAt: string;
+  updatedAt: string;
+  _id: ObjectId;
+  id: ObjectId;
+}
+
+export interface ITransactions extends Document {
+  type: TransactionsType;
+  medium: string;
+  resource: string;
+  entity: string;
+  referenece: string;
+  currency: string;
+  providerRef: string;
+  providerName: string;
+  description: string;
+  narration: string;
+  amount: string;
+  unitAmount: string; // kobo unit * 100
+  fee: number;
+  unitFee: number; // kobo unit * 100
+  status: string;
+  reason: string;
+  message: string;
+  providerData: string;
+  metadata: Array<any>;
+  channel: string;
+  slug: string;
+  card: IDebitCard;
+
+  // relationships
+  user: ObjectId | any;
+
+  // timestamps
+  createdAt: string;
+  updatedAt: string;
+  _versions: number;
+  _id: ObjectId;
+  id: ObjectId;
+
+  // functions
+  getAll(): Array<ITransactions>;
+}
+export interface ISubscriptionDoc extends Document {
   code: string;
   isPaid: boolean;
   status: string;
@@ -256,17 +403,75 @@ export interface ISubscription extends Document {
     paidDate: Date;
     dueDate: Date;
     graceDate: Date;
-    interval: string;
+    frequency: string;
   };
 
   // relationships
   user: ObjectId | any;
-  transaction: Array<ObjectId | any>;
+  transactions: Array<ObjectId | any>;
   plan: ObjectId | any;
 
   // timestamps
   createdAt: string;
   updatedAt: string;
+  _versions: number;
   _id: ObjectId;
   id: ObjectId;
+}
+
+export interface IPlanDoc extends Document {
+  name: string;
+  isEnabled: boolean;
+  description: string;
+  label: string;
+  currency: string;
+  code: string;
+  pricing: IPlanPricing;
+  trial: IPlanTrial;
+  slug: string;
+
+  sermon: IPlanSermon;
+  sermonBite: IPlanSermonBite;
+
+  //relationships
+  user: ObjectId | any;
+
+  //timestamps
+  createdAt: string;
+  updatedAt: string;
+  _versions: number;
+  _id: ObjectId;
+  id: ObjectId;
+}
+
+export interface IPlanPricing {
+  monthly: number;
+  yearly: number;
+  perMonth: number;
+}
+
+export interface IPlanTrial {
+  isActive: boolean;
+  startDate: Date
+  endDate: Date
+  days: number
+}
+
+export interface IPlanSermon {
+  limit: {
+    value: number;
+    frequency: string;
+  };
+}
+
+export interface IPlanSermonBite {
+
+}
+export interface IDebitCard {
+  authCode: string; // encrypt this data
+  cardBin: string;
+  cardLast: string;
+  expiryMonth: string;
+  expiryYear: string;
+  cardPan: string;
 }

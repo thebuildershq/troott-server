@@ -157,6 +157,33 @@ class AuthService {
     return result;
   }
 
+    /**
+   * @name validateEmail
+   * @param email
+   * @param result
+   * @returns result
+   */
+  private validateEmail(email: string, result: IResult): IResult {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!email) {
+      result.error = true;
+      result.message = "Email is required";
+      result.code = 400;
+    } else if (!emailRegex.test(email)) {
+      result.error = true;
+      result.message = "Invalid email format";
+      result.code = 400;
+    } else {
+      result.error = false;
+      result.message = "";
+      result.code = 200;
+    }
+
+    return result;
+  }
+  
+
   /**
    * @name validateEmailAndPassword
    * @param email
@@ -181,7 +208,7 @@ class AuthService {
       result.code = 400;
     } else if (!userService.checkEmail(email)) {
       result.error = true;
-      result.message = "invalid email supplied";
+      result.message = "a valid email is required";
       result.code = 400;
     } else if (!userService.checkPassword(password)) {
       result.error = true;

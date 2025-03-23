@@ -32,13 +32,18 @@ export const registerUser = asyncHandler(
       );
     }
 
+    const mailCheck = await userService.checkEmail(email)
+    if (!mailCheck) {
+      return next(new ErrorResponse("Error", 400, ["a valid email is required"]))
+    }
+
     const isSuperadmin = await User.findOne({
       email,
       userType: UserType.SUPERADMIN,
     });
 
     if (isSuperadmin) {
-      return next(new ErrorResponse("Error", 400, ["you cannot use this email, user already exist"]));
+      return next(new ErrorResponse("Error", 400, ["forbidden, user already exist"]));
     }
 
     const existingUser = await User.findOne({ email });
@@ -50,22 +55,12 @@ export const registerUser = asyncHandler(
       );
     }
 
-    let role;
-    if (userType === UserType.CREATOR) {
-      role = UserType.CREATOR;
-    } else if (userType === UserType.ADMIN) {
-      role = UserType.ADMIN;
-    } else {
-      role = UserType.LISTENER;
-    }
-
     const user = await userService.createUser({
       firstName,
       lastName,
       email,
       password,
       userType: UserType.USER,
-      role,
     });
 
     const activateInfo = await AuthService.sendVerificationEmail(user);

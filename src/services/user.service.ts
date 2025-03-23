@@ -47,7 +47,6 @@ class UserService {
       gender,
       phoneCode,
       phoneNumber,
-      role,
       userType,
       profileImage,
       device,
@@ -87,7 +86,19 @@ class UserService {
       lastLogin,
     });
 
-    await this.attachRole(user, role);
+    await this.attachRole(user, user.userType);
+
+    //create user permissons
+
+    // create verification
+
+    // generate API keys
+
+    // create listner data (profile)
+
+    // create create data (profile)
+
+    // create admin data (profile)
 
     return user;
   }
@@ -110,25 +121,44 @@ class UserService {
       return user;
     }
   
-
-  /**
+      /**
    * @name attachRole
    * @param user
    * @param role
    */
-  public async attachRole(user: IUserDoc, role: string): Promise<void> {
-    const userRole = await Role.findOne({ name: role });
 
-    if (userRole) {
-      user.role = userRole._id;
-      userRole.user = [...userRole.user, user._id];
-      await user.save();
-      await userRole.save();
-    } else {
-      throw new ErrorResponse(`Role ${role} does not exist.`, 400, []);
+    
+   /**
+   * @name attachRole
+   * @description Assigns a role to the user based on their userType.
+   * @param user - The user object
+   * @param userType - The user type (e.g., ADMIN, CREATOR, LISTENER)
+   * @returns {Promise<any>} - Updated user object with the assigned role
+   */
+   public async attachRole(user: IUserDoc, userType: UserType): Promise<any> {
+    let role: UserType;
+
+    switch (userType) {
+      case UserType.CREATOR:
+        role = UserType.CREATOR;
+        break;
+      case UserType.ADMIN:
+        role = UserType.ADMIN;
+        break;
+      case UserType.SUPERADMIN:
+        role = UserType.SUPERADMIN;
+        break;
+      case UserType.LISTENER:
+        role = UserType.LISTENER;
+        break;
+      default:
+        role = UserType.USER;
     }
-  }
 
+    // Update user with the assigned role
+    user.role = role;
+    return user;
+  }
   
   /**
    * @name checkUserRole
