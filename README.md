@@ -6,7 +6,6 @@
 
 With troott, users can listen to old and new sermons from their favorite preachers, gain control over how they listen to sermons and messages, and share sermons with the people they love!
 
-
 ## Introduction
 
 Christian content consumers face annoyances and difficulties in accessing messages of their favourite preachers and discovering their old sermons. Many struggle to find specific messages without knowing exact titles, and downloading features directly to phone internal storage are inadequate for organising content. The current value propositions offer poor experience (no mobile first experience) for our target users. 
