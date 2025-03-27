@@ -1,5 +1,5 @@
 import mongoose, { ConnectOptions } from "mongoose";
-import { ENVType } from "../utils/enums.util";
+import { EENVType } from "../utils/enums.util";
 import colors from "colors";
 
 const options: ConnectOptions = {
@@ -14,8 +14,8 @@ const options: ConnectOptions = {
 
 const connectDB = async () => {
   if (
-    process.env.NODE_ENV === ENVType.DEVELOPMENT ||
-    process.env.NODE_ENV === ENVType.PRODUCTION
+    process.env.NODE_ENV === EENVType.DEVELOPMENT ||
+    process.env.NODE_ENV === EENVType.PRODUCTION
   )
     try {
       const dbConn = await mongoose.connect(

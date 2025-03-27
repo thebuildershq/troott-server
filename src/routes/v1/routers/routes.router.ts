@@ -1,9 +1,9 @@
 import express, { Request, Response, NextFunction } from "express";
-import authRoutes from "./auth.router";
+
 
 const  router = express.Router()
 
-router.use('/auth', authRoutes)
+//router.use('/auth', authRoutes)
 
 
 router.get("/", (req: Request, res: Response, next: NextFunction) => {
