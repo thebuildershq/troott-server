@@ -175,6 +175,7 @@ class SermonRepository {
     return result;
   }
 
+
   /**
    * @name getTrendingSermons
    * @returns {Promise<IResult>}

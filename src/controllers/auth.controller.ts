@@ -12,6 +12,7 @@ import tokenService from "../services/token.service";
 import { generateRandomCode } from "../utils/helper.util";
 import { IUserDoc } from "../utils/interface.util";
 import otpService from "../services/otp.service";
+import sermonRepository from "../repositories/sermon.repository";
 
 
 /**
@@ -31,6 +32,8 @@ export const registerUser = asyncHandler(
         new ErrorResponse("Error", validate.code!, [validate.message])
       );
     }
+
+    const publicSermon = await sermonRepository.getPublicSermons()
 
     const mailCheck = await userService.checkEmail(email)
     if (!mailCheck) {
