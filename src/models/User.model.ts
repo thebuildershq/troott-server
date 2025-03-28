@@ -1,69 +1,78 @@
-import { Model, Schema } from "mongoose";
+import mongoose, { Schema, Model } from "mongoose";
 import { IUserDoc } from "../utils/interface.util";
-import { DbModels, UserType } from "../utils/enums.util";
-import mongoose from "mongoose";
+import { EDbModels, EOtpType, EUserType } from "../utils/enums.util";
 import bcrypt from "bcrypt";
 import tokenService from "../services/token.service";
 
+
 const UserSchema = new Schema<IUserDoc>(
-    {
-        firstName: { type: String, required: true },
-        lastName: { type: String, required: true },
-        email: { type: String, required: true, unique: true, match: /.+\@.+\..+/ },
-        password: { type: String, required: true, default: "", select: true },
-        phoneNumber: { type: String, unique: true, required: true },
-        phoneCode: { type: String, default: "+234"  },
-        dateOfBirth: { type: Date, required: true },
-        gender: { type: String, required: true },
-        profileImage: { type: String },
-        device: { type: String },
+  {
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    email: { type: String, required: true, unique: true, index: true },
+    password: { type: String, required: true, default: "", select: true },
 
-        passwordType: { type: String },
-        savedPassword: { type: String },
-        userType: { type: String },
+    userType: { type: String, enum: Object.values(EUserType), required: true, index: true },
+    country: { type: String, required: true, index: true },
+    phoneNumber: { type: String, unique: true, required: true, index: true },
+    phoneCode: { type: String, default: "+234" },
+    avatar: { type: String },
+    dateOfBirth: { type: Date, required: true },
+    gender: { type: String, required: true },
+  
 
-        activationCode: { type: String },
-        activationCodeExpire: { type: Date },
-        accessToken: { type: String },
-        accessTokenExpire: { type: Date },
-        favoritePreachers: {},
+    passwordType: { type: String },
+    savedPassword: { type: String },
 
-        resetPasswordToken: { type: String },
-        resetPasswordTokenExpire: { type: Date },
-        emailCode: { type: String },
-        emailCodeExpire: { type: Date },
+    activationCode: { type: String },
+    activationCodeExpiry: { type: Date },
+    accessToken: { type: String },
+    accessTokenExpiry: { type: Date },
 
-        isSuper: { type: String },
-        isActivated: { type: Boolean, default: false },
-        isAdmin: { type: String },
-        isUser: { type: String, default: UserType.LISTENER },
-        isActive: { type: Boolean, default: true },
+    Otp: { type: String },
+    OtpExpiry: { type: Date },
+    otpType: { type: String, enum: Object.values(EOtpType) },
 
-        loginLimit: { type: Number, default: 0 },
-        isLocked: { type: Boolean, default: false },
-        lockedUntil: { type: Date },
-        lastLogin: { type: Date },
-        role: { type: Schema.Types.ObjectId, ref: DbModels.ROLE }
+    isSuper: { type: Boolean, default: false, index: true },
+    isStaff: { type: Boolean, default: false, index: true },
+    isPreacher: { type: Boolean, default: false, index: true },
+    isCreator: { type: Boolean, default: false, index: true },
+    isListener: { type: Boolean, default: false, index: true },
+
+    // Notification Preferences
+    notificationPreferences: {
+      email: { type: Boolean, default: true },
+      push: { type: Boolean, default: true },
+      sms: { type: Boolean, default: false },
     },
-    {
-        timestamps: true,
-        versionKey: "_version",
-        toJSON: {
-            transform(doc: any, ret) {
-                ret.id = ret._id;
-                delete ret.__v;
-            },
-        },
-    }
+
+    // Relationships
+    roles: [{ type: Schema.Types.ObjectId, ref: EDbModels.ROLE, index: true }],
+    profiles: {
+      listener: { type: Schema.Types.ObjectId, ref: EUserType.LISTENER, index: true },
+      creator: { type: Schema.Types.ObjectId, ref: EUserType.CREATOR, index: true},
+      preacher: { type: Schema.Types.ObjectId, ref: EUserType.PREACHER, index: true  },
+      staff: { type: Schema.Types.ObjectId, ref: EUserType.STAFF, index: true},
+    },
+  },
+  {
+    timestamps: true,
+    versionKey: "_version",
+    toJSON: {
+      transform(doc: any, ret) {
+        ret.id = ret._id;
+        delete ret.__v;
+      },
+    },
+  }
 );
 
 UserSchema.set("toJSON", { virtuals: true, getters: true });
 
 UserSchema.pre<IUserDoc>("save", async function (next) {
-  if (this.isModified("password")) {   
+  if (!this.isModified("password")) return next()
     const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  }
+    this.password = await bcrypt.hash(this.password, salt);
   next();
 });
 
@@ -75,27 +84,10 @@ UserSchema.methods.matchPassword = async function (password: string) {
   return result;
 };
 
-UserSchema.methods.getAuthToken = async function () {
-  const result = await tokenService.attachToken(this as IUserDoc);
-  if (result.error) {
-    throw new Error(result.message);
-  }
-  return result.data.token;
-};
 
-
-UserSchema.statics.getUsers = async () => {
-    return await User.find({});
-  };
-  
-  UserSchema.methods.findById = async (id: any) => {
-    const user = await User.findOne({ _id: id });
-    return User ? User : null;
-  };
-  
 const User: Model<IUserDoc> = mongoose.model<IUserDoc>(
-  DbModels.USER, 
+ EDbModels.USER,
   UserSchema
 );
 
-export default User
+export default User;

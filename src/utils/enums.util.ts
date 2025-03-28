@@ -13,18 +13,62 @@ export enum EAppChannel {
 
 export enum EUserType {
   SUPERADMIN = "superadmin",
-  ADMIN = "admin",
+  STAFF = "staff",
+  PREACHER =  "preacher",
   CREATOR = "creator",
   LISTENER = "listener",
   USER = "user",
 }
 
+export enum EStaffUnit {
+  ENGINEERING = "engineering",
+  PRODUCT = "product",
+  DESIGN = "design",
+  OPERATIONS = "operations",
+  FINANCE = "finance"
+}
+
+export enum EStaffRole {
+  HEAD = "head",
+  MANAGER = "manager",
+  LEAD = "lead",
+  ASSOCIATE = "assocaite",
+  JUNIOR = "junior"
+}
+
+export enum EAccountManagerRole {
+  OWNER = "owner",
+  MANAGER = "manager",
+  EDITOR = "editor",
+  ANALYST = "analyst",
+}
+
+
+export enum EVerificationStatus {
+  PENDING = "pending",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+  UNDER_REVIEW = "under-review",
+  NEEDS_REVISION = "needs-revision",
+  SUSPENDED = "suspended",
+}
+
 export enum EDbModels {
   USER = "User",
   ROLE = "Role",
-  CATALOG = "Catalog",
-  PLAYLIST = "Playlist",
-  SERMON = "Sermon",
+  BITE = "bite",
+  CATALOG = "catalog",
+  CREATOR = "creator",
+  LIBRARY = "library",
+  LISTENER = "listener",
+  PLAN = "plan",
+  PLAYLIST = "playlist",
+  PREACHER = "preacher",
+  SUBSCRIPTION = "subscription",
+  SERIES = "series",
+  SERMON = "sermon",
+  STAFF = "staff",
+  TRANSACTION = "transaction",
 }
 
 export enum EModel {
@@ -129,7 +173,7 @@ export enum EOtpType {
   FORGOTPASSWORD = "forgot-password",
 }
 
-export enum EBiteState {
+export enum EContentState {
   UPLOADING = "uploading",
   PROCESSING = "processing",
   PROCESSED = "processed", 
@@ -138,31 +182,27 @@ export enum EBiteState {
   RETRYING = "retrying",
 }
 
-export enum ESermonStatus {
+export enum EContentStatus {
   PUBLISHED = "published",
+  PENDING_REVIEW = "pending_review",
   DRAFT = "draft",
   FLAGGED = "flagged",
   DELETED = "deleted",
+  ARCHIVED = "archived",
 }
 
-export enum ESermonState {
-  UPLOADING = "uploading",
-  PROCESSING = "processing",
-  PROCESSED = "processed", 
-  UPLOADED = "uploaded", 
-  FAILED = "failed",
-  RETRYING = "retrying",
-}
-
-export enum EBiteStatus {
-  PUBLISHED = "published",
-  DRAFT = "draft",
-  FLAGGED = "flagged",
-  DELETED = "deleted",
-}
 
 export enum EcatalogueType {
-  SERMON = "sermon",
+  RECENTLYPLAYED = "sermon",
   BITE = "bite",
   P = "Preacher",
+}
+
+export enum EStaffPermissions {
+  Moderate = "moderate",
+  Create = "create",
+  ManageUsers = "manageUsers",
+  ManagePlaylists = "managePlaylists",
+  TrackEngagement = "trackEngagement",
+  FullAccess = "fullAccess"
 }
