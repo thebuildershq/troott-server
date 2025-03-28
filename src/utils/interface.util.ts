@@ -35,7 +35,7 @@ export interface IUserDoc extends Document {
   firstName: string;
   lastName: string;
   email: string;
-  password: string;
+  password: string; // encrypt this data
   userType: EUserType;
 
   country: string;
@@ -83,7 +83,7 @@ export interface IUserDoc extends Document {
     creator?: ObjectId | any;
     preacher?: ObjectId | any;
     staff?: ObjectId | any;
-  }
+  };
 
   // functions
   matchPassword(password: string): Promise<boolean>;
@@ -183,8 +183,8 @@ export interface IPreacherProfileDoc extends Document {
   // Followers & Listeners
   followers: Array<ObjectId | any>;
   monthlyListeners: number;
-  likes: number; 
-  shares: number; 
+  likes: number;
+  shares: number;
 
   // Uploads & Publications
   uploads: Array<ObjectId | any>;
@@ -243,8 +243,8 @@ export interface ICreatorProfileDoc extends Document {
   // Followers & Listeners
   followers: Array<ObjectId | any>;
   monthlyListeners: number;
-  likes: number; 
-  shares: number; 
+  likes: number;
+  shares: number;
 
   // Uploads & Publications
   uploads: Array<ObjectId | any>;
@@ -302,7 +302,7 @@ export interface IStaffProfileDoc extends Document {
   permissions: Array<EStaffPermissions>;
 
   // API & Security
-  apiKeys: Array<{ key: string; createdAt: Date; lastUsed: Date }>;
+  apiKeys: Array<{ key: string; createdAt: Date; lastUsed: Date }>; // encrypt this data
   ipWhitelist: Array<string>;
   twoFactorEnabled: boolean;
   lastLogin: Date;
@@ -311,21 +311,6 @@ export interface IStaffProfileDoc extends Document {
   // Actions & Moderation
   actionsTaken: Array<{ action: string; targetId: string; timestamp: Date }>;
   moderatedContent: Array<ObjectId>;
-
-  // Content Management (For Creator Abilities)
-  // sermons: Array<ObjectId | any>;
-  // featuredSermons: Array<ObjectId | any>;
-  // bites: Array<ObjectId | any>;
-  // playlists: Array<ObjectId | any>; // Playlists created by the preacher
-  // featuredPlaylists: Array<ObjectId | any>;
-
-  // Profile Management
-  // canCreateProfiles: boolean;
-  // createdProfiles: Array<{
-  //   profileId: ObjectId;
-  //   profileType: EUserType;
-  //   createdAt: Date;
-  // }>;
 
   // Uploads & Publications
   uploads: Array<ObjectId | any>;
@@ -384,7 +369,7 @@ export interface ISermonDoc extends Document {
 
   // relatiionships
   preacher: ObjectId | any;
-  series: ObjectId | any
+  series: ObjectId | any;
   staff: ObjectId | any;
   playlist: ObjectId | any;
   library: ObjectId | any;
@@ -446,20 +431,19 @@ export interface ISermonBiteDoc extends Document {
   id: ObjectId;
 }
 
-
 export interface ISeriesDoc extends Document {
   title: string;
   description: string;
   preacher: ObjectId | any;
-  sermons: Array<ObjectId | any>; 
-  imageUrl?: string; 
+  sermons: Array<ObjectId | any>;
+  imageUrl?: string;
   part: string;
   toatlDuration: string;
-  tags: Array<string>;   
+  tags: Array<string>;
 
-  isPublic: boolean; 
+  isPublic: boolean;
   state: EContentState;
-  status: EContentStatus; 
+  status: EContentStatus;
 
   // Engagement & Analytics
   totalPlay: number;
@@ -479,9 +463,9 @@ export interface ISeriesDoc extends Document {
   }>;
 
   // Relationships
-  
-  staff: ObjectId | any; 
-  createdBy: ObjectId | any; 
+
+  staff: ObjectId | any;
+  createdBy: ObjectId | any;
 
   // Timestamps
   createdAt: string;
@@ -490,7 +474,6 @@ export interface ISeriesDoc extends Document {
   _id: ObjectId;
   id: ObjectId;
 }
-
 
 export interface ILibraryDoc extends Document {
   user: ObjectId | any;
@@ -518,7 +501,7 @@ export interface IPlaylistDoc extends Document {
 
   // relationships
   user: ObjectId | any;
-  createdBy:  ObjectId | any;
+  createdBy: ObjectId | any;
   items: Array<{ itemId: ObjectId | any; type: EPlaylistType }>;
 
   // timestamps
@@ -547,8 +530,8 @@ export interface ITransactionDoc extends Document {
   status: string;
   reason: string;
   message: string;
-  providerData: Array<Record<string, any>> ;
-  metadata: Array<Record<string, any>> ;
+  providerData: Array<Record<string, any>>;
+  metadata: Array<Record<string, any>>;
   channel: string;
   slug: string;
   card: IDebitCard;

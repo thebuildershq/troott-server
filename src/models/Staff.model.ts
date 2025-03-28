@@ -1,6 +1,7 @@
 import mongoose, { Schema, Model } from "mongoose";
 import { IStaffProfileDoc } from "../utils/interface.util";
 import { EDbModels, EVerificationStatus, EStaffUnit, EStaffRole } from "../utils/enums.util";
+import { decrypt, encrypt } from "../utils/encryption.util";
 
 
 const StaffProfileSchema = new Schema<IStaffProfileDoc>(
@@ -106,7 +107,29 @@ StaffProfileSchema.index({
   role: "text",
 });
 
+
 StaffProfileSchema.set("toJSON", { virtuals: true, getters: true });
+
+StaffProfileSchema.pre("save", function (next) {
+  if (this.isModified("apiKeys")) {
+    this.apiKeys = this.apiKeys.map((apiKey) => ({
+      ...apiKey,
+      key: encrypt(apiKey.key),
+    }));
+  }
+  next();
+});
+
+StaffProfileSchema.methods.decryptApiKeys = function () {
+  if (this.apiKeys) {
+    return this.apiKeys.map((apiKey: any) => ({
+      ...apiKey,
+      key: decrypt(apiKey.key),
+    }));
+  }
+  return this.apiKeys;
+};
+
 
 const StaffProfile: Model<IStaffProfileDoc> = mongoose.model<IStaffProfileDoc>(
   EDbModels.STAFF,
