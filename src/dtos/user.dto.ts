@@ -1,51 +1,90 @@
-import { ObjectId } from "mongoose";
+import { EUserType } from "../utils/enums.util";
 
 export interface CreateUserDTO {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
- 
-    userType: string;
-    role?: ObjectId | any;
-
-    dateOfBirth?: Date;
-    gender?: string;
-    phoneNumber?: string;
-    phoneCode?: string;
-    
-    profileImage?: string;
-    device?: string;
-    isActivated?: boolean;
-    isSuper?: boolean;
-    isAdmin?: boolean;
-    isUser?: boolean;
-    isCreator?: boolean;
-    isActive?: boolean;
-    loginLimit?: number;
-    isLocked?: boolean;
-    lockedUntil?: Date;
-    lastLogin?: Date;
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  userType: EUserType;
 }
 
 export interface EditUserDTO {
-    firstName?: string;
-    lastName?: string;
-    username?: string;
-    phoneCode?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phoneNumber?: string;
+  phoneCode?: string;
+  country?: string;
+  avatar?: string;
+  dateOfBirth?: Date;
+  gender?: string;
+  isActive?: boolean;
+}
+
+export interface UserProfileDTO {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber?: string;
+  phoneCode?: string;
+  avatar?: string;
+  country?: string;
+  gender?: string;
+  dateOfBirth?: Date;
+  isActive: boolean;
+  userType: string;
+  roles: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface UserDTO {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    
     phoneNumber?: string;
+    phoneCode?: string;
+    country?: string;
+  
+    avatar?: string;
     dateOfBirth?: Date;
     gender?: string;
-    profileImage?: string;
-    device?: string;
-    isActivated?: boolean;
-    isSuper?: boolean;
-    isAdmin?: boolean;
-    isUser?: boolean;
-    isCreator?: boolean;
-    isActive?: boolean;
-    loginLimit?: number;
-    isLocked?: boolean;
-    lockedUntil?: Date;
-    lastLogin?: Date;
+  
+    userType: string;
+    isSuper: boolean;
+    isStaff: boolean;
+    isPreacher: boolean;
+    isCreator: boolean;
+    isListener: boolean;
+    isActive: boolean;
+    isLocked: boolean;
+    lockedUntil: Date | null;
+  
+    notificationPreferences: {
+      email: boolean;
+      push: boolean;
+      sms: boolean;
+    };
+  
+    roles: string[];
+    profiles: {
+      listener?: string;
+      creator?: string;
+      preacher?: string;
+      staff?: string;
+    };
+  
+    createdAt: Date;
+    updatedAt: Date;
+  }
+  
+export interface RoleDTO {
+  id: string;
+  name: string;
+  permissions: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
