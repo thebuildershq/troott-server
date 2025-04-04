@@ -206,3 +206,57 @@ export enum EStaffPermissions {
   TrackEngagement = "trackEngagement",
   FullAccess = "fullAccess"
 }
+
+
+;
+export enum EEmailDriver {
+  SENDGRID = "sendgrid",
+  AWS = "aws",
+  MAILTRAP = "mailtrap",
+}
+export enum EEmailTemplate {
+  WELCOME = "welcome",
+  PASSWORD_RESET = "password-reset",
+  PASSWORD_CHANGED = "password-changed",
+  EMAIL_VERIFICATION = "email-verification",
+  INVITE = "invite",
+  OTP = "otp",
+  VERIFY_EMAIL = "verify-email",
+}
+export enum EEmailStatus {
+  SENT = "sent",
+  DELIVERED = "delivered",
+  OPENED = "opened",
+  CLICKED = "clicked",
+  BOUNCED = "bounced",
+  SPAM = "spam",
+  UNSUBSCRIBED = "unsubscribed",
+  FAILED = "failed",
+  PENDING = "pending",
+  ERROR = "error",
+  DELAYED = "delayed",
+  QUEUED = "queued",
+  REJECTED = "rejected",
+  BLOCKED = "blocked",
+  INVALID = "invalid",
+  BLACKLISTED = "blacklisted",
+  COMPLAINED = "complained",
+  DEFERRED = "deferred",
+  UNDELIVERED = "undelivered",
+  TEMPORARY_FAILURE = "temporary-failure",
+  PERMANENT_FAILURE = "permanent-failure",
+  TIMEOUT = "timeout",
+  RETRY = "retry",
+  UNKNOWN = "unknown",
+  SUCCESS = "success",
+  FAILURE = "failure",
+}
+
+
+export enum EVerifyOTP {
+  REGISTER = "register",
+  PASSWORD_RESET = "password-reset",
+  CHANGE_PASSWORD = "change-password",
+  LOGIN = "login",
+  VERIFY = "verify",
+}

@@ -1,234 +1,140 @@
-// import sgMail from "@sendgrid/mail";
-// import { IResult } from "../utils/interface.util";
-// import appRootPath from "app-root-path";
+import fs from "fs";
+import ejs, { renderFile } from "ejs";
+import appRootUrl from "app-root-path";
+import appRootPath from "app-root-path";
+import { SendEmailDTO, SendgridEmailDataDTO } from "../dtos/emaitl.dto";
+import sgMail from "@sendgrid/mail";
+import transporter from "../utils/sendgrid.util";
+import { EEmailDriver, EVerifyOTP } from "../utils/enums.util";
+import { IResult } from "../utils/interface.util";
 
-// const BASE_FOLDER: string = `${appRootPath.path}/src`;
-// class EmailService {
-//   private fromEmail: string;
-//   private fromName: string;
+const BASE_FOLDER: string = `${appRootPath.path}/src`;
 
-//   constructor() {
-//     const apiKey = process.env.SENDGRID_API_KEY as string;
+class EmailService {
+  public async sendEmailWithSendgrid(
+    data: SendgridEmailDataDTO
+  ): Promise<void> {
+    const options = {
+      auth: {
+        apiKey: process.env.SENDGRID_API_KEY as string,
+      },
+    };
+    const appUrlSource = `${appRootUrl.path}/src`;
 
-//     if (!apiKey) {
-//       throw new Error("SendGrid API Key must be configured.");
-//     }
+    renderFile(
+      `${appUrlSource}/views/emails/ejs/${data.template}.ejs`,
+      {
+        preheaderText: data.preheaderText,
+        emailTitle: data.emailTitle,
+        emailSalute: data.emailSalute,
+        bodyOne: data.bodyOne,
+        bodyTwo: data.bodyTwo,
+        bodyThree: data.bodyThree,
+        loginEmail: data.loginEmail,
+        loginPassword: data.loginPassword,
+        buttonUrl: data.buttonUrl,
+        buttonText: data.buttonText,
+        eventTitle: data.eventTitle,
+        eventDescription: data.eventDescription,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        email: data.email,
+        password: data.password,
+        code: data.code,
+      },
 
-//     sgMail.setApiKey(apiKey);
+      {},
 
-//     this.fromEmail = process.env.SENDGRID_FROM_EMAIL as string;
-//     this.fromName = process.env.SENDGRID_FROM_NAME as string;
-//   }
+      async (error, html) => {
+        try {
+          const mailData = {
+            to: data.email,
+            from: `${
+              data.fromName ? data.fromName : process.env.EMAIL_FROM_NAME
+            } <${process.env.EMAIL_FROM_EMAIL}>`,
+            subject: data.emailTitle,
+            text: "email",
+            html: html,
+          };
 
-//   /**
-//    * @name sendEmail
-//    * @description Sends an email using SendGrid
-//    * @param recipient - Recipient email address
-//    * @param subject - Email subject
-//    * @param text - Plain text content
-//    * @param html - HTML content
-//    * @returns {Promise<IResult>}
-//    */
-//   public async sendEmail(
-//     recipient: string,
-//     subject: string,
-//     text: string,
-//     html: string
-//   ): Promise<IResult> {
-//     const result: IResult = { error: false, message: "", code: 200, data: {} };
+          //send mail
+          await transporter.send(options, mailData);
+        } catch (error) {
+          console.log(error);
+          return error;
+        }
+      }
+    );
+  }
 
-//     try {
-//       const msg = {
-//         to: recipient,
-//         from: {
-//           email: this.fromEmail,
-//           name: this.fromName,
-//         },
-//         subject,
-//         text,
-//         html,
-//       };
-
-//       const response = await sgMail.send(msg);
-
-//       result.message = `Email sent successfully to ${recipient}`;
-//       result.data = response;
-//       return result;
-//     } catch (error) {
-//       console.error("Failed to send email:", error);
-//       result.error = true;
-//       result.message = "Failed to send email.";
-//       result.code = 500;
-//       return result;
-//     }
-//   }
-
-//   /**
-//    * @name sendVerificationCodeEmail
-//    * @description Sends a verification code email
-//    * @param recipient - Recipient email address
-//    * @param verificationCode - Verification code
-//    * @returns {Promise<IResult>}
-//    */
-//   public async sendVerificationCodeEmail(
-//     recipient: string,
-//     firstName: string,
-//     verificationCode: string    
-//   ): Promise<IResult> {
-//     const subject = "Your Verification Code";
-//     const text = `Hi ${firstName}, Your verification code is: ${verificationCode}`;
-//     const html = `
-//       <p>Hi ${firstName},</p>
-//       <p>Your verification code is:</p>
-//       <h1>${verificationCode}</h1>
-//       <p>Please enter this code on the app to verify your email address.</p>
-//     `;
-
-//     return await this.sendEmail(recipient, subject, text, html);
-//   }
-
-//   /**
-//    * @name sendPasswordForgotEmail
-//    * @description Sends a password forgot email
-//    * @param recipient - Recipient email address
-//    * @param resetCode - Password reset code
-//    * @returns {Promise<IResult>}
-//    */
-//   public async sendPasswordForgotEmail(
-//     recipient: string,
-//     firstName: string,
-//     resetCode: string
-//   ): Promise<IResult> {
-//     const subject = "Forgot Password Request";
-//     const text = `Your password reset code is: ${resetCode}`;
-//     const html = `
-//       <p>Hi ${firstName},</p>
-//       <p>Your password reset code is:</p>
-//       <h1>${resetCode}</h1>
-//       <p>Please enter this code on the app to reset your password.</p>
-//     `;
-
-//     return await this.sendEmail(recipient, subject, text, html);
-//   }
-
-//   /**
-//    * @name sendPasswordResetEmail
-//    * @description Sends a password reset email
-//    * @param recipient - Recipient email address
-//    * @param resetCode - Password reset code
-//    * @returns {Promise<IResult>}
-//    */
-//   public async sendPasswordResetEmail(
-//     recipient: string,
-//     resetCode: string
-//   ): Promise<IResult> {
-//     const subject = "Password Reset Request";
-//     const text = `Your password reset code is: ${resetCode}`;
-//     const html = `
-//       <p>Your password reset code is:</p>
-//       <h1>${resetCode}</h1>
-//       <p>Please enter this code on the app to reset your password.</p>
-//     `;
-
-//     return await this.sendEmail(recipient, subject, text, html);
-//   }
-
-//   /**
-//    * @name sendWelcomeEmail
-//    * @description Sends a welcome email to the new user
-//    * @param recipient - Recipient email address
-//    * @param firstName - First name of the recipient
-//    * @returns {Promise<IResult>}
-//    */
-//   public async sendWelcomeEmail(
-//     recipient: string,
-//     firstName: string
-//   ): Promise<IResult> {
-//     const subject = "Welcome to Our Service!";
-//     const text = `Hi ${firstName},\n\nWelcome to our service! We're excited to have you on board.`;
-//     const html = `
-//       <p>Hi ${firstName},</p>
-//       <p>Welcome to our service! We're excited to have you on board.</p>
-//       <p>Feel free to explore and let us know if you have any questions.</p>
-//     `;
-
-//     return await this.sendEmail(recipient, subject, text, html);
-//   }
-
-//   /**
-//    * @name sendPasswordResetSuccessEmail
-//    * @description Sends a password reset success email
-//    * @param recipient - Recipient email address
-//    * @param firstName - First name of the recipient
-//    * @returns {Promise<IResult>}
-//    */
-//   public async sendPasswordResetSuccessEmail(
-//     recipient: string,
-//     firstName: string
-//   ): Promise<IResult> {
-//     const subject = "Password Reset Successful";
-//     const text = `Hi ${firstName},\n\nYour password has been reset successfully. If you did not request this change, please contact our support team immediately.`;
-//     const html = `
-//       <p>Hi ${firstName},</p>
-//       <p>Your password has been reset successfully. If you did not request this change, please contact our support team immediately.</p>
-//     `;
-
-//     return await this.sendEmail(recipient, subject, text, html);
-//   }
+  constructor() {
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY as string);
+  }
 
 
-//   /**
-//    * @name sendPasswordChangedSuccessEmail
-//    * @description Sends a password changed success email
-//    * @param recipient - Recipient email address
-//    * @param firstName - First name of the recipient
-//    * @returns {Promise<IResult>}
-//    */
-//   public async sendPasswordChangedSuccessEmail(
-//     recipient: string,
-//     firstName: string
-//   ): Promise<IResult> {
-//     const subject = "Password Changed Successfully";
-//     const text = `Hi ${firstName},\n\nYour password has been changed successfully. If you did not request this change, please contact our support team immediately.`;
-//     const html = `
-//       <p>Hi ${firstName},</p>
-//       <p>Your password has been changed successfully. If you did not request this change, please contact our support team immediately.</p>
-//     `;
+  public async sendInviteEmail(
+    email: string,
+    initiativeName: string,
+    creatorEmail: string,
+    inviteLink: string,
+    userName: string
+  ): Promise<IResult> {
+    const result: IResult = { error: false, message: "", code: 200, data: {} };
 
-//     return await this.sendEmail(recipient, subject, text, html);
-//   }
+    try {
+      const templatePath = `${BASE_FOLDER}/views/emails/ejs/invite.ejs`;
+
+      if (!fs.existsSync(templatePath)) {
+        throw new Error(`EJS file not found at ${templatePath}`);
+      }
+
+      const emailHtml = await ejs.renderFile(templatePath, {
+        initiativeName,
+        creatorEmail,
+        inviteLink,
+        userName,
+      });
+
+      const message = {
+        to: email,
+        from: process.env.EMAIL_FROM_EMAIL as string,
+        subject: `You are invited to join ${initiativeName} on troott`,
+        html: emailHtml,
+      };
+
+      const sendEmail = await sgMail.send(message);
+      result.message = `Email sent successfully to ${email}`;
+      result.data = sendEmail;
+      return result;
+    } catch (error) {
+      console.log("Failed to send invite email:", error);
+      result.error = true;
+      result.message = "Failed to send invite email.";
+      result.code = 500;
+      return result;
+    }
+  }
+}
+
+export default new EmailService();
 
 
-//   /**
-//    * @name validateEmail
-//    * @description Validates an email address format
-//    * @param email - Email address to validate
-//    * @returns {boolean}
-//    */
-//   public validateEmail(email: string): boolean {
-//     const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-//     return emailRegex.test(email);
-//   }
-// }
 
-// export default new EmailService();
-
-
-// /***
-//  * send creator verification status in review
-//  * send creator verification status accepted
-//  * send creator verification status rejection
-//  * 
-//  * send admin login invite (email, password)
-//  * 
-//  * send listener welcome email
-//  * send creator welcome email
-//  * send admin welcome email
-//  * 
-//  * send listener | creator | admin password reset email
-//  * 
-//  * send new sermon notification to listeners
-//  * send new playlist notification to listeners
-//  * 
-//  * 
-//  */
+/***
+ * send creator verification status in review
+ * send creator verification status accepted
+ * send creator verification status rejection
+ * 
+ * send admin login invite (email, password)
+ * 
+ * send listener welcome email
+ * send creator welcome email
+ * send admin welcome email
+ * 
+ * send listener | creator | admin password reset email
+ * 
+ * send new sermon notification to listeners
+ * send new playlist notification to listeners
+ * 
+ * 
+ */
