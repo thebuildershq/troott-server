@@ -1,6 +1,7 @@
-import { RegisterDTO } from "../dtos/auth.dto";
+import { RegisterUserDTO } from "../dtos/auth.dto";
 import authMapper from "../mappers/auth.mapper";
 import User from "../models/User.model";
+import { EUserType } from "../utils/enums.util";
 import { generateRandomCode } from "../utils/helper.util";
 import { IResult, IUserDoc } from "../utils/interface.util";
 import emailService from "./email.service";
@@ -15,8 +16,10 @@ class AuthService {
    * @param data
    * @returns { IResult } - see IResult
    */
-  public async validateRegister(data: RegisterDTO): Promise<IResult> {
+  public async validateRegister(data: RegisterUserDTO): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
+    const allowedUsers = [EUserType.LISTENER, EUserType.CREATOR, EUserType.PREACHER]
+
     const { email, password, firstName, lastName } = data;
     this.validateEmailAndPassword(email, password, firstName, lastName, result);
 
@@ -29,6 +32,8 @@ class AuthService {
    * @returns { IResult } - see IResult
    */
   public async validateLogin(data: RegisterDTO): Promise<IResult> {
+
+    const allowedUsers = [EUserType.LISTENER, EUserType.CREATOR, EUserType.PREACHER, EUserType.STAFF]
     const result: IResult = { error: false, message: "", code: 200, data: {} };
     const { email, password } = data;
 

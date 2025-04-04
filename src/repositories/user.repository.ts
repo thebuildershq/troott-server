@@ -1,4 +1,4 @@
-import { Model } from "mongoose";
+import { FilterQuery, Model } from "mongoose";
 import User from "../models/User.model";
 import { IResult, IUserDoc } from "../utils/interface.util";
 import tokenService from "../services/token.service";
@@ -14,21 +14,23 @@ class UserRepository {
   /**
    * @name findById
    * @param id
-   * @returns {Promise<IResult>}
+   * @param populate 
+   * @returns user
+   * @description Find a user by ID and populate related data
    */
-  public async findById(id: string): Promise<IResult> {
-    let result: IResult = { error: false, message: "", code: 200, data: {} };
+  public async findById(id: string, populate: boolean = false): Promise<IUserDoc | null> {
+    
+    const dataPop = [
+      { path: 'sermons'}
+    ]
 
-    const user = await this.model.findById(id);
-    if (!user) {
-      result.error = true;
-      result.code = 404;
-      result.message = "User not found";
-    } else {
-      result.data = user;
-    }
+    const pop = populate ? dataPop : [];
 
-    return result;
+    // define filter query
+    const query: FilterQuery<IUserDoc> = { _id: id };
+
+    const user = await this.model.findById(query).populate(pop).lean();
+    return user
   }
 
   /**

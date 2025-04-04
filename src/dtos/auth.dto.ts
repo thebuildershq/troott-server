@@ -1,5 +1,6 @@
 import { ObjectId } from "mongoose";
 import { EUserType } from "../utils/enums.util";
+import { IUserDoc } from "../utils/interface.util";
 
 export interface RegisterUserDTO {
   firstName: string;
@@ -37,6 +38,11 @@ export interface EditUserDTO {
   avatar?: string;
   dateOfBirth?: Date;
   gender?: string;
+}
+
+export interface MatchEncryptedPasswordDTO {
+  user: IUserDoc,
+  hash: string
 }
 
 export interface AuthResponseDTO {
@@ -96,3 +102,5 @@ export interface NotificationPreferencesDTO {
   push: boolean;
   sms: boolean;
 }
+
+

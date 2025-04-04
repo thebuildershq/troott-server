@@ -38,9 +38,11 @@ export interface IUserDoc extends Document {
   password: string; // encrypt this data
   userType: EUserType;
 
-  country: string;
+  user: string
   phoneNumber: string;
   phoneCode: string;
+  country: string;
+  countryPhone: string;
 
   avatar: string;
   dateOfBirth: Date;
@@ -54,8 +56,8 @@ export interface IUserDoc extends Document {
   accessTokenExpiry: Date;
 
   Otp?: string;
-  OtpExpiry?: Date;
-  otpType?: EOtpType;
+  OtpExpiry?: number;
+  //otpType?: EOtpType;
 
   isSuper: boolean;
   isStaff: boolean;
@@ -64,7 +66,9 @@ export interface IUserDoc extends Document {
   isListener: boolean;
 
   login: ILoginType;
+  lastLogin: string;
   isActive: boolean;
+  isDeactivated: boolean;
   loginLimit: number;
   isLocked: boolean;
   lockedUntil: Nullable<Date>;
@@ -721,6 +725,24 @@ export interface IResult {
   code: number;
   data: any;
 }
+
+
+export interface IBulkUser {
+  _id: ObjectId | null | string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  phoneCode: string;
+  userType: string;
+}
+
+export interface ILogin {
+  email: string;
+  password: string;
+  code: string;
+}
+
 
 export interface ISearchQuery {
   model: Model<any>;

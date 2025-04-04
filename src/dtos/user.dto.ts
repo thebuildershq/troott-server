@@ -6,6 +6,12 @@ export interface CreateUserDTO {
   email: string;
   password: string;
   userType: EUserType;
+  location?: {
+    address?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+};
 }
 
 export interface EditUserDTO {
