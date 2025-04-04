@@ -74,9 +74,9 @@ ListenerProfileSchema.index({
   description: "text",
 });
 
-const ListenerProfile: Model<IListenerProfileDoc> = mongoose.model<IListenerProfileDoc>(
+const Listener: Model<IListenerProfileDoc> = mongoose.model<IListenerProfileDoc>(
   EDbModels.LISTENER,
   ListenerProfileSchema
 );
 
-export default ListenerProfile;
+export default Listener;
