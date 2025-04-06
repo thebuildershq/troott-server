@@ -93,7 +93,7 @@ export const registerUser = asyncHandler(
     }
 
     const user = createNewUser.data;
-    const OTP = await userService.generateOTPCode(user);
+    const OTP = await userService.generateOTPCode(user, EOtpType.REGISTER);
 
     if (OTP) {
       const sendOTP = await otpService.sendOTPEmail({
@@ -596,7 +596,7 @@ export const resendOTP = asyncHandler(
       return next(new ErrorResponse("Error", 400, ["user doesn't exist"]));
     }
 
-    const OTP = await userService.generateOTPCode(user);
+    const OTP = await userService.generateOTPCode(user, EOtpType.GENERIC);
 
     if (OTP) {
       const sendOTP = await otpService.sendOTPEmail({

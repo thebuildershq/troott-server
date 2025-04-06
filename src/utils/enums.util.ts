@@ -180,6 +180,7 @@ export enum EdeviceType {
 export enum EOtpType {
   REGISTER = "register",
   LOGIN = "login",
+  GENERIC = "generic",
   ACTIVATEACCOUNT = "activate-account",
   CHANGEPASSWORD = "change-password",
   FORGOTPASSWORD = "forgot-password",
