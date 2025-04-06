@@ -532,6 +532,25 @@ class UserService {
     return true;
   }
 
+    /**
+   * Increases login attempt counter and locks account if limit exceeded
+   * @param user - User document
+   * @returns number - Current login attempt count
+   */
+    public async increaseLoginLimit(user: IUserDoc): Promise<number> {
+      // Increment login attempt counter
+      user.loginLimit = (user.loginLimit || 0) + 1;
+  
+      // If attempts exceed 5, lock the account for 30 minutes
+      if (user.loginLimit >= 5) {
+        user.isLocked = true;
+        user.lockedUntil = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+      }
+  
+      await user.save();
+      return user.loginLimit;
+    }
+
   /**
    * Update user login information
    * @param user - User document
@@ -616,7 +635,7 @@ class UserService {
     if (user.OtpExpiry && user.OtpExpiry < today) {
       // Clear expired OTP
       user.Otp = "";
-      user.OtpExpiry = undefined;
+      user.OtpExpiry = 0 
       await user.save();
 
       result.error = true;

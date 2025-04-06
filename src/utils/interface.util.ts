@@ -86,11 +86,7 @@ export interface IUserDoc extends Document {
     staff?: ObjectId | any;
   };
 
-  increaseLoginLimit: () => number;
-  checkLockedStatus: () => boolean;
-  getAuthToken: () => string;
-  getResetPasswordToken: () => string;
-  getInviteToken: () => string;
+  
 
   // time stamps
   createdAt: Date;

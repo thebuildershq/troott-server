@@ -248,8 +248,7 @@ export const loginUser = asyncHandler(
       user: userExist,
     });
     if (!verifyPassword) {
-      userExist.increaseLoginLimit();
-      await userExist.save();
+      await userService.increaseLoginLimit(userExist);
       return next(new ErrorResponse("Error", 400, ["invalid credentials"]));
     }
 
@@ -379,12 +378,12 @@ export const forgotPassword = asyncHandler(
       );
     }
 
-    // Check if account is locked or deactivated
-    if (user.checkLockedStatus()) {
+    // Check if account is locked or deactivated}
+    if (await userService.checkLockedStatus(user)) {
       return next(
         new ErrorResponse("Error", 423, ["Account is locked. Please try again later"])
       );
-    }
+      }
 
     if (user.isDeactivated) {
       return next(
