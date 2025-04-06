@@ -14,6 +14,7 @@ import userService from "../services/user.service";
 import {
   EEmailDriver,
   EEmailTemplate,
+  EOtpType,
   EPasswordType,
   EUserType,
   EVerifyOTP,
@@ -162,8 +163,10 @@ export const activateUserAccount = asyncHandler(
       );
     }
 
-    // Activate the user account
+    // Activate the user account and Update login information
     await userService.activateAccount(user);
+    await userService.updateLastLogin(user);
+    await userService.updateLoginInfo(user, req)
 
     // assign token to the user
     const token = await tokenService.attachToken(user);
@@ -226,6 +229,20 @@ export const loginUser = asyncHandler(
       return next(new ErrorResponse("Error", 400, ["invalid credentials"]));
     }
 
+    // Check if account is locked
+    if (await userService.checkLockedStatus(userExist)) {
+    return next(
+      new ErrorResponse("Error", 423, ["Account is locked. Please try again later"])
+    );
+    }
+
+    // Check if account is deactivated
+    if (userExist.isDeactivated) {
+      return next(
+        new ErrorResponse("Error", 403, ["Account has been deactivated"])
+      );
+    }
+
     const verifyPassword = await userService.matchEncryptedPassword({
       hash: password,
       user: userExist,
@@ -243,8 +260,13 @@ export const loginUser = asyncHandler(
         ])
       );
     }
-    userExist.loginLimit = 0;
-    userExist.isLocked = false;
+     
+    // Update login information
+    await userService.activateAccount(userExist)
+    await userService.updateLastLogin(userExist);
+    await userService.updateLoginInfo(userExist, req);
+
+    await userExist.save();
 
     const token = await tokenService.attachToken(userExist);
     if (token.error) {
@@ -286,10 +308,12 @@ export const logoutUser = asyncHandler(
     }
 
     const result = await tokenService.detachToken(user);
-
     if (result.error) {
       return next(new ErrorResponse("Error", result.code, [result.message]));
     }
+
+    await userService.updateLastLogin(user)
+    await userService.updateLoginInfo(user, req);
 
     await user.save();
 
@@ -355,7 +379,20 @@ export const forgotPassword = asyncHandler(
       );
     }
 
-    const OTP = await userService.generateOTPCode(user);
+    // Check if account is locked or deactivated
+    if (user.checkLockedStatus()) {
+      return next(
+        new ErrorResponse("Error", 423, ["Account is locked. Please try again later"])
+      );
+    }
+
+    if (user.isDeactivated) {
+      return next(
+        new ErrorResponse("Error", 403, ["Account has been deactivated"])
+      );
+    }
+
+    const OTP = await userService.generateOTPCode(user, EOtpType.FORGOTPASSWORD);
 
     if (OTP) {
       const sendOTP = await otpService.sendOTPEmail({
@@ -391,8 +428,8 @@ export const forgotPassword = asyncHandler(
 
 /**
  * @name resetPassword
- * @description Allows user request to a link to reset their password
- * @route POST /auth/forgot-password
+ * @description Allows user change their password using the OTP
+ * @route POST /auth/reset-password
  * @access  Public
  */
 export const resetPassword = asyncHandler(

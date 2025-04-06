@@ -49,16 +49,12 @@ export interface IUserDoc extends Document {
   avatar: string;
   dateOfBirth: Date;
   gender: string;
-  savedPassword: string;
 
-  activationCode?: string;
-  activationCodeExpiry?: Date;
+  Otp: string;
+  OtpExpiry: number;
+  otpType: EOtpType;
   accessToken: string;
   accessTokenExpiry: Date;
-
-  Otp?: string;
-  OtpExpiry?: number;
-  //otpType?: EOtpType;
 
   isSuper: boolean;
   isStaff: boolean;
@@ -66,7 +62,7 @@ export interface IUserDoc extends Document {
   isCreator: boolean;
   isListener: boolean;
 
-  login: ILoginType;
+  loginInfo: ILoginType;
   lastLogin: string;
   isActive: boolean;
   isDeactivated: boolean;
@@ -600,9 +596,23 @@ export interface IPlanDoc extends Document {
 }
 
 export interface ILoginType {
-  lastLogin: Date;
   ip: string;
   deviceType: string;
+  platform: 'web' | 'mobile' | 'tablet';
+  deviceInfo: {
+    manufacturer?: string;  // For mobile devices
+    model?: string;        // For mobile devices
+    osName: string;        // iOS, Android, Windows, macOS, etc.
+    osVersion: string;
+    browser?: string;      // For web access
+    browserVersion?: string;
+    appVersion?: string;   // For mobile app
+  };
+  location?: {
+    country: string;
+    city: string;
+    timezone: string;
+  };
 }
 
 export interface ILocationInfo {

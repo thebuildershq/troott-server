@@ -1,4 +1,6 @@
 import { Request } from "express";
+import { UAParser } from "ua-parser-js";
+import geoip from 'geoip-lite';
 import { IBulkUser, ILogin, IResult, IUserDoc } from "../utils/interface.util";
 import {
   Random,
@@ -9,11 +11,17 @@ import {
 } from "@btffamily/pacitude";
 import SystemService from "./system.service";
 import userRepository from "../repositories/user.repository";
-import { EUserType } from "../utils/enums.util";
-import { LoginDTO, MatchEncryptedPasswordDTO, RegisterUserDTO } from "../dtos/auth.dto";
+import { EOtpType, EUserType } from "../utils/enums.util";
+import {
+  LoginDTO,
+  MatchEncryptedPasswordDTO,
+  RegisterUserDTO,
+} from "../dtos/auth.dto";
 import { CreateUserDTO } from "../dtos/user.dto";
 import User from "../models/User.model";
 import Role from "../models/Role.model";
+import { detectPlatform } from "../utils/helper.util";
+
 
 class UserService {
   public result: IResult;
@@ -59,7 +67,9 @@ class UserService {
       result.message = "Password is required";
     } else if (!arrayIncludes(allowedUsers, data.userType)) {
       result.error = true;
-      result.message = `Invalid user type value. choose from ${allowedUsers.join(",")}`;
+      result.message = `Invalid user type value. choose from ${allowedUsers.join(
+        ","
+      )}`;
     } else {
       result.error = false;
       result.message = "";
@@ -74,7 +84,6 @@ class UserService {
    * @returns
    */
   public async validateLogin(data: LoginDTO): Promise<IResult> {
-    
     let result: IResult = { error: false, message: "", code: 200, data: null };
 
     const { email, password } = data;
@@ -131,72 +140,73 @@ class UserService {
    */
   public async createUser(data: CreateUserDTO): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
-    
-    const existingUser = await User.findOne({ email: data.email.toLowerCase() });
+
+    const existingUser = await User.findOne({
+      email: data.email.toLowerCase(),
+    });
     if (existingUser) {
       result.error = true;
       result.message = "User already exists";
       result.code = 400;
       return result;
     }
-  
+
     // Create base user
     const user = await User.create({
       firstName: data.firstName,
       lastName: data.lastName,
       email: data.email.toLowerCase(),
       password: data.password,
-      userType: data.userType
+      userType: data.userType,
     });
-  
+
     if (!user) {
       result.error = true;
       result.message = "Failed to create user";
       result.code = 500;
       return result;
     }
-  
+
     // Encrypt password
     await this.encryptUserPassword(user, data.password);
-  
+
     // Handle specific user type operations
     if (user.userType === EUserType.LISTENER) {
       await listenerService.createListenerProfile({
         user: user._id,
-        _id: user._id
+        _id: user._id,
       });
       // Create default subscription
       await subscriptionService.createDefaultSubscription(user._id);
     }
-  
+
     if (user.userType === EUserType.CREATOR) {
       await creatorService.createCreatorProfile({
         user: user._id,
-        _id: user._id
+        _id: user._id,
       });
     }
-  
+
     if (user.userType === EUserType.PREACHER) {
       await preacherService.createPreacherProfile({
         user: user._id,
-        _id: user._id
+        _id: user._id,
       });
     }
-  
+
     if (user.userType === EUserType.STAFF) {
       // Generate API keys for staff
       const apiKey = await SystemService.generateAPIKey();
       user.apiKey = apiKey;
       await user.save();
     }
-  
+
     result.data = user;
     result.message = "User created successfully";
     return result;
   }
 
   public async createUsser(data: CreateUserDTO): Promise<IUserDoc> {
-    
     let fName: string = "",
       lName: string = "";
     const existingUser = await User.findOne({ email: data.email });
@@ -208,9 +218,6 @@ class UserService {
       return result;
     }
 
-
-
-    
     if (user.data.userType === EUserType.LISTENER) {
       const listenerData = {
         user: user.data._id,
@@ -305,14 +312,13 @@ class UserService {
   /**
    * @name checkPassword
    * @description validates against invalid password
-   * password must contain at least 8 characters, 
+   * password must contain at least 8 characters,
    * 1 lowercase letter, 1 uppercase letter, 1 special character and 1 number
    * @param password
    *
    * @returns {boolean} true/false to determine the state of the password
    */
   public async checkPassword(password: string): Promise<boolean> {
-
     const match = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/;
     const matched: boolean = match.test(password);
 
@@ -350,7 +356,13 @@ class UserService {
    */
   public async validateUserType(type: string): Promise<boolean> {
     let flag = false;
-    const list = [EUserType.USER, EUserType.LISTENER, EUserType.CREATOR, EUserType.PREACHER, EUserType.STAFF]
+    const list = [
+      EUserType.USER,
+      EUserType.LISTENER,
+      EUserType.CREATOR,
+      EUserType.PREACHER,
+      EUserType.STAFF,
+    ];
 
     if (arrayIncludes(list, type)) {
       flag = true;
@@ -473,7 +485,7 @@ class UserService {
   public async updateLastLogin(user: IUserDoc): Promise<void> {
     const today = dateToday(new Date());
     user.lastLogin = today.ISO;
-    // await user.save();
+    await user.save();
   }
 
   /**
@@ -494,18 +506,79 @@ class UserService {
   public async deactivateAccount(user: IUserDoc): Promise<void> {
     user.isActive = false;
     user.isLocked = true;
+    user.isDeactivated = true;
     await user.save();
   }
 
   /**
-   * @name initiateOTPCode
+   * Check if user account is locked
+   * @param user - User document
+   * @returns boolean
+   */
+  async checkLockedStatus(user: IUserDoc): Promise<boolean> {
+    if (!user.isLocked || !user.lockedUntil) {
+      return false;
+    }
+
+    // If lock duration has passed, unlock the account
+    if (new Date() > user.lockedUntil) {
+      user.isLocked = false;
+      user.lockedUntil = null;
+      user.loginLimit = 0;
+      await user.save();
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Update user login information
+   * @param user - User document
+   * @param req - Express Request object
+   */
+  async updateLoginInfo(user: IUserDoc, req: Request): Promise<void> {
+    const userAgent = req.headers['user-agent'];
+    const parser = new UAParser(userAgent);
+    const device = parser.getDevice();
+    const os = parser.getOS();
+    const browser = parser.getBrowser();
+    
+    // Get location info from IP
+    const geo = geoip.lookup(req.ip as string);
+
+    user.loginInfo = {
+      ip: req.ip?.toString() as string,
+      deviceType: userAgent as string,
+      platform: detectPlatform(device.type),
+      deviceInfo: {
+        manufacturer: device.vendor,
+        model: device.model,
+        osName: os.name as string,
+        osVersion: os.version as string,
+        browser: browser.name,
+        browserVersion: browser.version,
+        appVersion: req.headers['app-version'] as string, 
+      },
+      location: {
+        country: geo?.country as string,
+        city: geo?.city as string,
+        timezone: geo?.timezone as string,
+      },
+    }
+    await user.save();
+  }
+
+  /**
+   * @name generateOTPCode
    * @param user
    * @returns
    */
-  public async generateOTPCode(user: IUserDoc): Promise<string> {
+  public async generateOTPCode(user: IUserDoc, type: EOtpType): Promise<string> {
     const gencode = Random.randomNum(6);
     user.Otp = gencode.toString();
-    user.OtpExpiry = Date.now() + 15 * 60 * 1000; 
+    user.OtpExpiry = Date.now() + 15 * 60 * 1000;
+    user.otpType = type; 
     await user.save();
 
     return gencode.toString();
@@ -530,46 +603,39 @@ class UserService {
   public async verifyOTP(email: string, code: string): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
     const today = Date.now();
-  
+
     const user = await User.findOne({ email: email, Otp: code.toString() });
-  
+
     if (!user) {
       result.error = true;
       result.message = "Invalid OTP code";
       result.code = 400;
       return result;
     }
-  
+
     if (user.OtpExpiry && user.OtpExpiry < today) {
       // Clear expired OTP
       user.Otp = "";
       user.OtpExpiry = undefined;
       await user.save();
-  
+
       result.error = true;
       result.message = "OTP has expired. Please request a new one";
       result.code = 400;
       return result;
     }
-  
+
     // Valid OTP
     result.data = user;
     result.message = "OTP verified successfully";
-    
+
     // Clear used OTP
     user.Otp = "";
     user.OtpExpiry = undefined;
     await user.save();
-  
+
     return result;
   }
-
-
-
-
-
-
-
 
   /**
    * @name encryptUserPassword
@@ -671,7 +737,8 @@ class UserService {
     } else if (
       user &&
       isAdmin === false &&
-      (user.userType === EUserType.STAFF || user.userType === EUserType.SUPERADMIN)
+      (user.userType === EUserType.STAFF ||
+        user.userType === EUserType.SUPERADMIN)
     ) {
       result.error = true;
       result.message = `user is not authorized to access this route`;
@@ -686,25 +753,23 @@ class UserService {
     return result;
   }
 
-    /**
+  /**
    * @name attachRole
    * @param user
    * @param role
    */
-    public async attachRole(user: IUserDoc, role: string): Promise<void> {
-      const userRole = await Role.findOne({ name: role });
-  
-      if (userRole) {
-        user.role = userRole._id;
-        userRole.users = [...userRole.users, user._id];
-        await user.save();
-        await userRole.save;
-      }
-  
-      new ErrorResponse(`Role ${role} does not exist.`, 400, []);
+  public async attachRole(user: IUserDoc, role: string): Promise<void> {
+    const userRole = await Role.findOne({ name: role });
+
+    if (userRole) {
+      user.role = userRole._id;
+      userRole.users = [...userRole.users, user._id];
+      await user.save();
+      await userRole.save;
     }
 
-
+    new ErrorResponse(`Role ${role} does not exist.`, 400, []);
+  }
 }
 
 export default new UserService();
