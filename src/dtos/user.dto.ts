@@ -1,10 +1,11 @@
-import { EUserType } from "../utils/enums.util";
+import { EPasswordType, EUserType } from "../utils/enums.util";
 
 export interface CreateUserDTO {
   firstName: string;
   lastName: string;
   email: string;
   password: string;
+  passwordType: EPasswordType
   userType: EUserType;
   location?: {
     address?: string;

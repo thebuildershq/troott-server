@@ -4,6 +4,7 @@ import {
   EContentState,
   EContentStatus,
   EOtpType,
+  EPasswordType,
   EPlaylistType,
   EStaffPermissions,
   EStaffRole,
@@ -35,7 +36,8 @@ export interface IUserDoc extends Document {
   firstName: string;
   lastName: string;
   email: string;
-  password: string; // encrypt this data
+  password: string; 
+  passwordType: EPasswordType;// encrypt this data
   userType: EUserType;
 
   user: string
@@ -47,7 +49,6 @@ export interface IUserDoc extends Document {
   avatar: string;
   dateOfBirth: Date;
   gender: string;
-  passwordType: string;
   savedPassword: string;
 
   activationCode?: string;
@@ -89,8 +90,8 @@ export interface IUserDoc extends Document {
     staff?: ObjectId | any;
   };
 
-  // functions
-  matchPassword(password: string): Promise<boolean>;
+  increaseLoginLimit: () => number;
+  checkLockedStatus: () => boolean;
   getAuthToken: () => string;
   getResetPasswordToken: () => string;
   getInviteToken: () => string;
@@ -224,7 +225,6 @@ export interface IPreacherProfileDoc extends Document {
   _id: ObjectId;
   id: ObjectId;
 }
-
 export interface ICreatorProfileDoc extends Document {
   firstName: string;
   lastName: string;

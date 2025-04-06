@@ -3,7 +3,9 @@ import {
   updateListenerProfileDTO,
 } from "../dtos/profile.dto";
 import Listener from "../models/Listener.model";
-import { IResult } from "../utils/interface.util";
+import User from "../models/User.model";
+import { generateRandomChars } from "../utils/helper.util";
+import { IListenerProfileDoc, IResult, IUserDoc } from "../utils/interface.util";
 
 class ListenerService {
   constructor() {}
@@ -19,41 +21,57 @@ class ListenerService {
    */
   public async createListenerProfile(
     data: createListenerProfileDTO
-  ): Promise<IResult> {
-    const result: IResult = { error: false, message: "", code: 200, data: {} };
+  ): Promise<{listener: IListenerProfileDoc, user: IUserDoc}> {
+    
+    const { firstName, lastName, email, password, type, user, createdBy } = data
+    const listenerID = generateRandomChars(12)
 
-    const listenerProfileData = {
-      user: data.user,
-      id: data.id,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email,
-      location: data.location,
-      phoneNumber: data.phoneNumber,
-      phoneCode: data.phoneCode,
-      dateOfBirth: data.dateOfBirth,
-      gender: data.gender,
-      country: data.country,
-      avatar: data.avatar,
-      slug: data.slug,
-      type: data.type,
-      card: data.card,
-    };
+    if (user) {
 
-    const profile = await Listener.create(listenerProfileData);
+      let listenerProfileData = {
+      
+        id: user.id,
+        _id: user._id,
+        listenerID: listenerID
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        location: user.location,
+        phoneNumber: user.phoneNumber,
+        phoneCode: user.phoneCode,
+        dateOfBirth: user.dateOfBirth,
+        gender: user.gender,
+        country: user.country,
+        avatar: user.avatar,
+        slug: user.slug,
+        type: user.type,
+        card: user.card,
+      };
 
-    if (!profile) {
-      result.error = true;
-      result.message = "Error creating profile";
-      result.code = 500;
-      return result;
+      
+  
+      const profile = await Listener.create(listenerProfileData);
+
+      user.listener = profil`e.listener._id
+
+      await User.save()
+  
+
     }
-    result.error = false;
-    result.message = "Profile created successfully";
-    result.data = profile;
-    result.code = 200;
-    return result;
-  }
+
+ 
+  //   if (!profile) {
+  //     result.error = true;
+  //     result.message = "Error creating profile";
+  //     result.code = 500;
+  //     return result;
+  //   }
+  //   result.error = false;
+  //   result.message = "Profile created successfully";
+  //   result.data = profile;
+  //   result.code = 200;
+  //   return result;
+  // }
 
   /**
    * @name updateListenerProfile

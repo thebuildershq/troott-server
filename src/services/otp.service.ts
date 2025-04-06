@@ -4,7 +4,7 @@ import appRootPath from "app-root-path";
 import { SendEmailDTO, SendgridEmailDataDTO } from "../dtos/emaitl.dto";
 import sgMail from "@sendgrid/mail";
 import transporter from "../utils/sendgrid.util";
-import { EEmailDriver, EVerifyOTP } from "../utils/enums.util";
+import { EEmailDriver, EEmailTemplate, EVerifyOTP } from "../utils/enums.util";
 import { IResult } from "../utils/interface.util";
 
 const BASE_FOLDER: string = `${appRootPath.path}/src`;
@@ -84,18 +84,18 @@ class OTPService {
 
       // Default values
       let buttonText: string = (options && options.buttonText) || "Verify";
-      let _template = template ? template : "verify_email";
+      let _template = template ? template : EEmailTemplate.VERIFY_EMAIL;
       let salute =
         options && options.salute
           ? options.salute
           : ", Let's verify your account";
       let url = options && options.buttonUrl ? options.buttonUrl : "";
-      let fromName = process.env.EMAIL_FROM_NAME || "troott";
+      let fromName = process.env.EMAIL_FROM_NAME as string;
 
       let bodyOne =
         options && options.bodyOne
           ? options.bodyOne
-          : `We have received your request to make a security-sensitive changes to your Cohut account.`;
+          : `We have received your request to make a security-sensitive changes to your troott account.`;
       let bodyTwo =
         options && options.bodyTwo
           ? options.bodyTwo

@@ -11,6 +11,15 @@ export enum EAppChannel {
   WATCH = "watch",
 }
 
+// create passwordType: EPasswordType;
+
+export enum EPasswordType {
+  USERGENERATED = "user-generated",
+  SYSTEMGENERATED = "system-generated",
+    TEMPORARY = 'temporary',
+  RESET = 'reset'
+}
+
 export enum EUserType {
   SUPERADMIN = "superadmin",
   STAFF = "staff",
@@ -260,3 +269,5 @@ export enum EVerifyOTP {
   LOGIN = "login",
   VERIFY = "verify",
 }
+
+

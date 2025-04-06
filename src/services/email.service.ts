@@ -71,7 +71,6 @@ class EmailService {
     sgMail.setApiKey(process.env.SENDGRID_API_KEY as string);
   }
 
-
   public async sendInviteEmail(
     email: string,
     initiativeName: string,
@@ -114,27 +113,66 @@ class EmailService {
       return result;
     }
   }
+
+  public async sendUserWelcomeEmail() {
+    const result: IResult = { error: false, message: "", code: 200, data: {} };
+    return result;
+  }
+
+  public async sendPreacherWelcomeEmail() {
+    const result: IResult = { error: false, message: "", code: 200, data: {} };
+    return result;
+  }
+
+  public async sendCreatorWelcomeEmail() {
+    const result: IResult = { error: false, message: "", code: 200, data: {} };
+    return result;
+  }
+
+  public async sendStaffrWelcomeEmail() {
+    const result: IResult = { error: false, message: "", code: 200, data: {} };
+    return result;
+  }
+
+  public async sendPasswordChangeNotificationEmail() {
+    const result: IResult = { error: false, message: "", code: 200, data: {} };
+    return result;
+  }
+
+  public async sendPasswordResetNotificationEmail() {
+    const result: IResult = { error: false, message: "", code: 200, data: {} };
+    return result;
+  }
+
+
+  public async userInviteEmail() {
+    const result: IResult = { error: false, message: "", code: 200, data: {} };
+    return result;
+  }
+
+  public async staffInviteEmail() {
+    const result: IResult = { error: false, message: "", code: 200, data: {} };
+    return result;
+  }
 }
 
 export default new EmailService();
-
-
 
 /***
  * send creator verification status in review
  * send creator verification status accepted
  * send creator verification status rejection
- * 
+ *
  * send admin login invite (email, password)
- * 
+ *
  * send listener welcome email
  * send creator welcome email
  * send admin welcome email
- * 
+ *
  * send listener | creator | admin password reset email
- * 
+ *
  * send new sermon notification to listeners
  * send new playlist notification to listeners
- * 
- * 
+ *
+ *
  */

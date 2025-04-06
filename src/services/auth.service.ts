@@ -81,7 +81,7 @@ class AuthService {
    * @param data
    * @returns {Promise<IResult>}
    */
-  public async sendVerificationEmail(data: RegisterDTO): Promise<IResult> {
+  public async sendVerificationEmail(data: RegisterUserDTO): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
     const { email } = data;
 
@@ -94,7 +94,7 @@ class AuthService {
     } else {
       const { activationCode, activationCodeExpire } = this.getActivationCode();
       user.activationCode = activationCode;
-      user.activationCodeExpirationDate = activationCodeExpire;
+      user.activationCodeExpiry = activationCodeExpire;
       await user.save();
 
       await emailService.sendVerificationCodeEmail(

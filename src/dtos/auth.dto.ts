@@ -7,7 +7,7 @@ export interface RegisterUserDTO {
   lastName: string;
   email: string;
   password: string;
-  userType: EUserType;
+  userType?: EUserType;
 }
 
 export interface LoginDTO {
@@ -18,13 +18,25 @@ export interface LoginDTO {
 export interface ForgotPasswordDTO {
   email: string;
 }
+export interface verifyOtpDTO {
+  email: string;
+  OTP: number;
+}
 
+export interface resendOtpDTO {
+  email: string;
+  OTP: number;
+}
 export interface ResetPasswordDTO {
-	password: string;
-	confirmPassword: string;
-	resetOtp: number;
-  }
-  
+  email: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordDTO  {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface EditUserDTO {
   firstName?: string;
   lastName?: string;
@@ -41,8 +53,8 @@ export interface EditUserDTO {
 }
 
 export interface MatchEncryptedPasswordDTO {
-  user: IUserDoc,
-  hash: string
+  user: IUserDoc;
+  hash: string;
 }
 
 export interface AuthResponseDTO {
@@ -102,5 +114,3 @@ export interface NotificationPreferencesDTO {
   push: boolean;
   sms: boolean;
 }
-
-

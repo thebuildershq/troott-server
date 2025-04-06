@@ -17,7 +17,7 @@ const ListenerProfileSchema = new Schema<IListenerProfileDoc>(
     location: { type: Schema.Types.Mixed, required: true, index: "2dsphere" },
     slug: { type: String, required: true, unique: true },
     type: { type: String, required: true },
-    card: { type: Schema.Types.Mixed }, 
+    card: { type: Schema.Types.Mixed, select: false }, 
 
     // Engagement Tracking
     playlists: [{ type: Schema.Types.ObjectId, ref: EDbModels.PLAYLIST, index: true }],

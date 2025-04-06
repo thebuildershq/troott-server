@@ -3,8 +3,8 @@ import { IDebitCard, ILocationInfo } from "../utils/interface.util";
 
 // Listener Profile DTO
 export interface createListenerProfileDTO {
-  user: ObjectId;
   id: ObjectId;
+  _id: ObjectId;
   firstName: string;
   lastName: string;
   email: string;
