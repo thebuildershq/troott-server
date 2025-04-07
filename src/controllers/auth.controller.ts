@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import asyncHandler from "../middleware/async.mdw";
+import asyncHandler from "../middlewares/async.mdw";
 import ErrorResponse from "../utils/error.util";
 import User from "../models/User.model";
 import {
@@ -85,14 +85,10 @@ export const registerUser = asyncHandler(
       passwordType: EPasswordType.USERGENERATED,
       userType: userType as EUserType,
     });
+    if (!user) {
+      return next(new ErrorResponse("Error", 404, ["user not created"]));
+    }
 
-    // if (user.error) {
-    //   return next(
-    //     new ErrorResponse("Error", user.code!, [user.message])
-    //   );
-    // }
-
-    // const user = createNewUser.data;
     const OTP = await userService.generateOTPCode(user, EOtpType.REGISTER);
 
     if (OTP) {

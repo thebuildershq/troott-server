@@ -19,6 +19,11 @@ class TokenService {
     }
   }
 
+  /**
+   * @description Generates and attaches a JWT token to a user
+   * @param {IUserDoc} user - The user document to generate token for
+   * @returns {Promise<IResult>} Result object containing the generated token or error
+   */
   public async attachToken(user: IUserDoc): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
@@ -27,7 +32,7 @@ class TokenService {
         {
           id: user._id,
           email: user.email,
-          role: user.roles,
+          role: user.role,
         },
         this.secret,
         { algorithm: "HS512", expiresIn: this.expire }
@@ -46,7 +51,12 @@ class TokenService {
     return result;
   }
 
-
+  /**
+   * @description Refreshes an existing JWT token if needed
+   * @param {string} accessToken - The current access token to refresh
+   * @returns {Promise<IResult>} Result object containing either a new token or the current valid token
+   * @throws {ErrorResponse} If token is invalid or user not found
+   */
   public async refreshToken(accessToken: string): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
@@ -61,12 +71,11 @@ class TokenService {
       }
 
       if (!this.checkTokenValidity(accessToken)) {
-       
         const newToken = jwt.sign(
           {
             id: user._id,
             email: user.email,
-            role: user.roles,
+            role: user.role,
           },
           this.secret,
           { algorithm: "HS512", expiresIn: this.expire }
@@ -87,7 +96,12 @@ class TokenService {
     return result;
   }
 
-  private checkTokenValidity(token: string): boolean {
+  /**
+   * @description Checks if a token needs to be refreshed based on expiration time
+   * @param {string} token - The JWT token to check
+   * @returns {boolean} True if token needs refresh (within 5 hours of 30-day expiry), false otherwise
+   */
+  public checkTokenValidity(token: string): boolean {
     const decoded = jwt.decode(token) as jwt.JwtPayload;
     if (!decoded || !decoded.exp) return false;
 
@@ -95,15 +109,21 @@ class TokenService {
     const currentTime = Date.now();
     const timeLeft = expirationTime - currentTime;
 
-    return timeLeft <= 5 * 60 * 60 * 1000;
+    const refreshThreshold = 30 * 24 * 60 * 60 * 1000 - 5 * 60 * 60 * 1000;
+
+    return timeLeft <= refreshThreshold;
   }
 
+  /**
+   * @description Removes the access token from a user's record during logout
+   * @param {IUserDoc} user - The user document to detach token from
+   * @returns {Promise<IResult>} Result object indicating success or failure
+   */
   public async detachToken(user: IUserDoc): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
     try {
-      await User
-        .findByIdAndUpdate(user.id, { accessToken: "" }); 
+      await User.findByIdAndUpdate(user.id, { accessToken: "" });
       result.message = "Token detached successfully";
     } catch (error: any) {
       result.error = true;
@@ -111,10 +131,8 @@ class TokenService {
       result.message = `Failed to detach token: ${error.message}`;
     }
 
-    return result
+    return result;
   }
-
-
 }
 
 export default new TokenService();
