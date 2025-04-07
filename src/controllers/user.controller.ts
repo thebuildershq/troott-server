@@ -120,3 +120,21 @@ export const deactivateAccount = asyncHandler(
   }
 );
 
+
+    // get all user account 
+    // get user account by id
+    // update user account
+    // deactivate user account
+    // suspend user account
+    // delete user account
+    // get user preferences
+    // update user preferences
+    // create user preferences
+
+    // follow a user
+    // unfollow a user
+
+    // switch user profile
+    // update user roles & permissions.
+    // update user account details
+    // update user account status

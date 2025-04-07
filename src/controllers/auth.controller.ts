@@ -633,3 +633,7 @@ export const resendOTP = asyncHandler(
     });
   }
 );
+
+
+// Sign in with Google
+// Sign in with Apple
