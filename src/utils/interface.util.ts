@@ -22,7 +22,7 @@ export interface IRoleDoc extends Document {
   name: string;
   description: string;
   slug: string;
-  user: ObjectId | any;
+  users: ObjectId | any;
   permissions: Array<string>;
 
   getAll(): Array<IRoleDoc>;
@@ -52,7 +52,6 @@ export interface IUserDoc extends Document {
   avatar: string;
   dateOfBirth: Date;
   gender: string;
-  role: string;
 
   Otp: string;
   OtpExpiry: number;
@@ -82,7 +81,7 @@ export interface IUserDoc extends Document {
   };
 
   // relationships
-  roles: Array<ObjectId | any>;
+  role: ObjectId | any;
   profiles: {
     listener?: ObjectId | any;
     creator?: ObjectId | any;

@@ -23,7 +23,7 @@ const RoleSchema = new mongoose.Schema<IRoleDoc>({
 
     slug: { type: String, default: '' },
 
-    user: [
+    users: [
         {
             type: Schema.Types.Mixed,
             ref: EDbModels.USER, 

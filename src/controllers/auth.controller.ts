@@ -86,9 +86,9 @@ export const registerUser = asyncHandler(
       userType: userType as EUserType,
     });
 
-    // if (createNewUser.error) {
+    // if (user.error) {
     //   return next(
-    //     new ErrorResponse("Error", createNewUser.code!, [createNewUser.message])
+    //     new ErrorResponse("Error", user.code!, [user.message])
     //   );
     // }
 

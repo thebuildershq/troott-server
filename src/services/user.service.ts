@@ -28,6 +28,7 @@ import creatorService from "./creator.service";
 import preacherService from "./preacher.service";
 import staffService from "./staff.service";
 import { createStaffDTO } from "../dtos/profile.dto";
+import ErrorResponse from "../utils/error.util";
 
 class UserService {
   public result: IResult;
@@ -41,12 +42,6 @@ class UserService {
    * @description
    * Validates the user registration payload before proceeding with user creation.
    * This method ensures all required fields are present and conform to expected rules.
-   * It checks:
-   * - that the email, first name, last name, and password are provided,
-   * - and that the `userType` is one of the allowed system-defined user roles (Listener, Creator, Preacher).
-   *
-   * This validation helps prevent invalid or malformed registration attempts from reaching the database layer.
-   *
    * @param {RegisterUserDTO} data - The user registration data transfer object containing the form input.
    * @returns {Promise<IResult>} A result object indicating success or failure with an appropriate message.
    */
@@ -537,6 +532,12 @@ class UserService {
     return _foundUser ? _foundUser : null;
   }
 
+    /**
+   * @name verifyOTP
+   * @param user
+   * @param code
+   * @returns
+   */
   public async verifyOTP(email: string, code: string): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
     const today = Date.now();
