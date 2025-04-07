@@ -1,87 +1,193 @@
+import { ObjectId } from "mongoose";
 import { createCreatorProfileDTO, updateCreatorProfileDTO } from "../dtos/profile.dto";
 import Creator from "../models/Creator.model";
-import { IResult } from "../utils/interface.util";
+import { ICreatorProfileDoc, IResult, IUserDoc } from "../utils/interface.util";
+import { EUserType, EVerificationStatus } from "../utils/enums.util";
+import { generateRandomChars } from "../utils/helper.util";
 
 class CreatorService {
-  constructor() {}
-
-  /**
-   * @name createCreatorProfile
-   * @description
-   * Creates a new Creator profile in the database using the provided DTO.
-   * This method handles profile setup for newly registered Creators by saving
-   * essential user metadata such as personal details, location, and engagement info.
-   * @param {CreatorProfileDTO} data
-   * @returns {Promise<IResult>}
-   */
   public async createCreatorProfile(
     data: createCreatorProfileDTO
-  ): Promise<IResult> {
-    const result: IResult = { error: false, message: "", code: 200, data: {} };
+  ): Promise<{ creator: ICreatorProfileDoc; user: IUserDoc }> {
+    const { user } = data;
+
+    const existingCreator = await Creator.findOne({ user: user._id });
+    if (existingCreator) {
+      throw new Error("Creator profile already exists for this user");
+    }
 
     const creatorProfileData = {
-      user: data.user,
-      id: data.id,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email,
-      location: data.location,
-      phoneNumber: data.phoneNumber,
-      phoneCode: data.phoneCode,
-      dateOfBirth: data.dateOfBirth,
-      gender: data.gender,
-      country: data.country,
+      _id: user._id,
+      id: user.id,
+      creatorID: generateRandomChars(12),
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      phoneCode: user.phoneCode,
+      country: user.country,
+      dateOfBirth: user.dateOfBirth,
+      gender: user.gender,
       avatar: data.avatar,
-      slug: data.slug,
+
+      type: EUserType.CREATOR,
+      user: user._id,
+      isActive: true,
+      isSuspended: false,
+      isDeleted: false,
     };
 
-    const profile = await Creator.create(creatorProfileData);
+    const creator = await Creator.create(creatorProfileData);
 
-    if (!profile) {
-      result.error = true;
-      result.message = "Error creating profile";
-      result.code = 500;
-      return result;
-    }
-    result.error = false;
-    result.message = "Profile created successfully";
-    result.data = profile;
-    result.code = 200;
-    return result;
+    user.profiles = {
+      ...user.profiles,
+      creator: creator._id,
+    };
+    await user.save();
+
+    return { creator, user };
   }
 
-  /**
-   * @name updateCreatorProfile
-   * @description
-   * Updates an existing Creator profile with new information. This method is
-   * typically used after profile creation to associate the Creator with a specific
-   * program or organization context, often during onboarding or invite flows.
-   * @param {string} userId
-   * @param {CreatorProfileDTO} data
-   * @returns {Promise<IResult>}
-   */
   public async updateCreatorProfile(
-    userId: string,
-    data: updateCreatorProfileDTO
-  ): Promise<IResult> {
-    const result: IResult = { error: false, message: "", code: 200, data: {} };
-
-    const updatedProfile = await Creator.findOneAndUpdate(
-      { user: userId },
-      { $set: { ...data } },
+    id: ObjectId,
+    data: Partial<ICreatorProfileDoc>
+  ): Promise<ICreatorProfileDoc> {
+    const updatedCreator = await Creator.findByIdAndUpdate(
+      id,
+      { $set: data },
       { new: true, runValidators: true }
     );
 
-    if (!updatedProfile) {
+    if (!updatedCreator) {
+      throw new Error("Creator profile not found");
+    }
+
+    return updatedCreator;
+  }
+
+  public async createSermonBite(creatorId: ObjectId, biteData: any): Promise<void> {
+    const creator = await Creator.findById(creatorId);
+    if (!creator) {
+      throw new Error("Creator not found");
+    }
+
+    await Creator.findByIdAndUpdate(creatorId, {
+      $push: { 
+        bites: biteData._id,
+        uploads: biteData._id,
+        uploadHistory: {
+          contentId: biteData._id,
+          type: 'bite',
+          timestamp: new Date()
+        }
+      },
+      $inc: { publishedCount: 1 }
+    });
+  }
+
+  public async manageTopBites(creatorId: ObjectId, biteIds: ObjectId[]): Promise<void> {
+    const creator = await Creator.findById(creatorId);
+    if (!creator) {
+      throw new Error("Creator not found");
+    }
+
+    await Creator.findByIdAndUpdate(creatorId, {
+      $set: { topBites: biteIds }
+    });
+  }
+
+  public async updateMonthlyListeners(creatorId: ObjectId): Promise<void> {
+    const creator = await Creator.findById(creatorId);
+    if (!creator) {
+      throw new Error("Creator not found");
+    }
+
+    const monthlyListeners = await this.calculateMonthlyListeners(creatorId);
+
+    await Creator.findByIdAndUpdate(creatorId, {
+      $set: { monthlyListeners }
+    });
+  }
+
+  private async calculateMonthlyListeners(creatorId: ObjectId): Promise<number> {
+    // Implementation for calculating monthly listeners
+    return 0; // Placeholder
+  }
+
+  public async updateEngagementMetrics(creatorId: ObjectId): Promise<void> {
+    const creator = await Creator.findById(creatorId);
+    if (!creator) {
+      throw new Error("Creator not found");
+    }
+
+    const likes = await this.calculateTotalLikes(creatorId);
+    const shares = await this.calculateTotalShares(creatorId);
+
+    await Creator.findByIdAndUpdate(creatorId, {
+      $set: { likes, shares }
+    });
+  }
+
+  private async calculateTotalLikes(creatorId: ObjectId): Promise<number> {
+    // Implementation for calculating total likes
+    return 0; // Placeholder
+  }
+
+  private async calculateTotalShares(creatorId: ObjectId): Promise<number> {
+    // Implementation for calculating total shares
+    return 0; // Placeholder
+  }
+
+  public async submitVerification(creatorId: ObjectId, documents: string[]): Promise<void> {
+    const creator = await Creator.findById(creatorId);
+    if (!creator) {
+      throw new Error("Creator not found");
+    }
+
+    await Creator.findByIdAndUpdate(creatorId, {
+      $set: {
+        identification: documents,
+        verificationStatus: EVerificationStatus.PENDING
+      }
+    });
+  }
+
+  public async updateVerificationStatus(
+    creatorId: ObjectId,
+    status: EVerificationStatus
+  ): Promise<void> {
+    const creator = await Creator.findById(creatorId);
+    if (!creator) {
+      throw new Error("Creator not found");
+    }
+
+    await Creator.findByIdAndUpdate(creatorId, {
+      $set: {
+        verificationStatus: status,
+        isVerified: status === EVerificationStatus.APPROVED,
+        verifiedAt: status === EVerificationStatus.APPROVED ? new Date() : null
+      }
+    });
+  }
+
+  public async getCreatorProfile(userId: string): Promise<IResult> {
+    const result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    const creator = await Creator.findOne({ user: userId })
+      .populate("bites")
+      .populate("topBites")
+      .populate("followers")
+      .populate("uploads")
+      .populate("uploadHistory");
+
+    if (!creator) {
       result.error = true;
       result.message = "Creator profile not found";
-      result.code = 500;
+      result.code = 404;
       return result;
     }
-    result.error = false;
-    result.message = "Creator Profile updated successfully";
-    result.code = 200;
-    result.data = updatedProfile;
+
+    result.data = creator;
     return result;
   }
 }

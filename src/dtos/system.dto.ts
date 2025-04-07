@@ -17,4 +17,8 @@ export interface DecryptDataDTO{
     separator: string
 }
 
-
+export interface IPermissionDTO {
+    user: string;
+    permissions: Array<string>;
+    role: string;
+  }

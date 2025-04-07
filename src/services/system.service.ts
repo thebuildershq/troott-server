@@ -1,6 +1,6 @@
-import { IResult } from "../utils/interface.util";
-import { DecryptDataDTO, EncryptDataDTO } from "../dtos/system.dto";
 import crypto from "crypto";
+import { IResult, IStaffProfileDoc, IUserDoc } from "../utils/interface.util";
+import { DecryptDataDTO, EncryptDataDTO } from "../dtos/system.dto";
 
 class SystemService {
   public result: IResult;
@@ -9,6 +9,14 @@ class SystemService {
     this.result = { error: false, message: "", code: 200, data: {} };
   }
 
+ /**
+   * Private method for encrypting data using AES-GCM
+   * @param data - Object containing the payload to encrypt
+   * @param data.payload - String to encrypt
+   * @param password - Password used for key derivation
+   * @param iv - Optional initialization vector (Buffer)
+   * @returns Object containing encryption result, encrypted data, and IV
+   */
   private static encryptAESGCM(
     data: { payload: string },
     password: string,
@@ -35,6 +43,14 @@ class SystemService {
     }
   }
 
+ /**
+   * Encrypts data using AES-GCM with a custom separator
+   * @param data - Encryption data transfer object
+   * @param data.password - Password for encryption
+   * @param data.separator - Separator for combining encrypted data and IV
+   * @param data.payload - Data to encrypt
+   * @returns Promise resolving to encrypted string
+   */
   public async encryptData(data: EncryptDataDTO): Promise<string> {
     let result: string = "";
     const { password, separator, payload } = data;
@@ -55,8 +71,13 @@ class SystemService {
     return result;
   }
 
-  /**
-   * Decrypts AES-GCM encrypted data
+   /**
+   * Private method for decrypting AES-GCM encrypted data
+   * @param data - Object containing the encrypted payload
+   * @param data.payload - Encrypted string to decrypt
+   * @param password - Password used for key derivation
+   * @param iv - Initialization vector (Buffer)
+   * @returns Object containing decryption result and decrypted data
    */
   private static decryptAESGCM(
     data: { payload: string },
@@ -77,6 +98,14 @@ class SystemService {
     }
   }
 
+ /**
+   * Decrypts data that was encrypted using AES-GCM
+   * @param data - Decryption data transfer object
+   * @param data.password - Password for decryption
+   * @param data.payload - Encrypted data to decrypt
+   * @param data.separator - Separator used in encrypted data
+   * @returns Promise resolving to decryption result
+   */
   public async decryptData(data: DecryptDataDTO): Promise<any> {
     let result: any = null;
     const { password, payload, separator } = data;
@@ -124,6 +153,307 @@ class SystemService {
 
     return result;
   }
+
+  /**
+   * Generates a secure API key with customizable length and optional prefix
+   * @param length - Length of the API key (default: 32)
+   * @param prefix - Optional prefix to add to the API key
+   * @returns Generated API key string
+   * @throws Error if API key generation fails
+   */
+  public async generateAPIKey(length: number = 32, prefix?: string): Promise<string> {
+    try {
+      // Generate random bytes for the API key
+      const randomBytes = crypto.randomBytes(length);
+      let apiKey = randomBytes.toString('base64')
+        .replace(/[^a-zA-Z0-9]/g, '')
+        .slice(0, length);
+
+      if (prefix) {
+        apiKey = `${prefix}_${apiKey}`;
+      }
+
+      // Encrypt the API key
+      const encryptedKey = await this.encryptData({
+        payload: apiKey,
+        password: process.env.API_KEY_SECRET || 'default-secret',
+        separator: '.'
+      });
+
+      return encryptedKey;
+    } catch (error) {
+      console.error('API key generation failed:', error);
+      throw new Error('Failed to generate API key');
+    }
+  }
+
+    /**
+   * Revokes an API key by adding it to a blacklist
+   * @param apiKey - API key to revoke
+   * @returns Promise resolving to operation result
+   * @throws Error if revocation fails
+   */
+  public async validateAPIKey(apiKey: string): Promise<IResult> {
+    try {
+      // Decrypt the API key
+      const decrypted = await this.decryptData({
+        payload: apiKey,
+        password: process.env.API_KEY_SECRET || 'default-secret',
+        separator: '.'
+      });
+
+      if (decrypted.error || !decrypted.data) {
+        this.result.error = true;
+        this.result.message = 'Invalid API key';
+        this.result.code = 400;
+        return this.result;
+      }
+
+      // Basic format validation on decrypted key
+      const apiKeyRegex = /^[A-Za-z0-9_-]+$/;
+      if (!apiKeyRegex.test(decrypted.data)) {
+        this.result.error = true;
+        this.result.message = 'Invalid API key format';
+        this.result.code = 400;
+        return this.result;
+      }
+
+      this.result.error = false;
+      this.result.message = 'API key is valid';
+      this.result.code = 200;
+      this.result.data = { originalKey: decrypted.data };
+      return this.result;
+    } catch (error) {
+      console.error('API key validation failed:', error);
+      this.result.error = true;
+      this.result.message = 'Failed to validate API key';
+      this.result.code = 500;
+      return this.result;
+    }
+  }
+
+  /**
+   * Rotates an API key by generating a new one and revoking the old one
+   * @param currentApiKey - Current API key to rotate
+   * @returns Promise resolving to rotation result containing new API key
+   * @throws Error if rotation process fails
+   */
+  public async rotateAPIKey(currentApiKey: string): Promise<IResult> {
+    try {
+      // Validate current key
+      const validationResult = await this.validateAPIKey(currentApiKey);
+      if (validationResult.error) {
+        return validationResult;
+      }
+
+      // Generate new API key
+      const newApiKey = await this.generateAPIKey();
+
+      // Store rotation record
+      const rotationTimestamp = new Date().toISOString();
+      
+      this.result.error = false;
+      this.result.message = 'API key successfully rotated';
+      this.result.data = { 
+        newApiKey,
+        rotatedAt: rotationTimestamp,
+        previousKey: validationResult.data.originalKey
+      };
+      
+      return this.result;
+    } catch (error) {
+      console.error('API key rotation failed:', error);
+      this.result.error = true;
+      this.result.message = 'Failed to rotate API key';
+      this.result.code = 500;
+      return this.result;
+    }
+  }
+
+
+
+  /**
+   * Encrypts a user's API key
+   * @param user - User document
+   * @param apiKey - API key to encrypt
+   * @returns Promise<boolean> - Success status
+   */
+  public async encryptUserAPIKey(
+    user: IStaffProfileDoc,
+    apiKey: string
+  ): Promise<boolean> {
+    let result: boolean = false;
+
+    const encrypted = await this.encryptData({
+      payload: apiKey,
+      password: `${user.email}_apikey`, 
+      separator: ".",  
+    });
+
+    if (encrypted) {
+      const newApiKey = {
+        key: encrypted,
+        createdAt: new Date(),
+        lastUsed: new Date()
+      };
+
+      if (!user.apiKeys) {
+        user.apiKeys = [];
+      }
+
+      user.apiKeys.push(newApiKey);
+      await user.save();
+      return true;
+    }
+
+    return result;
+  }
+
+  /**
+   * Decrypts a user's API key
+   * @param user - User document
+   * @returns Promise<string | null> - Decrypted API key or null
+   */
+  public async decryptUserAPIKey(user: IStaffProfileDoc, keyIndex?: number): Promise<string | null> {
+    if (!user.apiKeys) {
+      return null;
+    }
+
+    if (!user.apiKeys || user.apiKeys.length === 0) {
+      return null;
+    }
+
+    // If no index provided, decrypt the latest key
+    const targetKey = typeof keyIndex === 'number' 
+      ? user.apiKeys[keyIndex] 
+      : user.apiKeys[user.apiKeys.length - 1];
+
+    if (!targetKey) {
+      return null;
+    }
+
+    const decrypted = await this.decryptData({
+      
+      password: `${user.email}_apikey`,
+      payload: targetKey.key,
+      separator: ".",
+    });
+
+    if (decrypted.error || !decrypted.data) {
+      return null;
+    }
+
+    return decrypted.data.toString();
+  }
+
+  
+
+  // private async storeKeyMetadata(metadata: IAPIKeyMetadata): Promise<void> {
+  //   try {
+  //     await APIKey.create(metadata);
+  //   } catch (error) {
+  //     console.error('Failed to store API key metadata:', error);
+  //     throw new Error('Failed to store API key metadata');
+  //   }
+  // }
+
+  // private async getKeyMetadata(keyHash: string): Promise<IAPIKeyMetadata | null> {
+  //   try {
+  //     return await APIKey.findOne({ keyHash }).lean();
+  //   } catch (error) {
+  //     console.error('Failed to retrieve API key metadata:', error);
+  //     throw new Error('Failed to retrieve API key metadata');
+  //   }
+  // }
+
+  // private async updateKeyLastUsed(keyHash: string): Promise<void> {
+  //   try {
+  //     await APIKey.findOneAndUpdate(
+  //       { keyHash },
+  //       { 
+  //         $set: { lastUsed: new Date() }
+  //       }
+  //     );
+  //   } catch (error) {
+  //     console.error('Failed to update API key last used:', error);
+  //     throw new Error('Failed to update API key usage');
+  //   }
+  // }
+
+  // private async updateKeyStatus(
+  //   keyHash: string, 
+  //   status: EAPIKeyStatus,
+  //   userId?: string
+  // ): Promise<void> {
+  //   try {
+  //     const update: any = { 
+  //       status,
+  //       ...(status === EAPIKeyStatus.REVOKED && {
+  //         revokedAt: new Date(),
+  //         revokedBy: userId
+  //       })
+  //     };
+
+  //     await APIKey.findOneAndUpdate(
+  //       { keyHash },
+  //       { $set: update }
+  //     );
+  //   } catch (error) {
+  //     console.error('Failed to update API key status:', error);
+  //     throw new Error('Failed to update API key status');
+  //   }
+  // }
+
+  // private async logKeyUsage(usage: APIKeyUsageDTO): Promise<void> {
+  //   try {
+  //     await APIKeyUsage.create({
+  //       ...usage,
+  //       timestamp: new Date()
+  //     });
+  //   } catch (error) {
+  //     console.error('Failed to log API key usage:', error);
+  //     // Don't throw error to prevent disrupting the main flow
+  //   }
+  // }
+
+  // private async checkKeyQuota(keyHash: string): Promise<boolean> {
+  //   try {
+  //     const now = new Date();
+  //     const hourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+      
+  //     const usageCount = await APIKeyUsage.countDocuments({
+  //       keyHash,
+  //       timestamp: { $gte: hourAgo }
+  //     });
+
+  //     // Example: 1000 requests per hour limit
+  //     return usageCount < 1000;
+  //   } catch (error) {
+  //     console.error('Failed to check API key quota:', error);
+  //     return false;
+  //   }
+  // }
+
+  // private async cleanupExpiredKeys(): Promise<void> {
+  //   try {
+  //     const now = new Date();
+  //     await APIKey.updateMany(
+  //       {
+  //         expiresAt: { $lt: now },
+  //         status: EAPIKeyStatus.ACTIVE
+  //       },
+  //       {
+  //         $set: { 
+  //           status: EAPIKeyStatus.EXPIRED,
+  //           revokedAt: now
+  //         }
+  //       }
+  //     );
+  //   } catch (error) {
+  //     console.error('Failed to cleanup expired keys:', error);
+  //   }
+  // }
+
 }
 
 export default new SystemService();

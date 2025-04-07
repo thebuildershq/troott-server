@@ -1,6 +1,6 @@
 import { Request } from "express";
 import { UAParser } from "ua-parser-js";
-import geoip from 'geoip-lite';
+import geoip from "geoip-lite";
 import { IBulkUser, ILogin, IResult, IUserDoc } from "../utils/interface.util";
 import {
   Random,
@@ -21,7 +21,13 @@ import { CreateUserDTO } from "../dtos/user.dto";
 import User from "../models/User.model";
 import Role from "../models/Role.model";
 import { detectPlatform } from "../utils/helper.util";
-
+import PermissionService from "./permission.service";
+import listenerService from "./listener.service";
+import { IPermissionDTO } from "../dtos/system.dto";
+import creatorService from "./creator.service";
+import preacherService from "./preacher.service";
+import staffService from "./staff.service";
+import { createStaffDTO } from "../dtos/profile.dto";
 
 class UserService {
   public result: IResult;
@@ -65,7 +71,7 @@ class UserService {
     } else if (!data.password) {
       result.error = true;
       result.message = "Password is required";
-    } else if (!arrayIncludes(allowedUsers, data.userType)) {
+    } else if (!data.userType || !arrayIncludes(allowedUsers, data.userType)) {
       result.error = true;
       result.message = `Invalid user type value. choose from ${allowedUsers.join(
         ","
@@ -138,154 +144,63 @@ class UserService {
    * @param data
    * @returns
    */
-  public async createUser(data: CreateUserDTO): Promise<IResult> {
-    let result: IResult = { error: false, message: "", code: 200, data: {} };
+  public async createUser(data: CreateUserDTO): Promise<IUserDoc> {
+    const { firstName, lastName, email, password, userType, role } = data;
 
-    const existingUser = await User.findOne({
-      email: data.email.toLowerCase(),
-    });
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
-      result.error = true;
-      result.message = "User already exists";
-      result.code = 400;
-      return result;
+      throw new Error("User already exists");
     }
 
-    // Create base user
-    const user = await User.create({
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email.toLowerCase(),
-      password: data.password,
-      userType: data.userType,
+    let user: IUserDoc = await User.create({
+      firstName,
+      lastName,
+      email: email.toLowerCase(),
+      password,
+      userType,
+      passwordType: data.passwordType
     });
 
-    if (!user) {
-      result.error = true;
-      result.message = "Failed to create user";
-      result.code = 500;
-      return result;
+    await this.attachRole(user, userType);
+
+    if (!permissions || permissions.length === 0) {
+      user = await PermissionService.createPermissionData(user);
+    } else {
+      const permissionPayload: IPermissionDTO = {
+        user: user._id.toString(),
+        permissions,
+        role: user.role
+      };
+      user = await PermissionService.updatePermissions(user, permissionPayload);
+
     }
 
-    // Encrypt password
-    await this.encryptUserPassword(user, data.password);
-
-    // Handle specific user type operations
     if (user.userType === EUserType.LISTENER) {
-      await listenerService.createListenerProfile({
-        user: user._id,
-        _id: user._id,
-      });
-      // Create default subscription
+      await listenerService.createListener({ user: user._id, _id: user._id });
       await subscriptionService.createDefaultSubscription(user._id);
     }
 
     if (user.userType === EUserType.CREATOR) {
-      await creatorService.createCreatorProfile({
-        user: user._id,
-        _id: user._id,
-      });
+      await creatorService.createCreatorProfile({ user: user._id, _id: user._id });
     }
 
     if (user.userType === EUserType.PREACHER) {
-      await preacherService.createPreacherProfile({
-        user: user._id,
-        _id: user._id,
-      });
+      await preacherService.createPreacherProfile({ user: user._id, _id: user._id });
     }
 
+   
     if (user.userType === EUserType.STAFF) {
-      // Generate API keys for staff
+      const staff: createStaffDTO = { }
+
+      await staffService.createStaffProfile({ user: user._id, _id: user._id });
       const apiKey = await SystemService.generateAPIKey();
-      user.apiKey = apiKey;
-      await user.save();
+      await SystemService.encryptUserAPIKey(staff, apiKey);  // Encrypt the API key before saving
     }
 
-    result.data = user;
-    result.message = "User created successfully";
-    return result;
-  }
+    await this.encryptUserPassword(user, password);
+    await user.save();
 
-  public async createUsser(data: CreateUserDTO): Promise<IUserDoc> {
-    let fName: string = "",
-      lName: string = "";
-    const existingUser = await User.findOne({ email: data.email });
-
-    if (existingUser) {
-      result.error = true;
-      result.message = "User already exists";
-      result.data = {};
-      return result;
-    }
-
-    if (user.data.userType === EUserType.LISTENER) {
-      const listenerData = {
-        user: user.data._id,
-        _id: user.data._id,
-      };
-
-      await listenerService.createListenerProfile(listenerData);
-
-      res.status(201).json({
-        error: false,
-        errors: [],
-        data: user,
-        message: "User registered successfully.",
-        status: 200,
-      });
-    }
-    if (user.data.userType === EUserType.CREATOR) {
-      const creatorData = {
-        user: user.data._id,
-        _id: user.data._id,
-      };
-
-      await creatorService.createCreatorProfile(creatorData);
-
-      res.status(201).json({
-        error: false,
-        errors: [],
-        data: user,
-        message: "User registered successfully.",
-        status: 200,
-      });
-    }
-
-    if (user.data.userType === EUserType.PREACHER) {
-      const preacherData = {
-        user: user.data._id,
-        _id: user.data._id,
-      };
-
-      await preacherService.createPreacherProfile(preacherData);
-
-      res.status(201).json({
-        error: false,
-        errors: [],
-        data: user,
-        message: "User registered successfully.",
-        status: 200,
-      });
-    }
-
-    const user = await User.create({
-      firstName: data.firstName ? data.firstName : fName,
-      lastName: data.lastName ? data.lastName : lName,
-      email: data.email.toLowerCase(),
-      password: data.password,
-    });
-
-    if (!user) {
-      result.error = true;
-      result.message = "Failed to create user";
-      return result;
-    }
-
-    result.data = user;
-
-    await this.encryptUserPassword(user, data.password);
-
-    return result;
+    return user;
   }
 
   /**
@@ -532,24 +447,24 @@ class UserService {
     return true;
   }
 
-    /**
+  /**
    * Increases login attempt counter and locks account if limit exceeded
    * @param user - User document
    * @returns number - Current login attempt count
    */
-    public async increaseLoginLimit(user: IUserDoc): Promise<number> {
-      // Increment login attempt counter
-      user.loginLimit = (user.loginLimit || 0) + 1;
-  
-      // If attempts exceed 5, lock the account for 30 minutes
-      if (user.loginLimit >= 5) {
-        user.isLocked = true;
-        user.lockedUntil = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
-      }
-  
-      await user.save();
-      return user.loginLimit;
+  public async increaseLoginLimit(user: IUserDoc): Promise<number> {
+    // Increment login attempt counter
+    user.loginLimit = (user.loginLimit || 0) + 1;
+
+    // If attempts exceed 5, lock the account for 30 minutes
+    if (user.loginLimit >= 5) {
+      user.isLocked = true;
+      user.lockedUntil = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
     }
+
+    await user.save();
+    return user.loginLimit;
+  }
 
   /**
    * Update user login information
@@ -557,12 +472,12 @@ class UserService {
    * @param req - Express Request object
    */
   async updateLoginInfo(user: IUserDoc, req: Request): Promise<void> {
-    const userAgent = req.headers['user-agent'];
+    const userAgent = req.headers["user-agent"];
     const parser = new UAParser(userAgent);
     const device = parser.getDevice();
     const os = parser.getOS();
     const browser = parser.getBrowser();
-    
+
     // Get location info from IP
     const geo = geoip.lookup(req.ip as string);
 
@@ -577,14 +492,14 @@ class UserService {
         osVersion: os.version as string,
         browser: browser.name,
         browserVersion: browser.version,
-        appVersion: req.headers['app-version'] as string, 
+        appVersion: req.headers["app-version"] as string,
       },
       location: {
         country: geo?.country as string,
         city: geo?.city as string,
         timezone: geo?.timezone as string,
       },
-    }
+    };
     await user.save();
   }
 
@@ -593,11 +508,14 @@ class UserService {
    * @param user
    * @returns
    */
-  public async generateOTPCode(user: IUserDoc, type: EOtpType): Promise<string> {
+  public async generateOTPCode(
+    user: IUserDoc,
+    type: EOtpType
+  ): Promise<string> {
     const gencode = Random.randomNum(6);
     user.Otp = gencode.toString();
     user.OtpExpiry = Date.now() + 15 * 60 * 1000;
-    user.otpType = type; 
+    user.otpType = type;
     await user.save();
 
     return gencode.toString();
@@ -635,7 +553,7 @@ class UserService {
     if (user.OtpExpiry && user.OtpExpiry < today) {
       // Clear expired OTP
       user.Otp = "";
-      user.OtpExpiry = 0 
+      user.OtpExpiry = 0;
       await user.save();
 
       result.error = true;

@@ -16,14 +16,14 @@ export enum EAppChannel {
 export enum EPasswordType {
   USERGENERATED = "user-generated",
   SYSTEMGENERATED = "system-generated",
-    TEMPORARY = 'temporary',
-  RESET = 'reset'
+  TEMPORARY = "temporary",
+  RESET = "reset",
 }
 
 export enum EUserType {
   SUPERADMIN = "superadmin",
   STAFF = "staff",
-  PREACHER =  "preacher",
+  PREACHER = "preacher",
   CREATOR = "creator",
   LISTENER = "listener",
   USER = "user",
@@ -34,7 +34,7 @@ export enum EStaffUnit {
   PRODUCT = "product",
   DESIGN = "design",
   OPERATIONS = "operations",
-  FINANCE = "finance"
+  FINANCE = "finance",
 }
 
 export enum EStaffRole {
@@ -42,7 +42,7 @@ export enum EStaffRole {
   MANAGER = "manager",
   LEAD = "lead",
   ASSOCIATE = "assocaite",
-  JUNIOR = "junior"
+  JUNIOR = "junior",
 }
 
 export enum EAccountManagerRole {
@@ -51,7 +51,6 @@ export enum EAccountManagerRole {
   EDITOR = "editor",
   ANALYST = "analyst",
 }
-
 
 export enum EVerificationStatus {
   PENDING = "pending",
@@ -65,6 +64,7 @@ export enum EVerificationStatus {
 export enum EDbModels {
   USER = "User",
   ROLE = "Role",
+  API_KEY = "ApiKey",
   BITE = "bite",
   CATALOG = "catalog",
   CREATOR = "creator",
@@ -189,8 +189,8 @@ export enum EOtpType {
 export enum EContentState {
   UPLOADING = "uploading",
   PROCESSING = "processing",
-  PROCESSED = "processed", 
-  UPLOADED = "uploaded", 
+  PROCESSED = "processed",
+  UPLOADED = "uploaded",
   FAILED = "failed",
   RETRYING = "retrying",
 }
@@ -204,7 +204,6 @@ export enum EContentStatus {
   ARCHIVED = "archived",
 }
 
-
 export enum EcatalogueType {
   RECENTLYPLAYED = "sermon",
   BITE = "bite",
@@ -217,11 +216,9 @@ export enum EStaffPermissions {
   ManageUsers = "manageUsers",
   ManagePlaylists = "managePlaylists",
   TrackEngagement = "trackEngagement",
-  FullAccess = "fullAccess"
+  FullAccess = "fullAccess",
 }
 
-
-;
 export enum EEmailDriver {
   SENDGRID = "sendgrid",
   AWS = "aws",
@@ -265,7 +262,6 @@ export enum EEmailStatus {
   FAILURE = "failure",
 }
 
-
 export enum EVerifyOTP {
   REGISTER = "register",
   PASSWORD_RESET = "password-reset",
@@ -274,4 +270,20 @@ export enum EVerifyOTP {
   VERIFY = "verify",
 }
 
+export enum EAPIKeyEnvironment {
+  LIVE = "live",
+  TEST = "test",
+}
 
+export enum EAPIKeyStatus {
+  ACTIVE = "active",
+  REVOKED = "revoked",
+  EXPIRED = "expired",
+  SUSPENDED = "suspended",
+}
+
+export enum EAPIKeyType {
+  FULL = "full",
+  READ = "read",
+  WRITE = "write",
+}

@@ -1,6 +1,9 @@
 import { Model, Document, ObjectId } from "mongoose";
 import {
   EAccountManagerRole,
+  EAPIKeyEnvironment,
+  EAPIKeyStatus,
+  EAPIKeyType,
   EContentState,
   EContentStatus,
   EOtpType,
@@ -49,6 +52,7 @@ export interface IUserDoc extends Document {
   avatar: string;
   dateOfBirth: Date;
   gender: string;
+  role: string;
 
   Otp: string;
   OtpExpiry: number;
@@ -130,7 +134,6 @@ export interface IListenerProfileDoc extends Document {
   // Security & Access Control
   permissions: Array<string>;
   twoFactorEnabled: boolean;
-  lastLogin: Date;
   loginHistory: Array<{ date: Date; ip: string; device: string }>;
   isActive: boolean;
   isSuspended: boolean;
@@ -781,4 +784,29 @@ export interface IPagination {
   updatedAt: string;
   _id: ObjectId;
   id: ObjectId;
+}
+
+
+export interface IAPIKeyMetadata {
+  keyHash: string;
+  userId: ObjectId;
+  environment: EAPIKeyEnvironment;
+  type: EAPIKeyType;
+  createdAt: Date;
+  lastUsed: Date | null;
+  expiresAt: Date | null;
+  status: EAPIKeyStatus;
+  permissions: string[];
+  revokedAt?: Date;
+  revokedBy?: string;
+  description?: string;
+}
+
+export interface IAPIKeyUsage {
+  keyHash: string;
+  timestamp: Date;
+  endpoint: string;
+  ipAddress: string;
+  userAgent: string;
+  responseCode: number;
 }

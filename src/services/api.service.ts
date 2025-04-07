@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import { IApiKeyDoc, IResult } from "../utils/interface.util";
 import ErrorResponse from "../utils/error.util";
-import ApiKey from "../models/ApiKey.model";
+import ApiKey from "../models/Apikey.model";
 import User from "../models/User.model";
 
 class ApiKeyService {

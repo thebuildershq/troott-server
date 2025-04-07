@@ -1,23 +1,17 @@
 import { ObjectId } from "mongoose";
-import { IDebitCard, ILocationInfo } from "../utils/interface.util";
+import { IDebitCard, ILocationInfo, IUserDoc } from "../utils/interface.util";
 
 // Listener Profile DTO
 export interface createListenerProfileDTO {
-  id: ObjectId;
-  _id: ObjectId;
+  id: string;
+  _id: string;
   firstName: string;
   lastName: string;
   email: string;
   gender: string;
   avatar: string;
-  dateOfBirth: Date;
-  country: string;
-  phoneNumber: string;
-  phoneCode: string;
-  location: ILocationInfo;
-  slug: string;
-  type: string;
-  card?: IDebitCard;
+  createdBy: string
+  user: IUserDoc
 
 }
 
@@ -41,7 +35,7 @@ export interface updateListenerProfileDTO {
 
 // Preacher Profile DTO
 export interface createPreacherProfileDTO {
-  user: ObjectId;
+  user: IUserDoc;
   id: ObjectId;
   firstName: string;
   lastName: string;
@@ -49,11 +43,6 @@ export interface createPreacherProfileDTO {
   gender: string;
   avatar: string;
   dateOfBirth: Date;
-  country: string;
-  phoneNumber: string;
-  phoneCode: string;
-  location: ILocationInfo;
-  slug: string;
 }
 
 export interface updatePreacherProfileDTO {
@@ -76,19 +65,14 @@ export interface updatePreacherProfileDTO {
 
 // Creator Profile DTO
 export interface createCreatorProfileDTO {
-    user: ObjectId;
+  user: IUserDoc
   id: ObjectId;
-    firstName: string;
+  firstName: string;
   lastName: string;
   email: string;
   gender: string;
   avatar: string;
   dateOfBirth: Date;
-  country: string;
-  phoneNumber: string;
-  phoneCode: string;
-  location: ILocationInfo;
-  slug: string;
 
 }
 
@@ -111,8 +95,8 @@ export interface updateCreatorProfileDTO {
   }
 
 // Staff Profile DTO
-export interface createStaffProfileDTO {
-    user: ObjectId;
+export interface createStaffDTO {
+  user: IUserDoc
   id: ObjectId;
   firstName: string;
   lastName: string;
@@ -125,6 +109,7 @@ export interface createStaffProfileDTO {
   phoneCode: string;
   location: ILocationInfo;
   slug: string;
+  apikeys: Array<string>;
 }
 
 

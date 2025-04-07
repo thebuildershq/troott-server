@@ -77,7 +77,7 @@ export const registerUser = asyncHandler(
       );
     }
 
-    const createNewUser = await userService.createUser({
+    const user = await userService.createUser({
       firstName,
       lastName,
       email,
@@ -86,13 +86,13 @@ export const registerUser = asyncHandler(
       userType: userType as EUserType,
     });
 
-    if (createNewUser.error) {
-      return next(
-        new ErrorResponse("Error", createNewUser.code!, [createNewUser.message])
-      );
-    }
+    // if (createNewUser.error) {
+    //   return next(
+    //     new ErrorResponse("Error", createNewUser.code!, [createNewUser.message])
+    //   );
+    // }
 
-    const user = createNewUser.data;
+    // const user = createNewUser.data;
     const OTP = await userService.generateOTPCode(user, EOtpType.REGISTER);
 
     if (OTP) {
@@ -166,7 +166,7 @@ export const activateUserAccount = asyncHandler(
     // Activate the user account and Update login information
     await userService.activateAccount(user);
     await userService.updateLastLogin(user);
-    await userService.updateLoginInfo(user, req)
+    await userService.updateLoginInfo(user, req);
 
     // assign token to the user
     const token = await tokenService.attachToken(user);
@@ -231,9 +231,11 @@ export const loginUser = asyncHandler(
 
     // Check if account is locked
     if (await userService.checkLockedStatus(userExist)) {
-    return next(
-      new ErrorResponse("Error", 423, ["Account is locked. Please try again later"])
-    );
+      return next(
+        new ErrorResponse("Error", 423, [
+          "Account is locked. Please try again later",
+        ])
+      );
     }
 
     // Check if account is deactivated
@@ -259,9 +261,9 @@ export const loginUser = asyncHandler(
         ])
       );
     }
-     
+
     // Update login information
-    await userService.activateAccount(userExist)
+    await userService.activateAccount(userExist);
     await userService.updateLastLogin(userExist);
     await userService.updateLoginInfo(userExist, req);
 
@@ -311,7 +313,7 @@ export const logoutUser = asyncHandler(
       return next(new ErrorResponse("Error", result.code, [result.message]));
     }
 
-    await userService.updateLastLogin(user)
+    await userService.updateLastLogin(user);
     await userService.updateLoginInfo(user, req);
 
     await user.save();
@@ -381,9 +383,11 @@ export const forgotPassword = asyncHandler(
     // Check if account is locked or deactivated}
     if (await userService.checkLockedStatus(user)) {
       return next(
-        new ErrorResponse("Error", 423, ["Account is locked. Please try again later"])
+        new ErrorResponse("Error", 423, [
+          "Account is locked. Please try again later",
+        ])
       );
-      }
+    }
 
     if (user.isDeactivated) {
       return next(
@@ -391,7 +395,10 @@ export const forgotPassword = asyncHandler(
       );
     }
 
-    const OTP = await userService.generateOTPCode(user, EOtpType.FORGOTPASSWORD);
+    const OTP = await userService.generateOTPCode(
+      user,
+      EOtpType.FORGOTPASSWORD
+    );
 
     if (OTP) {
       const sendOTP = await otpService.sendOTPEmail({
