@@ -24,6 +24,7 @@ export interface IRoleDoc extends Document {
   slug: string;
   users: ObjectId | any;
   permissions: Array<string>;
+  subroles: Record<string, ISubRole>
 
   getAll(): Array<IRoleDoc>;
   findByName(name: string): Nullable<IRoleDoc>;
@@ -35,6 +36,10 @@ export interface IRoleDoc extends Document {
   id: ObjectId;
 }
 
+export interface ISubRole {
+  description: string;
+  permissions: Array<string>;
+}
 export interface IUserDoc extends Document {
   firstName: string;
   lastName: string;

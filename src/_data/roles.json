@@ -1,60 +1,294 @@
 [
   {
     "name": "superadmin",
-    "description": "Superadmin can access and manage everything in the system",
     "slug": "super-admin",
+    "description": "Full system access for configuration, management, and oversight",
     "permissions": [
-      "system_administration",
-      "user_management",
-      "sermon_management",
-      "sermon_analytics",
-      "content_management",
-      "playlist_management",
-      "audience_insights",
-      "revenue_tracking",
-      "ads_management",
-      "system_management"
+      "user:create",
+      "user:read",
+      "user:update",
+      "user:delete",
+      "user:ban",
+
+      "sermon:create",
+      "sermon:read",
+      "sermon:update",
+      "sermon:delete",
+
+      "sermonbite:create",
+      "sermonbite:read",
+      "sermonbite:update",
+      "sermonbite:delete",
+
+      "playlist:create",
+      "playlist:read",
+      "playlist:update",
+      "playlist:delete",
+
+      "analytics:read",
+      "analytics:update",
+      "analytics:export",
+
+      "revenue:read",
+      "revenue:update",
+
+      "ads:create",
+      "ads:read",
+      "ads:update",
+      "ads:delete",
+
+      "system:read",
+      "system:update",
+      "system:configure",
+      "system:restart",
+
+      "subscription:create",
+      "subscription:read",
+      "subscription:update",
+      "subscription:cancel",
+
+      "transaction:create",
+      "transaction:read",
+      "transaction:update",
+      "transaction:refund"
     ]
   },
   {
-    "name": "admin",
-    "description": "Admin has extensive access but less than superadmin",
-    "slug": "admin",
+    "name": "staff",
+    "slug": "staff",
+    "description": "Full internal access to manage users, content, and system settings. With internal platform team with permissions based on subrole.",
     "permissions": [
-      "user_management",
-      "sermon_management",
-      "sermon_analytics",
-      "content_management",
-      "playlist_management",
-      "audience_insights",
-      "revenue_tracking",
-      "ads_management",
-      "system_management"
-    ]
+      "user:create",
+      "user:read",
+      "user:update",
+      "user:delete",
+      "user:ban",
+
+      "sermon:create",
+      "sermon:read",
+      "sermon:update",
+      "sermon:delete",
+
+      "sermonbite:create",
+      "sermonbite:read",
+      "sermonbite:update",
+      "sermonbite:delete",
+
+      "playlist:create",
+      "playlist:read",
+      "playlist:update",
+      "playlist:delete",
+
+      "analytics:read",
+      "analytics:update",
+      "analytics:export",
+
+      "revenue:read",
+      "revenue:update",
+
+      "ads:create",
+      "ads:read",
+      "ads:update",
+      "ads:delete",
+
+      "subscription:create",
+      "subscription:read",
+      "subscription:update",
+      "subscription:cancel",
+
+      "transaction:create",
+      "transaction:read",
+      "transaction:update",
+      "transaction:refund"
+    ],
+    "subroles": {
+      "manager": {
+        "description": "Oversees content and user moderation",
+        "permissions": [
+          "user:read",
+          "user:update",
+          "user:ban",
+
+          "sermon:create",
+          "sermon:read",
+          "sermon:update",
+          "sermon:delete",
+
+          "sermonbite:create",
+          "sermonbite:read",
+          "sermonbite:update",
+          "sermonbite:delete",
+
+          "playlist:create",
+          "playlist:read",
+          "playlist:update",
+          "playlist:delete",
+
+          "analytics:read",
+          "analytics:export",
+
+          "subscription:read",
+          "subscription:cancel",
+
+          "transaction:read"
+        ]
+      },
+      "lead": {
+        "description": "Leads a team of content moderators",
+        "permissions": [
+          "user:read",
+
+          "sermon:create",
+          "sermon:read",
+          "sermon:update",
+          "sermon:delete",
+
+          "sermonbite:create",
+          "sermonbite:read",
+          "sermonbite:update",
+          "sermonbite:delete",
+
+          "playlist:create",
+          "playlist:read",
+          "playlist:update",
+          "playlist:delete",
+
+          "analytics:read",
+          "analytics:export"
+        ]
+      },
+      "associate": {
+        "description": "Entry-level staff, limited view access",
+        "permissions": [
+          "sermon:read",
+          "sermonbite:read",
+          "playlist:read",
+          "analytics:read"
+        ]
+      },
+      "junior": {
+        "description": "Training level access",
+        "permissions": [
+          "sermon:read", 
+          "sermonbite:read", 
+          "playlist:read"
+        ]
+      }
+    }
+  },
+  {
+    "name": "preacher",
+    "slug": "preacher",
+    "description": "Ministers sharing full-length sermons and sermon series. Owns and manages a preacher account",
+    "permissions": [
+      "sermon:create",
+      "sermon:read",
+      "sermon:update",
+      "sermon:delete",
+
+      "sermonbite:create",
+      "sermonbite:read",
+      "sermonbite:update",
+      "sermonbite:delete",
+
+      "playlist:create",
+      "playlist:read",
+      "playlist:update",
+      "playlist:delete",
+
+      "analytics:read",
+      "analytics:export",
+
+      "revenue:read",
+      "transaction:read",
+      "system:read"
+    ],
+    "subroles": {
+      "manager": {
+        "description": "Manages team uploads and series",
+        "permissions": [
+          "sermon:create",
+          "sermon:read",
+          "sermon:update",
+          "sermon:delete",
+
+          "sermonbite:create",
+          "sermonbite:read",
+          "sermonbite:update",
+          "sermonbite:delete",
+
+          "playlist:create",
+          "playlist:read",
+          "playlist:update",
+          "playlist:delete",
+
+          "analytics:read",
+          "analytics:export",
+          "revenue:read",
+          "transaction:read"
+        ]
+      },
+      "editor": {
+        "description": "Edits sermon titles, descriptions, and playlists",
+        "permissions": [
+          "sermon:read",
+          "sermon:update",
+
+          "sermonbite:read",
+          "sermonbite:update",
+
+          "playlist:read",
+          "playlist:update",
+          "analytics:read"
+        ]
+      },
+      "analyst": {
+        "description": "Reviews sermon performance metrics",
+        "permissions": [
+          "sermon:read",
+          "sermonbite:read",
+          "playlist:read",
+          "analytics:read"
+        ]
+      }
+    }
   },
   {
     "name": "creator",
-    "description": "Creator can access and manage everything in their own account",
     "slug": "creator",
+    "description": "Content creators focused on short sermonBites",
     "permissions": [
-      "sermon_management",
-      "sermon_analytics",
-      "content_management",
-      "playlist_management",
-      "audience_insights",
-      "revenue_tracking",
-      "ads_management"
+      "sermon:create",
+      "sermon:read",
+      "sermon:update",
+      "sermon:delete",
+      "sermonbite:create",
+      "sermonbite:read",
+      "sermonbite:update",
+      "sermonbite:delete",
+      "playlist:create",
+      "playlist:read",
+      "playlist:update",
+      "playlist:delete",
+      "analytics:read"
     ]
   },
   {
-    "name": "listeners",
-    "description": "Users who want to explore, stream and share sermons and other content",
-    "slug": "listeners",
+    "name": "listener",
+    "slug": "listener",
+    "description": "Users who stream sermons and interact with content",
     "permissions": [
-      "content_management",
-      "playlist_management",
-      "subscription_management",
-      "engagement_management"
+      "sermon:read",
+      "sermonbite:read",
+
+      "playlist:create",
+      "playlist:read",
+      "playlist:update",
+      "playlist:delete",
+
+      "subscription:create",
+      "transaction:create"
+
     ]
   }
 ]

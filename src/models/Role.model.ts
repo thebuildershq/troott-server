@@ -1,72 +1,91 @@
-import mongoose, {Schema, Types, Model, ObjectId} from "mongoose";
+import mongoose, { Schema, Types, Model, ObjectId } from "mongoose";
 import { IRoleDoc } from "../utils/interface.util";
 import slugify from "slugify";
 import { EDbModels, EUserType } from "../utils/enums.util";
 
-const RoleSchema = new mongoose.Schema<IRoleDoc>({
-
+const RoleSchema = new mongoose.Schema<IRoleDoc>(
+  {
     name: {
-        type: String,
-        required: [true, 'please add a role name'],
-        default: EUserType.USER,
-        enum: Object.values(EUserType),
-        unique: true
-        , index: true
+      type: String,
+      required: [true, "please add a role name"],
+      default: EUserType.USER,
+      enum: Object.values(EUserType),
+      unique: true,
+      index: true,
     },
 
     description: {
-        type: String,
-        required: [true, 'please add a role description'],
-        maxlength: [250, 'role description cannot be more than 255 characters']
-        
+      type: String,
+      required: [true, "please add a role description"],
+      maxlength: [250, "role description cannot be more than 255 characters"],
     },
 
-    slug: { type: String, default: '' },
+    slug: { type: String, default: "" },
 
     users: [
+      {
+        type: Schema.Types.Mixed,
+        ref: EDbModels.USER,
+        index: true,
+      },
+    ],
+    permissions: [{ type: String }],
+    subroles: {
+      type: Map,
+      of: new Schema(
         {
-            type: Schema.Types.Mixed,
-            ref: EDbModels.USER, 
-            index: true
-        }
-    ], permissions: [{ type: String}]
-},
-{
+          description: {
+            type: String,
+            required: true,
+          },
+          permissions: [
+            {
+              type: String,
+              required: true,
+            },
+          ],
+        },
+        { _id: false }
+      ),
+      default: {},
+    },
+  },
+  {
     timestamps: true,
-    versionKey: '_version',
+    versionKey: "_version",
     toJSON: {
-        transform(doc: any, ret){
-            ret.id = ret._id
-            delete ret.__v;
-        }
-    }
-}
-)
+      transform(doc: any, ret) {
+        ret.id = ret._id;
+        delete ret.__v;
+      },
+    },
+  }
+);
 
-RoleSchema.set('toJSON', {virtuals: true, getters: true})
+RoleSchema.set("toJSON", { virtuals: true, getters: true });
 
-RoleSchema.pre<IRoleDoc>('save', async function (next) {
-    this.slug = slugify(this.name, {lower: true, replacement: '-'})
-    
-    next()
-})
+RoleSchema.pre<IRoleDoc>("save", async function (next) {
+  this.slug = slugify(this.name, { lower: true, replacement: "-" });
+
+  next();
+});
 
 RoleSchema.pre<IRoleDoc>("insertMany", async function (next) {
-    this.slug = slugify(this.name, { lower: true, replacement: "-" });
-    next();
-});  
+  this.slug = slugify(this.name, { lower: true, replacement: "-" });
+  next();
+});
 
 RoleSchema.methods.getAll = async () => {
-    return await Role.find({})
-}
+  return await Role.find({});
+};
 
 RoleSchema.methods.findByName = async (name: string) => {
-    const role = await Role.findOne({name: name})
-    return role ? role: null
-}
-    
+  const role = await Role.findOne({ name: name });
+  return role ? role : null;
+};
+
 const Role: Model<IRoleDoc> = mongoose.model<IRoleDoc>(
-    EDbModels.ROLE, 
-    RoleSchema
-)
-export default Role
+  EDbModels.ROLE,
+  RoleSchema
+);
+export default Role;
