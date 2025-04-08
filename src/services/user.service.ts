@@ -708,6 +708,55 @@ class UserService {
 
     new ErrorResponse(`Role ${role} does not exist.`, 400, []);
   }
+
+/**
+ * Gets user notification preferences
+ * @param userId - The ID of the user
+ * @returns Object containing notification preference settings
+ */
+public async getNotificationPreferences(userId: string): Promise<{
+  email: boolean;
+  push: boolean; 
+  sms: boolean;
+}> {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  return {
+    email: user.notificationPreferences?.email ?? true,
+    push: user.notificationPreferences?.push ?? true,
+    sms: user.notificationPreferences?.sms ?? true
+  };
+}
+
+/**
+ * Updates user notification preferences
+ * @param userId - The ID of the user
+ * @param preferences - Object containing notification preferences to update
+ */
+public async updateNotificationPreferences(
+  userId: string,
+  preferences: {
+    email?: boolean;
+    push?: boolean;
+    sms?: boolean;
+  }
+): Promise<void> {
+  const user = await User.findById(userId);
+  
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  user.notificationPreferences = {
+    ...user.notificationPreferences,
+    ...preferences
+  };
+
+  await user.save();
+}
 }
 
 export default new UserService();

@@ -287,3 +287,24 @@ export enum EAPIKeyType {
   READ = "read",
   WRITE = "write",
 }
+
+export enum EmailType {
+  TRANSACTIONAL = 'transactional',
+  MARKETING = 'marketing',
+  PRODUCT_UPDATE = 'product_update',
+  FEATURE_ANNOUNCEMENT = 'feature_announcement'
+}
+
+export enum EmailPriority {
+  HIGH = 'high',
+  MEDIUM = 'medium',
+  LOW = 'low'
+}
+
+export enum EmailStatus {
+  DELIVERED = 'delivered',
+  FAILED = 'failed',
+  BOUNCED = 'bounced',
+  OPENED = 'opened',
+  CLICKED = 'clicked'
+}

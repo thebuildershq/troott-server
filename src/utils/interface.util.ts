@@ -6,6 +6,7 @@ import {
   EAPIKeyType,
   EContentState,
   EContentStatus,
+  EmailType,
   EOtpType,
   EPasswordType,
   EPlaylistType,
@@ -813,4 +814,20 @@ export interface IAPIKeyUsage {
   ipAddress: string;
   userAgent: string;
   responseCode: number;
+}
+
+export interface IEmailRequest {
+  recipient: string;
+  subject: string;
+  content: any;
+  type: EmailType;
+  template?: string;
+  attachments?: any[];
+}
+
+export interface IEmailPreferences {
+  marketing: boolean;
+  productUpdates: boolean;
+  featureAnnouncements: boolean;
+  subscriptionStatus: string;
 }
