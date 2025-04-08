@@ -1,5 +1,5 @@
 import { ObjectId } from "mongoose";
-import { IResult, ITransactionDoc, IDebitCard } from "../utils/interface.util";
+import { IResult, ITransactionDoc, IDebitCard, ISensitiveData, IPaymentMethod } from "../utils/interface.util";
 import { ETransactionsType, ETransactionStatus } from "../utils/enums.util";
 import PaystackProvider from "../utils/paystack.util";
 import EmailService from "./email.service";
@@ -8,16 +8,6 @@ import SystemService from "./system.service";
 import User from "../models/User.model";
 import TransactionModel from "../models/Transaction.model";
 
-interface IPaymentMethod {
-    email: string;
-    type: string;
-    card?: IDebitCard;
-  }
-interface ISensitiveData {
-    card?: IDebitCard;
-    providerRef: string;
-    providerData: Array<Record<string, any>>;
-  }
 
 class TransactionService {
     private maxRetries: number = 3;
@@ -339,6 +329,54 @@ class TransactionService {
     return result;
   }
 
+  // Add this method to your TransactionService class
+public async verifyPaymentMethod(
+    transactionId: ObjectId,
+    paymentMethod: IPaymentMethod
+  ): Promise<IResult> {
+    const result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    try {
+      const transaction = await TransactionModel.findById(transactionId);
+      if (!transaction) {
+        throw new Error("Verification transaction not found");
+      }
+
+      // Verify card with payment provider
+      const verificationResult = await this.paystackProvider.verifyCard(
+        paymentMethod.card,
+        transaction.reference
+      );
+
+      // Update transaction with verification result
+      const sensitiveData = {
+        card: paymentMethod.card,
+        providerRef: verificationResult.reference,
+        providerData: [verificationResult]
+      };
+
+      const encryptedData = await this.systemService.encryptData({
+        payload: JSON.stringify(sensitiveData),
+        password: this.encryptionKey,
+        separator: '.'
+      });
+
+      transaction.status = verificationResult.status;
+      transaction.providerRef = encryptedData;
+      transaction.updatedAt = new Date().toISOString();
+      await transaction.save();
+
+      result.message = "Payment method verified successfully";
+      result.data = this.sanitizeTransactionData(transaction);
+    } catch (error: any) {
+      result.error = true;
+      result.message = error.message;
+      result.code = 500;
+    }
+
+    return result;
+  }
+
   private async notifyRefund(userId: ObjectId, transaction: ITransactionDoc): Promise<void> {
     await Promise.all([
       EmailService. sendRefundConfirmation(transaction),
@@ -348,7 +386,7 @@ class TransactionService {
 
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
-  }
+  }''
 
 }
 

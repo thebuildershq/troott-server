@@ -229,6 +229,83 @@ class PaystackProvider {
       throw new Error(`Card BIN validation failed: ${error.message}`);
     }
   }
+
+    /**
+   * @method verifyCard
+   * @description Verifies a card by making a minimal authorization request
+   * @param {IDebitCard} card - Card details to verify
+   * @param {string} reference - Transaction reference
+   * @returns {Promise<any>} Card verification result
+   */
+    public async verifyCard(card: IDebitCard, reference: string): Promise<any> {
+      try {
+        // Initiate a minimal amount charge to verify card
+        const response = await axios.post(
+          `${this.baseUrl}/transaction/initialize`,
+          {
+            amount: 50, // Minimal amount in kobo (50 kobo = 0.50 NGN)
+            email: card.email,
+            reference: `verify_${reference}`,
+            card: {
+              number: card.cardPan,
+              cvv: card.cvv,
+              expiry_month: card.expiryMonth,
+              expiry_year: card.expiryYear
+            },
+            metadata: {
+              custom_fields: [
+                {
+                  display_name: "Verification",
+                  variable_name: "verification_type",
+                  value: "card_verification"
+                }
+              ]
+            }
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${this.secretKey}`,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+  
+        // Immediately void the verification transaction
+        await this.voidTransaction(response.data.data.reference);
+  
+        return {
+          status: ETransactionStatus.SUCCESSFUL,
+          reference: response.data.data.reference,
+          authorization: response.data.data.authorization,
+          card: this.mapCardData(response.data.data.authorization)
+        };
+      } catch (error: any) {
+        throw new Error(`Card verification failed: ${error.message}`);
+      }
+    }
+  
+    /**
+     * @method voidTransaction
+     * @description Voids a verification transaction
+     * @param {string} reference - Transaction reference to void
+     * @private
+     */
+    private async voidTransaction(reference: string): Promise<void> {
+      try {
+        await axios.post(
+          `${this.baseUrl}/transaction/void`,
+          { reference },
+          {
+            headers: {
+              Authorization: `Bearer ${this.secretKey}`,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+      } catch (error: any) {
+        console.error(`Failed to void verification transaction: ${error.message}`);
+      }
+    }
 }
 
 export default PaystackProvider;

@@ -129,7 +129,7 @@ export enum EProviders {
   WECHAT_PAY = "WeChat Pay",
 }
 
-export enum ESubcriptionType {
+export enum ESubcriptionPlan {
   FREE = "free",
   TRIAL = "trial",
   PREMIUM = "premium",
@@ -143,7 +143,14 @@ export enum ESubscriptionStatus {
   PENDING = "pending",
   CANCELLED = "cancelled",
   EXPIRED = "expired",
+  TRIAL = "trial"
+} 
+
+export enum EBillingFrequency {
+  MONTHLY = "monthly",
+  YEARLY = "yearly"
 }
+
 
 export enum ETransactionsType {
   SUBSCRIPTION = "subscription",

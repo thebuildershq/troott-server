@@ -1,7 +1,7 @@
 import { renderFile } from "ejs";
 import appRootUrl from "app-root-path";
 import appRootPath from "app-root-path";
-import { SendEmailDTO, SendgridEmailDataDTO } from "../dtos/emaitl.dto";
+import { SendEmailDTO, SendgridEmailDataDTO } from "../dtos/email.dto";
 import sgMail from "@sendgrid/mail";
 import transporter from "../utils/sendgrid.util";
 import { EEmailDriver, EEmailTemplate, EVerifyOTP } from "../utils/enums.util";

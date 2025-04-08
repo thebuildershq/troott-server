@@ -566,6 +566,18 @@ export interface ISubscriptionDoc extends Document {
   status: string;
   slug: string;
   billing: IBillingInfo;
+  metadata: {
+    lastBillingDate: Date;
+    nextBillingDate: Date;
+    billingCycle: string;
+    autoRenew: boolean;
+    cancelledAt?: Date;
+    cancelReason?: string;
+    upgradedFrom?: string;
+    downgradedFrom?: string;
+    promotionCode?: string;
+    promotionExpiry?: Date;
+  };
 
   // relationships
   user: ObjectId | any;
@@ -661,6 +673,12 @@ export interface IPlanTrial {
   days: number;
 }
 
+
+export interface IPaymentMethod {
+  email: string;
+  type: string;
+  card?: IDebitCard;
+}
 export interface IPlanSermon {
   limit: {
     value: number;
@@ -837,3 +855,9 @@ export interface IEmailPreferences {
   featureAnnouncements: boolean;
   subscriptionStatus: string;
 }
+
+export interface ISensitiveData {
+    card?: IDebitCard;
+    providerRef: string;
+    providerData: Array<Record<string, any>>;
+  }

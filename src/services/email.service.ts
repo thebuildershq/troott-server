@@ -2,7 +2,7 @@ import fs from "fs";
 import ejs, { renderFile } from "ejs";
 import appRootUrl from "app-root-path";
 import appRootPath from "app-root-path";
-import { SendgridEmailDataDTO } from "../dtos/emaitl.dto";
+import { SendgridEmailDataDTO } from "../dtos/email.dto";
 import sgMail from "@sendgrid/mail";
 import transporter from "../utils/sendgrid.util";
 import { IEmailRequest, IResult, ITransactionDoc } from "../utils/interface.util";
