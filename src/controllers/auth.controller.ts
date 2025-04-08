@@ -171,7 +171,7 @@ export const activateUserAccount = asyncHandler(
     }
 
     // Send welcome email after activation
-    const welcomeEmail = await emailService.sendUserWelcomeEmail();
+    const welcomeEmail = await emailService.sendUserWelcomeEmail(user);
     if (welcomeEmail.error) {
       return next(
         new ErrorResponse("Error", welcomeEmail.code, [welcomeEmail.message])
@@ -462,7 +462,7 @@ export const resetPassword = asyncHandler(
 
     await userService.encryptUserPassword(user, newPassword);
 
-    const sendEmail = await emailService.sendPasswordResetNotificationEmail();
+    const sendEmail = await emailService.sendPasswordResetNotificationEmail(user);
     if (sendEmail.error) {
       return next(
         new ErrorResponse("Error", sendEmail.code, [sendEmail.message])

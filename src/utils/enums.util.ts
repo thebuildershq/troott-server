@@ -146,6 +146,12 @@ export enum ESubscriptionStatus {
 }
 
 export enum ETransactionsType {
+  SUBSCRIPTION = "subscription",
+  REFUND = "refund",
+  ONETIME = "onetime"
+}
+
+export enum ETransactionType {
   CREDIT = "credit",
   DEBIT = "debit",
   DEFAULT = "default",
@@ -158,6 +164,7 @@ export enum ETransactionStatus {
   SUCCESSFUL = "successful",
   REFUNDED = "refunded",
   DEFAULT = "default",
+  EXPIRED = "expired"
 }
 
 export enum ETransactionReason {

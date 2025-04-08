@@ -95,7 +95,7 @@ export interface IUserDoc extends Document {
     staff?: ObjectId | any;
   };
 
-  
+  deviceToken: IDeviceToken 
 
   // time stamps
   createdAt: Date;
@@ -103,6 +103,12 @@ export interface IUserDoc extends Document {
   _version: number;
   _id: ObjectId;
   id: ObjectId;
+}
+
+export interface IDeviceToken {
+  token: string;
+  platform: 'ios' | 'android' | 'web';
+  lastUsed: Date;
 }
 
 export interface IListenerProfileDoc extends Document {

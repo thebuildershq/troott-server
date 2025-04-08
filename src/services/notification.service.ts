@@ -1,5 +1,6 @@
 import admin from "firebase-admin";
-import { IResult } from "../utils/interface.util";
+import { IResult, ITransactionDoc } from "../utils/interface.util";
+import User from "../models/User.model";
 
 class NotificationService {
   constructor() {
@@ -122,6 +123,45 @@ class NotificationService {
       clickAction
     );
   }
+
+    /**
+   * @name sendRefundNotification
+   * @description Sends a push notification for a processed refund
+   * @param {ITransactionDoc} transaction - Transaction details including refund information
+   * @returns {Promise<IResult>} Result object with status and message
+   */
+    public async sendRefundNotification(transaction: ITransactionDoc): Promise<IResult> {
+      try {
+        const user = await User.findById(transaction.user);
+        if (!user || !user.deviceToken) {
+          return {
+            error: true,
+            message: "User device token not found",
+            code: 404,
+            data: {}
+          };
+        }
+  
+        const title = "Refund Processed";
+        const body = `Your refund of ${transaction.currency} ${transaction.amount} has been processed successfully.`;
+        const clickAction = `${process.env.FRONTEND_URL}/transactions/${transaction.reference}`;
+  
+        return await this.sendPushNotification(
+          user.deviceToken.toString(),
+          title,
+          body,
+          undefined,
+          clickAction
+        );
+      } catch (error) {
+        return {
+          error: true,
+          message: "Failed to send refund notification",
+          code: 500,
+          data: error
+        };
+      }
+    }
 }
 
 export default new NotificationService();

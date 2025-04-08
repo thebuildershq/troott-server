@@ -5,10 +5,11 @@ import appRootPath from "app-root-path";
 import { SendgridEmailDataDTO } from "../dtos/emaitl.dto";
 import sgMail from "@sendgrid/mail";
 import transporter from "../utils/sendgrid.util";
-import { IEmailRequest, IResult } from "../utils/interface.util";
+import { IEmailRequest, IResult, ITransactionDoc } from "../utils/interface.util";
 import { EmailQueue } from "./queue.service";
 import { EmailPriority, EmailStatus, EmailType } from "../utils/enums.util";
 import userService from "./user.service";
+import User from "../models/User.model";
 
 const BASE_FOLDER: string = `${appRootPath.path}/src`;
 
@@ -847,6 +848,48 @@ class EmailService {
 
     return this.tprocessEmailRequest(emailRequest);
   }
+
+    /**
+   * @description Sends refund confirmation email to user
+   * @param {ITransactionDoc} transaction - Transaction details including refund information
+   * @returns {Promise<IResult>} Result object with status and message
+   */
+    public async sendRefundConfirmation(transaction: ITransactionDoc): Promise<IResult> {
+      const result: IResult = { error: false, message: "", code: 200, data: {} };
+      
+      try {
+        const user = await User.findById(transaction.user);
+        const templatePath = `${BASE_FOLDER}/views/emails/ejs/refund-confirmation.ejs`;
+        
+        const emailHtml = await ejs.renderFile(templatePath, {
+          userName: user?.firstName,
+          transactionId: transaction.reference,
+          amount: transaction.amount,
+          currency: transaction.currency,
+          reason: transaction.reason,
+          refundDate: new Date().toLocaleDateString(),
+          supportEmail: process.env.SUPPORT_EMAIL,
+          helpUrl: `${process.env.FRONTEND_URL}/help/refunds`
+        });
+  
+        const message = {
+          to: user?.email,
+          from: process.env.EMAIL_FROM_EMAIL as string,
+          subject: "Your Refund Has Been Processed",
+          html: emailHtml,
+        };
+  
+        const sendEmail = await sgMail.send(message);
+        result.message = "Refund confirmation email sent successfully";
+        result.data = sendEmail;
+      } catch (error) {
+        result.error = true;
+        result.message = "Failed to send refund confirmation email";
+        result.code = 500;
+      }
+      
+      return result;
+    }
 }
 
 export default new EmailService();

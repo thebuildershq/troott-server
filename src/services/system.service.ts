@@ -9,7 +9,7 @@ class SystemService {
     this.result = { error: false, message: "", code: 200, data: {} };
   }
 
- /**
+  /**
    * Private method for encrypting data using AES-GCM
    * @param data - Object containing the payload to encrypt
    * @param data.payload - String to encrypt
@@ -43,7 +43,7 @@ class SystemService {
     }
   }
 
- /**
+  /**
    * Encrypts data using AES-GCM with a custom separator
    * @param data - Encryption data transfer object
    * @param data.password - Password for encryption
@@ -71,7 +71,7 @@ class SystemService {
     return result;
   }
 
-   /**
+  /**
    * Private method for decrypting AES-GCM encrypted data
    * @param data - Object containing the encrypted payload
    * @param data.payload - Encrypted string to decrypt
@@ -98,7 +98,7 @@ class SystemService {
     }
   }
 
- /**
+  /**
    * Decrypts data that was encrypted using AES-GCM
    * @param data - Decryption data transfer object
    * @param data.password - Password for decryption
@@ -161,12 +161,16 @@ class SystemService {
    * @returns Generated API key string
    * @throws Error if API key generation fails
    */
-  public async generateAPIKey(length: number = 32, prefix?: string): Promise<string> {
+  public async generateAPIKey(
+    length: number = 32,
+    prefix?: string
+  ): Promise<string> {
     try {
       // Generate random bytes for the API key
       const randomBytes = crypto.randomBytes(length);
-      let apiKey = randomBytes.toString('base64')
-        .replace(/[^a-zA-Z0-9]/g, '')
+      let apiKey = randomBytes
+        .toString("base64")
+        .replace(/[^a-zA-Z0-9]/g, "")
         .slice(0, length);
 
       if (prefix) {
@@ -176,18 +180,18 @@ class SystemService {
       // Encrypt the API key
       const encryptedKey = await this.encryptData({
         payload: apiKey,
-        password: process.env.API_KEY_SECRET || 'default-secret',
-        separator: '.'
+        password: process.env.API_KEY_SECRET || "default-secret",
+        separator: ".",
       });
 
       return encryptedKey;
     } catch (error) {
-      console.error('API key generation failed:', error);
-      throw new Error('Failed to generate API key');
+      console.error("API key generation failed:", error);
+      throw new Error("Failed to generate API key");
     }
   }
 
-    /**
+  /**
    * Revokes an API key by adding it to a blacklist
    * @param apiKey - API key to revoke
    * @returns Promise resolving to operation result
@@ -198,13 +202,13 @@ class SystemService {
       // Decrypt the API key
       const decrypted = await this.decryptData({
         payload: apiKey,
-        password: process.env.API_KEY_SECRET || 'default-secret',
-        separator: '.'
+        password: process.env.API_KEY_SECRET || "default-secret",
+        separator: ".",
       });
 
       if (decrypted.error || !decrypted.data) {
         this.result.error = true;
-        this.result.message = 'Invalid API key';
+        this.result.message = "Invalid API key";
         this.result.code = 400;
         return this.result;
       }
@@ -213,20 +217,20 @@ class SystemService {
       const apiKeyRegex = /^[A-Za-z0-9_-]+$/;
       if (!apiKeyRegex.test(decrypted.data)) {
         this.result.error = true;
-        this.result.message = 'Invalid API key format';
+        this.result.message = "Invalid API key format";
         this.result.code = 400;
         return this.result;
       }
 
       this.result.error = false;
-      this.result.message = 'API key is valid';
+      this.result.message = "API key is valid";
       this.result.code = 200;
       this.result.data = { originalKey: decrypted.data };
       return this.result;
     } catch (error) {
-      console.error('API key validation failed:', error);
+      console.error("API key validation failed:", error);
       this.result.error = true;
-      this.result.message = 'Failed to validate API key';
+      this.result.message = "Failed to validate API key";
       this.result.code = 500;
       return this.result;
     }
@@ -251,26 +255,24 @@ class SystemService {
 
       // Store rotation record
       const rotationTimestamp = new Date().toISOString();
-      
+
       this.result.error = false;
-      this.result.message = 'API key successfully rotated';
-      this.result.data = { 
+      this.result.message = "API key successfully rotated";
+      this.result.data = {
         newApiKey,
         rotatedAt: rotationTimestamp,
-        previousKey: validationResult.data.originalKey
+        previousKey: validationResult.data.originalKey,
       };
-      
+
       return this.result;
     } catch (error) {
-      console.error('API key rotation failed:', error);
+      console.error("API key rotation failed:", error);
       this.result.error = true;
-      this.result.message = 'Failed to rotate API key';
+      this.result.message = "Failed to rotate API key";
       this.result.code = 500;
       return this.result;
     }
   }
-
-
 
   /**
    * Encrypts a user's API key
@@ -286,15 +288,15 @@ class SystemService {
 
     const encrypted = await this.encryptData({
       payload: apiKey,
-      password: `${user.email}_apikey`, 
-      separator: ".",  
+      password: `${user.email}_apikey`,
+      separator: ".",
     });
 
     if (encrypted) {
       const newApiKey = {
         key: encrypted,
         createdAt: new Date(),
-        lastUsed: new Date()
+        lastUsed: new Date(),
       };
 
       if (!user.apiKeys) {
@@ -314,7 +316,10 @@ class SystemService {
    * @param user - User document
    * @returns Promise<string | null> - Decrypted API key or null
    */
-  public async decryptUserAPIKey(user: IStaffProfileDoc, keyIndex?: number): Promise<string | null> {
+  public async decryptUserAPIKey(
+    user: IStaffProfileDoc,
+    keyIndex?: number
+  ): Promise<string | null> {
     if (!user.apiKeys) {
       return null;
     }
@@ -324,16 +329,16 @@ class SystemService {
     }
 
     // If no index provided, decrypt the latest key
-    const targetKey = typeof keyIndex === 'number' 
-      ? user.apiKeys[keyIndex] 
-      : user.apiKeys[user.apiKeys.length - 1];
+    const targetKey =
+      typeof keyIndex === "number"
+        ? user.apiKeys[keyIndex]
+        : user.apiKeys[user.apiKeys.length - 1];
 
     if (!targetKey) {
       return null;
     }
 
     const decrypted = await this.decryptData({
-      
       password: `${user.email}_apikey`,
       payload: targetKey.key,
       separator: ".",
@@ -345,8 +350,6 @@ class SystemService {
 
     return decrypted.data.toString();
   }
-
-  
 
   // private async storeKeyMetadata(metadata: IAPIKeyMetadata): Promise<void> {
   //   try {
@@ -370,7 +373,7 @@ class SystemService {
   //   try {
   //     await APIKey.findOneAndUpdate(
   //       { keyHash },
-  //       { 
+  //       {
   //         $set: { lastUsed: new Date() }
   //       }
   //     );
@@ -381,12 +384,12 @@ class SystemService {
   // }
 
   // private async updateKeyStatus(
-  //   keyHash: string, 
+  //   keyHash: string,
   //   status: EAPIKeyStatus,
   //   userId?: string
   // ): Promise<void> {
   //   try {
-  //     const update: any = { 
+  //     const update: any = {
   //       status,
   //       ...(status === EAPIKeyStatus.REVOKED && {
   //         revokedAt: new Date(),
@@ -420,7 +423,7 @@ class SystemService {
   //   try {
   //     const now = new Date();
   //     const hourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-      
+
   //     const usageCount = await APIKeyUsage.countDocuments({
   //       keyHash,
   //       timestamp: { $gte: hourAgo }
@@ -443,7 +446,7 @@ class SystemService {
   //         status: EAPIKeyStatus.ACTIVE
   //       },
   //       {
-  //         $set: { 
+  //         $set: {
   //           status: EAPIKeyStatus.EXPIRED,
   //           revokedAt: now
   //         }
@@ -453,7 +456,6 @@ class SystemService {
   //     console.error('Failed to cleanup expired keys:', error);
   //   }
   // }
-
 }
 
 export default new SystemService();
