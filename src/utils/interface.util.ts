@@ -111,7 +111,7 @@ export interface IDeviceToken {
   lastUsed: Date;
 }
 
-export interface IListenerProfileDoc extends Document {
+export interface IListenerDoc extends Document {
   firstName: string;
   lastName: string;
   email: string;

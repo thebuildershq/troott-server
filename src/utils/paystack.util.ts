@@ -1,6 +1,7 @@
 import axios from "axios";
 import { ETransactionStatus, ETransactionReason } from "../utils/enums.util";
 import { IDebitCard } from "../utils/interface.util";
+import { VerifyCardDTO } from "../dtos/paystack.dto";
 
 class PaystackProvider {
   private readonly secretKey: string;
@@ -237,7 +238,10 @@ class PaystackProvider {
    * @param {string} reference - Transaction reference
    * @returns {Promise<any>} Card verification result
    */
-    public async verifyCard(card: IDebitCard, reference: string): Promise<any> {
+    public async verifyCard(data: VerifyCardDTO): Promise<any> {
+
+      const {card, reference} = data;
+
       try {
         // Initiate a minimal amount charge to verify card
         const response = await axios.post(

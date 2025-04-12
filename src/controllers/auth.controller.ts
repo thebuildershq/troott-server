@@ -462,7 +462,7 @@ export const resetPassword = asyncHandler(
 
     await userService.encryptUserPassword(user, newPassword);
 
-    const sendEmail = await emailService.sendPasswordResetNotificationEmail(user);
+    const sendEmail = await emailService.sendPasswordResetNotificationEmail(user, email);
     if (sendEmail.error) {
       return next(
         new ErrorResponse("Error", sendEmail.code, [sendEmail.message])
@@ -524,7 +524,7 @@ export const changePassword = asyncHandler(
 
     await userService.encryptUserPassword(user, newPassword);
 
-    const sendEmail = await emailService.sendPasswordChangeNotificationEmail();
+    const sendEmail = await emailService.sendPasswordChangeNotificationEmail(user.email);
     if (sendEmail.error) {
       return next(
         new ErrorResponse("Error", sendEmail.code, [sendEmail.message])
