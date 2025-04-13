@@ -1,0 +1,246 @@
+[
+  {
+    "action": "user:create",
+    "description": "Permission to create new users in the system"
+  },
+  {
+    "action": "user:read",
+    "description": "Permission to view user details and information"
+  },
+  {
+    "action": "user:update",
+    "description": "Permission to modify existing user information"
+  },
+  {
+    "action": "user:delete",
+    "description": "Permission to permanently remove users"
+  },
+  {
+    "action": "user:disable",
+    "description": "Permission to temporarily disable user accounts"
+  },
+  {
+    "action": "sermon:create",
+    "description": "Permission to upload and create new sermons"
+  },
+  {
+    "action": "sermon:read",
+    "description": "Permission to view and access sermons"
+  },
+  {
+    "action": "sermon:update",
+    "description": "Permission to modify sermon details and content"
+  },
+  {
+    "action": "sermon:destroy",
+    "description": "Permission to permanently remove sermons"
+  },
+  {
+    "action": "sermon:delete",
+    "description": "Permission to soft delete sermons"
+  },
+  {
+    "action": "sermonbite:create",
+    "description": "Permission to create new sermon bites"
+  },
+  {
+    "action": "sermonbite:read",
+    "description": "Permission to view sermon bites"
+  },
+  {
+    "action": "sermonbite:update",
+    "description": "Permission to modify sermon bite content"
+  },
+  {
+    "action": "sermonbite:destroy",
+    "description": "Permission to permanently remove sermon bites"
+  },
+  {
+    "action": "sermonbite:delete",
+    "description": "Permission to soft delete sermon bites"
+  },
+  {
+    "action": "playlist:create",
+    "description": "Permission to create new playlists"
+  },
+  {
+    "action": "playlist:read",
+    "description": "Permission to view playlists"
+  },
+  {
+    "action": "playlist:update",
+    "description": "Permission to modify playlist content"
+  },
+  {
+    "action": "playlist:destroy",
+    "description": "Permission to permanently remove playlists"
+  },
+  {
+    "action": "playlist:disable",
+    "description": "Permission to temporarily disable playlists"
+  },
+  {
+    "action": "playlist:delete",
+    "description": "Permission to soft delete playlists"
+  },
+  {
+    "action": "subscription:create",
+    "description": "Permission to create new subscriptions"
+  },
+  {
+    "action": "subscription:read",
+    "description": "Permission to view subscription details"
+  },
+  {
+    "action": "subscription:update",
+    "description": "Permission to modify subscription information"
+  },
+  {
+    "action": "subscription:cancel",
+    "description": "Permission to cancel active subscriptions"
+  },
+  {
+    "action": "transaction:create",
+    "description": "Permission to create new transactions"
+  },
+  {
+    "action": "transaction:read",
+    "description": "Permission to view transaction details"
+  },
+  {
+    "action": "transaction:update",
+    "description": "Permission to modify transaction information"
+  },
+  {
+    "action": "transaction:refund",
+    "description": "Permission to process transaction refunds"
+  },
+  {
+    "action": "plan:create",
+    "description": "Permission to create new subscription plans"
+  },
+  {
+    "action": "plan:read",
+    "description": "Permission to view plan details"
+  },
+  {
+    "action": "plan:update",
+    "description": "Permission to modify plan information"
+  },
+  {
+    "action": "plan:delete",
+    "description": "Permission to remove subscription plans"
+  },
+  {
+    "action": "role:create",
+    "description": "Permission to create new roles"
+  },
+  {
+    "action": "role:read",
+    "description": "Permission to view role details"
+  },
+  {
+    "action": "role:update",
+    "description": "Permission to modify role settings"
+  },
+  {
+    "action": "role:disable",
+    "description": "Permission to temporarily disable roles"
+  },
+  {
+    "action": "role:delete",
+    "description": "Permission to remove roles"
+  },
+  {
+    "action": "permission:create",
+    "description": "Permission to create new permissions"
+  },
+  {
+    "action": "permission:read",
+    "description": "Permission to view permission details"
+  },
+  {
+    "action": "permission:update",
+    "description": "Permission to modify permission settings"
+  },
+  {
+    "action": "permission:disable",
+    "description": "Permission to temporarily disable permissions"
+  },
+  {
+    "action": "permission:delete",
+    "description": "Permission to remove permissions"
+  },
+  {
+    "action": "apikey:create",
+    "description": "Permission to generate new API keys"
+  },
+  {
+    "action": "apikey:read",
+    "description": "Permission to view API key details"
+  },
+  {
+    "action": "apikey:update",
+    "description": "Permission to modify API key settings"
+  },
+  {
+    "action": "apikey:disable",
+    "description": "Permission to temporarily disable API keys"
+  },
+  {
+    "action": "apikey:delete",
+    "description": "Permission to remove API keys"
+  },
+  {
+    "action": "analytics:read",
+    "description": "Permission to view analytics data"
+  },
+  {
+    "action": "analytics:update",
+    "description": "Permission to modify analytics settings"
+  },
+  {
+    "action": "analytics:export",
+    "description": "Permission to export analytics data"
+  },
+  {
+    "action": "revenue:read",
+    "description": "Permission to view revenue information"
+  },
+  {
+    "action": "revenue:update",
+    "description": "Permission to modify revenue data"
+  },
+  {
+    "action": "ads:create",
+    "description": "Permission to create new advertisements"
+  },
+  {
+    "action": "ads:read",
+    "description": "Permission to view advertisement details"
+  },
+  {
+    "action": "ads:update",
+    "description": "Permission to modify advertisement content"
+  },
+  {
+    "action": "ads:delete",
+    "description": "Permission to remove advertisements"
+  },
+  {
+    "action": "system:read",
+    "description": "Permission to view system settings"
+  },
+  {
+    "action": "system:update",
+    "description": "Permission to modify system settings"
+  },
+  {
+    "action": "system:configure",
+    "description": "Permission to configure system parameters"
+  },
+  {
+    "action": "system:restart",
+    "description": "Permission to restart system services"
+  }
+]

@@ -1,24 +1,34 @@
 import { Request, Response, NextFunction } from "express";
 
 /**
- * 
- */
-/**
- * @description Higher-order function that wraps Express route handlers to handle async operations.
+ * @description Higher-order function that wraps async operations.
  * Normal Promise will require that we use the async await that
- * leads to using try-cath blocks. This async handler helps to avoid repeating the blocks
- * @param {Function} fn - Express route handler function to wrap
- * @returns {Function} Wrapped Express middleware function
- * @example
- * ```typescript
- * const routeHandler = asyncHandler(async (req, res, next) => {
- *   const data = await someAsyncOperation();
- *   res.json(data);
- * });
- * ```
- * @throws {Error} Forwards any errors to Express error handling middleware
+ * leads to using try-cath blocks. This async handler helps to avoid repeating the blocks.
+ * Supports both Express middleware and regular async functions.
+ * @param {Function} fn - Function to wrap
+ * @returns {Function} Wrapped function that handles promises
+ *
  */
-const asyncHandler = (fn: any) => (req: Request, res: Response, next: NextFunction) =>
-    Promise.resolve(fn(req, res, next)).catch(next)
+const asyncHandler = (fn: any) => {
+  return function (...args: any[]) {
+    const isExpressMiddleware =
+      args.length === 3 &&
+      args[0]?.constructor?.name === "IncomingMessage" &&
+      args[1]?.constructor?.name === "ServerResponse";
 
-export default asyncHandler
+    if (isExpressMiddleware) {
+      const [req, res, next] = args as [Request, Response, NextFunction];
+      return Promise.resolve(fn(req, res, next)).catch((error: Error) => {
+        error.stack = error.stack || new Error().stack;
+        next(error);
+      });
+    }
+
+    // Handle non-Express async functions
+    return Promise.resolve(fn(...args)).catch((error) => {
+      error.stack = error.stack || new Error().stack;
+      throw error;
+    });
+  };
+};
+export default asyncHandler;

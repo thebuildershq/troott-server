@@ -13,6 +13,14 @@ const checkPermissions = (requiredPermissions: Array<string>) => {
   return asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
 
+    if (!user) {
+      return next(new ErrorResponse("Unauthorized", 401, ["User not authenticated."]));
+    }
+
+    if (user.isSuperAdmin === true) {
+      return next();
+    }
+
     const userRole = await Role.findById(user?.role);
     if (!userRole) {
       return next(new ErrorResponse("Error", 404, ["Role not found."]));

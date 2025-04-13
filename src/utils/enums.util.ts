@@ -62,10 +62,11 @@ export enum EVerificationStatus {
 }
 
 export enum EDbModels {
-  USER = "User",
-  ROLE = "Role",
+  USER = "user",
+  ROLE = "role",
+  PERMISSION = "permission",
   API_KEY = "ApiKey",
-  BITE = "bite",
+  BITE = "pite",
   CATALOG = "catalog",
   CREATOR = "creator",
   LIBRARY = "library",

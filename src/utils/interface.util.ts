@@ -23,24 +23,33 @@ export interface IRoleDoc extends Document {
   name: string;
   description: string;
   slug: string;
-  users: ObjectId | any;
-  permissions: Array<string>;
-  subroles: Record<string, ISubRole>
-
-  getAll(): Array<IRoleDoc>;
-  findByName(name: string): Nullable<IRoleDoc>;
-
+  scope?: string;
+  scopeId?: string;
+  
+  // relationships
+  permissions: Array<string>
+  users: Array<ObjectId | any>;
+  
   // timestamps
   createdAt: string;
   updatedAt: string;
+  _version: number;
   _id: ObjectId;
   id: ObjectId;
 }
 
-export interface ISubRole {
+export interface IPermissionDoc extends Document {
+  action: string;
   description: string;
-  permissions: Array<string>;
+
+  // timestamps
+  createdAt: string;
+  updatedAt: string;
+  _version: number;
+  _id: ObjectId;
+  id: ObjectId;
 }
+
 export interface IUserDoc extends Document {
   firstName: string;
   lastName: string;
