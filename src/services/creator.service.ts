@@ -8,14 +8,24 @@ import { generateRandomChars } from "../utils/helper.util";
 class CreatorService {
   public async createCreatorProfile(
     data: createCreatorProfileDTO
-  ): Promise<{ creator: ICreatorProfileDoc; user: IUserDoc }> {
-    const { user } = data;
-
+  ): Promise<IResult<{ creator: ICreatorProfileDoc; user: IUserDoc }>> {
+    const { user,  } = data;
+  
+    const result: IResult<{ creator: ICreatorProfileDoc; user: IUserDoc }> = {
+      error: false,
+      message: "",
+      code: 200,
+      data: null,
+    };
+  
     const existingCreator = await Creator.findOne({ user: user._id });
     if (existingCreator) {
-      throw new Error("Creator profile already exists for this user");
+      result.error = true;
+      result.message = "Creator profile already exists for this user";
+      result.code = 400;
+      return result;
     }
-
+  
     const creatorProfileData = {
       _id: user._id,
       id: user.id,
@@ -28,25 +38,29 @@ class CreatorService {
       country: user.country,
       dateOfBirth: user.dateOfBirth,
       gender: user.gender,
-      avatar: data.avatar,
-
       type: EUserType.CREATOR,
       user: user._id,
       isActive: true,
       isSuspended: false,
       isDeleted: false,
     };
-
+  
     const creator = await Creator.create(creatorProfileData);
-
+  
     user.profiles = {
       ...user.profiles,
       creator: creator._id,
     };
     await user.save();
 
-    return { creator, user };
+
+  
+    result.data = { creator, user };
+    result.message = "Creator profile created";
+    result.code = 201;
+    return result;
   }
+  
 
   public async updateCreatorProfile(
     id: ObjectId,

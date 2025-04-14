@@ -24,6 +24,7 @@ import tokenService from "../services/token.service";
 import { IUserDoc } from "../utils/interface.util";
 import otpService from "../services/otp.service";
 
+
 /**
  * @name registerUser
  * @description Registers a new user
@@ -211,7 +212,6 @@ export const loginUser = asyncHandler(
     const { email, password }: LoginDTO = req.body;
 
     const validate = await userService.validateLogin(req.body);
-
     if (validate.error) {
       return next(
         new ErrorResponse("Error", validate.code!, [validate.message])
@@ -241,6 +241,7 @@ export const loginUser = asyncHandler(
       );
     }
 
+    // check password is correct
     const verifyPassword = await userService.matchEncryptedPassword({
       hash: password,
       user: userExist,

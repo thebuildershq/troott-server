@@ -105,6 +105,8 @@ export interface IUserDoc extends Document {
   };
 
   deviceToken: IDeviceToken 
+  matchPassword: (password: string) => boolean;
+  getAuthToken: () => string;
 
   // time stamps
   createdAt: Date;
@@ -766,7 +768,7 @@ export interface IData {
   value: any;
 }
 
-export interface IResult {
+export interface IResult <T = any>{
   error: boolean;
   message: string;
   code: number;

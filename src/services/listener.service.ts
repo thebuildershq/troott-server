@@ -26,47 +26,67 @@ class ListenerService {
    */
   public async createListener(
     data: createListenerProfileDTO
-  ): Promise<{ listener: IListenerProfileDoc; user: IUserDoc } | undefined> {
-    
-    const { firstName, lastName, email, gender, avatar, createdBy, user }: createListenerProfileDTO = data;
-
+  ): Promise<IResult<{ listener: IListenerProfileDoc; user: IUserDoc }>> {
+    const result: IResult<{ listener: IListenerProfileDoc; user: IUserDoc }> = {
+      error: false,
+      message: "",
+      code: 200,
+      data: null,
+    };
+  
+    const { firstName, lastName, email, gender, avatar, user }: createListenerProfileDTO = data;
+  
+    if (!user) {
+      return {
+        error: true,
+        message: "User information is required to create a listener profile",
+        code: 400,
+        data: null,
+      };
+    }
+  
     const existingListener = await Listener.findOne({ user: user._id });
     if (existingListener) {
-      throw new Error("Listener profile already exists for this user");
-    }
-
-    const listenerID = generateRandomChars(12);
-
-    if (user) {
-      const listenerProfileData = {
-        _id: user._id ,
-        id: user.id,
-        listenerID: listenerID,
-        firstName: firstName,
-        lastName: lastName,
-        email: email,
-        country: user.country,
-        dateOfBirth: user.dateOfBirth,
-        gender: gender,
-        avatar: avatar,
-        type: EUserType.LISTENER,
-        user: user._id,
-        createdBy: user._id ,
+      return {
+        error: true,
+        message: "Listener profile already exists for this user",
+        code: 400,
+        data: null,
       };
-
-      let listener = await Listener.create(listenerProfileData);
-
-      // Update user with listener profile reference
-      user.profiles = {
-        ...user.profiles,
-        listener: listener._id,
-      };
-      await user.save();
-
-      return { listener, user };
     }
-
+  
+    const listenerProfileData = {
+      _id: user._id,
+      id: user.id,
+      listenerID: generateRandomChars(12),
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      country: user.country,
+      dateOfBirth: user.dateOfBirth,
+      gender: gender,
+      avatar: avatar,
+      type: EUserType.LISTENER,
+      user: user._id,
+      createdBy: user._id,
+    };
+  
+    const listener = await Listener.create(listenerProfileData);
+  
+    user.profiles = {
+      ...user.profiles,
+      listener: listener._id,
+    };
+    await user.save();
+  
+    return {
+      error: false,
+      message: "Listener profile created",
+      code: 201,
+      data: { listener, user },
+    };
   }
+  
 
   /**
    * @name updateListenerProfile

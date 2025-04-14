@@ -1,17 +1,12 @@
 import { ObjectId } from "mongoose";
 import { IDebitCard, ILocationInfo, IUserDoc } from "../utils/interface.util";
+import { EUserType } from "../utils/enums.util";
 
 // Listener Profile DTO
 export interface createListenerProfileDTO {
-  id: string;
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  gender: string;
-  avatar: string;
-  createdBy: string
   user: IUserDoc
+  type: EUserType
+  email: string;
 
 }
 
@@ -35,14 +30,9 @@ export interface updateListenerProfileDTO {
 
 // Preacher Profile DTO
 export interface createPreacherProfileDTO {
-  user: IUserDoc;
-  id: ObjectId;
-  firstName: string;
-  lastName: string;
+  user: IUserDoc
+  type: EUserType
   email: string;
-  gender: string;
-  avatar: string;
-  dateOfBirth: Date;
 }
 
 export interface updatePreacherProfileDTO {
@@ -66,50 +56,22 @@ export interface updatePreacherProfileDTO {
 // Creator Profile DTO
 export interface createCreatorProfileDTO {
   user: IUserDoc
-  id: ObjectId;
-  firstName: string;
-  lastName: string;
+  type: EUserType
   email: string;
-  gender: string;
-  avatar: string;
-  dateOfBirth: Date;
-
 }
 
 export interface updateCreatorProfileDTO {
-    user: ObjectId;
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    gender?: string;
-    avatar?: string;
-    dateOfBirth?: Date;
-    country?: string;
-    phoneNumber?: string;
-    phoneCode?: string;
-    location?: ILocationInfo;
-    slug?: string;
-    type?: string;
-    card?: IDebitCard;
+  user: IUserDoc
+  type: EUserType
+  email: string;
 
   }
 
 // Staff Profile DTO
 export interface createStaffDTO {
   user: IUserDoc
-  id: ObjectId;
-  firstName: string;
-  lastName: string;
+  type: EUserType
   email: string;
-  gender: string;
-  avatar: string;
-  dateOfBirth: Date;
-  country: string;
-  phoneNumber: string;
-  phoneCode: string;
-  location: ILocationInfo;
-  slug: string;
-  apikeys: Array<string>;
 }
 
 

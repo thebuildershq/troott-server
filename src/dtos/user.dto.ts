@@ -7,6 +7,8 @@ export interface CreateUserDTO {
   password: string;
   passwordType: EPasswordType
   userType: EUserType;
+  role?: string;
+  permissions?: Array<string>;
   location?: {
     address?: string;
     city?: string;

@@ -27,7 +27,6 @@ import { IPermissionDTO } from "../dtos/system.dto";
 import creatorService from "./creator.service";
 import preacherService from "./preacher.service";
 import staffService from "./staff.service";
-import { createStaffDTO } from "../dtos/profile.dto";
 import ErrorResponse from "../utils/error.util";
 
 class UserService {
@@ -140,56 +139,103 @@ class UserService {
    * @returns
    */
   public async createUser(data: CreateUserDTO): Promise<IUserDoc> {
-    const { firstName, lastName, email, password, userType, role } = data;
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      userType,
+      role,
+      permissions,
+    } = data;
 
+    // Check if the user already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       throw new Error("User already exists");
     }
 
+    // Create the user object
     let user: IUserDoc = await User.create({
       firstName,
       lastName,
       email: email.toLowerCase(),
       password,
       userType,
-      passwordType: data.passwordType
+      role,
+      permissions,
+      passwordType: data.passwordType,
     });
 
+    // Attach role to user based on userType
     await this.attachRole(user, userType);
 
+    // Handle permissions (if no permissions provided, use a service to create default permissions)
     if (!permissions || permissions.length === 0) {
-      user = await PermissionService.createPermissionData(user);
+      user = await PermissionService.initiatePermissionData(user);
     } else {
       const permissionPayload: IPermissionDTO = {
         user: user._id.toString(),
         permissions,
-        role: user.role
+        role: user.role,
       };
-      user = await PermissionService.updatePermissions(user, permissionPayload);
+      const permissionUpdate = await PermissionService.updatePermissions(
+        user,
+        permissionPayload
+      );
+      if (permissionUpdate.error) {
+        throw new Error(permissionUpdate.message);
+      }
 
+      user = permissionUpdate.data as IUserDoc;
     }
 
     if (user.userType === EUserType.LISTENER) {
-      await listenerService.createListener({ user: user._id, _id: user._id });
-      await subscriptionService.createDefaultSubscription(user._id);
+      const listenerProfile = await listenerService.createListener({
+        user: user,
+        type: EUserType.LISTENER,
+        email: user.email,
+      });
+      if (listenerProfile.error) {
+        throw new Error(listenerProfile.message);
+      }
+      user = listenerProfile.data.user as IUserDoc;
     }
 
     if (user.userType === EUserType.CREATOR) {
-      await creatorService.createCreatorProfile({ user: user._id, _id: user._id });
+      const creatorProfile = await creatorService.createCreatorProfile({
+        user: user,
+        type: EUserType.CREATOR,
+        email: user.email,
+      });
+      if (creatorProfile.error) {
+        throw new Error(creatorProfile.message);
+      }
+      user = creatorProfile.data.user as IUserDoc;
     }
 
     if (user.userType === EUserType.PREACHER) {
-      await preacherService.createPreacherProfile({ user: user._id, _id: user._id });
+      const preacherProfile = await preacherService.createPreacherProfile({
+        user: user,
+        type: EUserType.PREACHER,
+        email: user.email,
+      });
+      if (preacherProfile.error) {
+        throw new Error(preacherProfile.message);
+      }
+      user = preacherProfile.data.user as IUserDoc;
     }
 
-   
     if (user.userType === EUserType.STAFF) {
-      const staff: createStaffDTO = { }
-
-      await staffService.createStaffProfile({ user: user._id, _id: user._id });
-      const apiKey = await SystemService.generateAPIKey();
-      await SystemService.encryptUserAPIKey(staff, apiKey);  // Encrypt the API key before saving
+      const staffProfile = await staffService.createStaffProfile({
+        user: user,
+        type: EUserType.STAFF,
+        email: user.email,
+      });
+      if (staffProfile.error) {
+        throw new Error(staffProfile.message);
+      }
+      user = staffProfile.data.user as IUserDoc;
     }
 
     await this.encryptUserPassword(user, password);
@@ -532,7 +578,7 @@ class UserService {
     return _foundUser ? _foundUser : null;
   }
 
-    /**
+  /**
    * @name verifyOTP
    * @param user
    * @param code
@@ -569,7 +615,7 @@ class UserService {
 
     // Clear used OTP
     user.Otp = "";
-    user.OtpExpiry = undefined;
+    user.OtpExpiry = 0;
     await user.save();
 
     return result;
@@ -614,7 +660,7 @@ class UserService {
   public async decryptUserPassword(user: IUserDoc): Promise<string | null> {
     let result: string | null = null;
 
-    console.log("Decrypting password for:", user.email); // Debug log
+    console.log("Decrypting password for:", user.email);
     console.log("Stored Encrypted Password:", user.password);
 
     const decrypted = await SystemService.decryptData({
@@ -632,7 +678,7 @@ class UserService {
 
   /**
    * @name matchEncryptedPassword
-   * @param data
+   * @param data - MatchEncryptedPasswordDTO
    * @returns
    */
   public async matchEncryptedPassword(
@@ -709,54 +755,54 @@ class UserService {
     new ErrorResponse(`Role ${role} does not exist.`, 400, []);
   }
 
-/**
- * Gets user notification preferences
- * @param userId - The ID of the user
- * @returns Object containing notification preference settings
- */
-public async getNotificationPreferences(userId: string): Promise<{
-  email: boolean;
-  push: boolean; 
-  sms: boolean;
-}> {
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new Error('User not found');
+  /**
+   * Gets user notification preferences
+   * @param userId - The ID of the user
+   * @returns Object containing notification preference settings
+   */
+  public async getNotificationPreferences(userId: string): Promise<{
+    email: boolean;
+    push: boolean;
+    sms: boolean;
+  }> {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return {
+      email: user.notificationPreferences?.email ?? true,
+      push: user.notificationPreferences?.push ?? true,
+      sms: user.notificationPreferences?.sms ?? true,
+    };
   }
 
-  return {
-    email: user.notificationPreferences?.email ?? true,
-    push: user.notificationPreferences?.push ?? true,
-    sms: user.notificationPreferences?.sms ?? true
-  };
-}
+  /**
+   * Updates user notification preferences
+   * @param userId - The ID of the user
+   * @param preferences - Object containing notification preferences to update
+   */
+  public async updateNotificationPreferences(
+    userId: string,
+    preferences: {
+      email?: boolean;
+      push?: boolean;
+      sms?: boolean;
+    }
+  ): Promise<void> {
+    const user = await User.findById(userId);
 
-/**
- * Updates user notification preferences
- * @param userId - The ID of the user
- * @param preferences - Object containing notification preferences to update
- */
-public async updateNotificationPreferences(
-  userId: string,
-  preferences: {
-    email?: boolean;
-    push?: boolean;
-    sms?: boolean;
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    user.notificationPreferences = {
+      ...user.notificationPreferences,
+      ...preferences,
+    };
+
+    await user.save();
   }
-): Promise<void> {
-  const user = await User.findById(userId);
-  
-  if (!user) {
-    throw new Error('User not found');
-  }
-
-  user.notificationPreferences = {
-    ...user.notificationPreferences,
-    ...preferences
-  };
-
-  await user.save();
-}
 }
 
 export default new UserService();

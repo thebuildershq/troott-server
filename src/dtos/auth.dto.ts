@@ -8,8 +8,8 @@ export interface RegisterUserDTO {
   email: string;
   password: string;
   userType?: EUserType;
-}
 
+}
 export interface LoginDTO {
   email: string;
   password: string;

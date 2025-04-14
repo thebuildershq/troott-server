@@ -11,29 +11,41 @@ class PreacherService {
 
   public async createPreacherProfile(
     data: createPreacherProfileDTO
-  ): Promise<{ preacher: IPreacherProfileDoc; user: IUserDoc }> {
-    const { firstName, lastName, email, gender, avatar, user }: createPreacherProfileDTO = data;
-
+  ): Promise<IResult<{ preacher: IPreacherProfileDoc; user: IUserDoc }>> {
+    const result: IResult<{ preacher: IPreacherProfileDoc; user: IUserDoc }> = {
+      error: false,
+      message: "",
+      code: 200,
+      data: null,
+    };
+  
+    const {user } = data;
+  
     const existingPreacher = await Preacher.findOne({ user: user._id });
     if (existingPreacher) {
-      throw new Error("Preacher profile already exists for this user");
+      return {
+        error: true,
+        message: "Preacher profile already exists for this user",
+        code: 400,
+        data: null,
+      };
     }
-
+  
     const preacherID = generateRandomChars(12);
-
+  
     const preacherProfileData = {
       _id: user._id,
       id: user.id,
-      preacherID: preacherID,
-      firstName: firstName,
-      lastName: lastName,
-      email: email,
+      preacherID,
+      firstName,
+      lastName,
+      email,
       phoneNumber: user.phoneNumber,
       phoneCode: user.phoneCode,
       country: user.country,
       dateOfBirth: user.dateOfBirth,
-      gender: gender,
-      avatar: avatar,
+      gender,
+      avatar,
       type: EUserType.PREACHER,
       user: user._id,
       isActive: true,
@@ -50,19 +62,25 @@ class PreacherService {
       isVerified: false,
       verifiedAt: null,
       twoFactorEnabled: false,
-      lastLogin: new Date()
+      lastLogin: new Date(),
     };
-
+  
     const preacher = await Preacher.create(preacherProfileData);
-
+  
     user.profiles = {
       ...user.profiles,
       preacher: preacher._id,
     };
     await user.save();
-
-    return { preacher, user };
+  
+    return {
+      error: false,
+      message: "Preacher profile created",
+      code: 201,
+      data: { preacher, user },
+    };
   }
+  
 
   public async updatePreacherProfile(
     id: ObjectId,

@@ -34,7 +34,6 @@ const checkPermissions = (requiredPermissions: Array<string>) => {
         new ErrorResponse("Error", 403, ["Access Denied: Insufficient permissions."])
       );
     }
-
     next();
   });
 };

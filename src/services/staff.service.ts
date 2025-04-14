@@ -7,14 +7,26 @@ import { generateRandomChars } from "../utils/helper.util";
 class StaffService {
   public async createStaffProfile(
     data: createStaffDTO
-  ): Promise<{ staff: IStaffProfileDoc; user: IUserDoc }> {
-    const { user } = data;
-
+  ): Promise<IResult<{ staff: IStaffProfileDoc; user: IUserDoc }>> {
+    const result: IResult<{ staff: IStaffProfileDoc; user: IUserDoc }> = {
+      error: false,
+      message: "",
+      code: 200,
+      data: null,
+    };
+  
+    const { user, avatar } = data;
+  
     const existingStaff = await Staff.findOne({ user: user._id });
     if (existingStaff) {
-      throw new Error("Staff profile already exists for this user");
+      return {
+        error: true,
+        message: "Staff profile already exists for this user",
+        code: 400,
+        data: null,
+      };
     }
-
+  
     const staffProfileData = {
       _id: user._id,
       id: user.id,
@@ -27,25 +39,30 @@ class StaffService {
       country: user.country,
       dateOfBirth: user.dateOfBirth,
       gender: user.gender,
-      avatar: data.avatar,
+      avatar: avatar,
       type: EUserType.STAFF,
       user: user._id,
       isActive: true,
       isSuspended: false,
       isDeleted: false,
     };
-
+  
     const staff = await Staff.create(staffProfileData);
-
+  
     user.profiles = {
       ...user.profiles,
       staff: staff._id,
     };
     await user.save();
-
-    return { staff, user };
+  
+    return {
+      error: false,
+      message: "Staff profile created",
+      code: 201,
+      data: { staff, user },
+    };
   }
-
+  
   public async updateStaffProfile(
     id: string,
     data: Partial<IStaffProfileDoc>

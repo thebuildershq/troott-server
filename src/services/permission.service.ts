@@ -1,29 +1,257 @@
 import { Types } from "mongoose";
-import { IResult } from "../utils/interface.util";
+import { IResult, IUserDoc } from "../utils/interface.util";
 import Role from "../models/Role.model";
 import { EUserType } from "../utils/enums.util";
 import { IPermissionDTO } from "../dtos/system.dto";
 
-
-
 class PermissionService {
   /**
-   * @name createPermissionData
-   * @description Creates default permissions for a new user based on their role
+   * @name initiatePermissionData
+   * @description initiates default permissions for a new user based on their role
    * @param user User object containing role information
    * @returns Updated user object with permissions
    */
-  static async createPermissionData(user: any): Promise<any> {
-    const role = await Role.findOne({ name: user.userType || EUserType.USER });
+  static async initiatePermissionData(user: IUserDoc): Promise<any> {
+    let rolePermissions: string[] = [];
 
-    const defaultPermissions: IPermissionDTO = {
-      user: user._id,
-      permissions: role?.permissions || [],
-      role: role?.slug as string,
-    };
+    if (user.userType === EUserType.SUPERADMIN) {
+      rolePermissions = [
+        // System Management
+        "system:read",
+        "system:update",
+        "system:configure",
+        "system:restart",
 
-    user.permissions = defaultPermissions.permissions;
-    user.role = role?.slug;
+        // User Management
+        "user:create",
+        "user:read",
+        "user:update",
+        "user:delete",
+        "user:disable",
+
+        // Role & Permission Management
+        "role:create",
+        "role:read",
+        "role:update",
+        "role:delete",
+        "role:disable",
+        "permission:create",
+        "permission:read",
+        "permission:update",
+        "permission:delete",
+        "permission:disable",
+
+        // Content Management
+        "sermon:create",
+        "sermon:read",
+        "sermon:update",
+        "sermon:delete",
+        "sermon:destroy",
+        "sermonbite:create",
+        "sermonbite:read",
+        "sermonbite:update",
+        "sermonbite:delete",
+        "sermonbite:destroy",
+        "playlist:create",
+        "playlist:read",
+        "playlist:update",
+        "playlist:delete",
+        "playlist:destroy",
+        "playlist:disable",
+
+        // Subscription & Transaction Management
+        "subscription:create",
+        "subscription:read",
+        "subscription:update",
+        "subscription:cancel",
+        "transaction:create",
+        "transaction:read",
+        "transaction:update",
+        "transaction:refund",
+        "plan:create",
+        "plan:read",
+        "plan:update",
+        "plan:delete",
+
+        // API Management
+        "apikey:create",
+        "apikey:read",
+        "apikey:update",
+        "apikey:disable",
+        "apikey:delete",
+
+        // Analytics & Revenue
+        "analytics:read",
+        "analytics:update",
+        "analytics:export",
+        "revenue:read",
+        "revenue:update",
+
+        // Advertisement Management
+        "ads:create",
+        "ads:read",
+        "ads:update",
+        "ads:delete",
+      ];
+    } else if (user.userType === EUserType.STAFF) {
+      rolePermissions = [
+        // User Management
+        "user:create",
+        "user:read",
+        "user:update",
+        "user:delete",
+        "user:disable",
+
+        // Role & Permission Management
+        "role:create",
+        "role:read",
+        "role:update",
+        "role:delete",
+        "role:disable",
+        "permission:create",
+        "permission:read",
+        "permission:update",
+        "permission:delete",
+        "permission:disable",
+
+        // Content Management
+        "sermon:create",
+        "sermon:read",
+        "sermon:update",
+        "sermon:delete",
+        "sermon:destroy",
+        "sermonbite:create",
+        "sermonbite:read",
+        "sermonbite:update",
+        "sermonbite:delete",
+        "sermonbite:destroy",
+        "playlist:create",
+        "playlist:read",
+        "playlist:update",
+        "playlist:delete",
+        "playlist:destroy",
+        "playlist:disable",
+
+        // Subscription & Transaction Management
+        "subscription:create",
+        "subscription:read",
+        "subscription:update",
+        "subscription:cancel",
+        "transaction:create",
+        "transaction:read",
+        "transaction:update",
+        "transaction:refund",
+        "plan:create",
+        "plan:read",
+        "plan:update",
+        "plan:delete",
+
+        // API Management
+        "apikey:create",
+        "apikey:read",
+        "apikey:update",
+        "apikey:disable",
+        "apikey:delete",
+
+        // Analytics & Revenue
+        "analytics:read",
+        "analytics:update",
+        "analytics:export",
+        "revenue:read",
+        "revenue:update",
+
+        // Advertisement Management
+        "ads:create",
+        "ads:read",
+        "ads:update",
+        "ads:delete",
+      ];
+    } else if (user.userType === EUserType.PREACHER) {
+      rolePermissions = [
+        // Content Management
+        "sermon:create",
+        "sermon:read",
+        "sermon:update",
+        "sermon:delete",
+        "sermon:destroy",
+
+        // Sermonbite Management
+        "sermonbite:create",
+        "sermonbite:read",
+        "sermonbite:update",
+        "sermonbite:delete",
+        "sermonbite:destroy",
+
+        // Playlist Management
+        "playlist:create",
+        "playlist:read",
+        "playlist:update",
+        "playlist:delete",
+        "playlist:destroy",
+        "playlist:disable",
+
+        // Analytics & Profile
+        "analytics:read",
+        "analytics:export",
+        "user:read",
+        "user:update",
+
+        // Basic Access
+        "sermon:read",
+      ];
+    } else if (user.userType === EUserType.CREATOR) {
+      rolePermissions = [
+        // Content Management
+        "sermonbite:create",
+        "sermonbite:read",
+        "sermonbite:update",
+        "sermonbite:delete",
+
+        // Playlist Management
+        "playlist:create",
+        "playlist:read",
+        "playlist:update",
+        "playlist:delete",
+        "playlist:destroy",
+
+        // Analytics & Profile
+        "analytics:read",
+        "analytics:export",
+        "user:read",
+        "user:update",
+
+        // Basic Access
+        "sermon:read",
+        "sermonbite:read",
+      ];
+    } else if (user.userType === EUserType.LISTENER) {
+      rolePermissions = [
+        "user:read",
+        "user:update",
+        "sermon:read",
+        "sermonbite:read",
+        "playlist:create",
+        "playlist:read",
+        "playlist:update",
+        "playlist:delete",
+      ];
+    } else {
+      rolePermissions = ["user:read", "sermon:read", "sermonbite:read"];
+    }
+
+    const role = await Role.findOne({ name: user.userType });
+    if (!role) {
+      throw new Error(`Role not found for user type: ${user.userType}`);
+    }
+
+    // Validate permissions against role's allowed permissions
+    const validPermissions = rolePermissions.filter((p) =>
+      role.permissions.includes(p)
+    );
+
+    user.role = role._id;
+    user.role.permissions = validPermissions;
+
     return user;
   }
 
@@ -35,7 +263,7 @@ class PermissionService {
    * @returns Updated user object
    */
   static async updatePermissions(
-    user: any,
+    user: IUserDoc,
     permissionPayload: IPermissionDTO
   ): Promise<IResult> {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
@@ -61,7 +289,7 @@ class PermissionService {
       return result;
     }
 
-    user.permissions = permissionPayload.permissions;
+    user.role.permissions = permissionPayload.permissions;
     result.data = user;
     result.message = "Permissions updated successfully";
     return result;
