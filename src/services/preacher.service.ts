@@ -4,6 +4,8 @@ import { IPreacherProfileDoc, IResult, IUserDoc } from "../utils/interface.util"
 import { EUserType, EVerificationStatus } from "../utils/enums.util";
 import { generateRandomChars } from "../utils/helper.util";
 import { ObjectId } from "mongoose";
+import Sermon from "../models/Sermon.model";
+import SermonBite from "../models/Bite.model";
 
 class PreacherService {
 
@@ -37,15 +39,15 @@ class PreacherService {
       _id: user._id,
       id: user.id,
       preacherID,
-      firstName,
-      lastName,
-      email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
       phoneNumber: user.phoneNumber,
       phoneCode: user.phoneCode,
       country: user.country,
       dateOfBirth: user.dateOfBirth,
-      gender,
-      avatar,
+      gender: user.gender,
+      avatar: user.avatar,
       type: EUserType.PREACHER,
       user: user._id,
       isActive: true,
@@ -62,7 +64,6 @@ class PreacherService {
       isVerified: false,
       verifiedAt: null,
       twoFactorEnabled: false,
-      lastLogin: new Date(),
     };
   
     const preacher = await Preacher.create(preacherProfileData);
@@ -207,13 +208,33 @@ class PreacherService {
   }
 
   private async calculateTotalLikes(preacherId: ObjectId): Promise<number> {
-    // Implementation for calculating total likes
-    return 0; // Placeholder
+    const [sermonLikes, biteLikes] = await Promise.all([
+      Sermon.aggregate([
+        { $match: { preacher: preacherId } },
+        { $group: { _id: null, totalLikes: { $sum: '$likes' } } }
+      ]),
+      SermonBite.aggregate([
+        { $match: { preacher: preacherId } },
+        { $group: { _id: null, totalLikes: { $sum: '$likes' } } }
+      ])
+    ]);
+
+    return (sermonLikes[0]?.totalLikes || 0) + (biteLikes[0]?.totalLikes || 0);
   }
 
   private async calculateTotalShares(preacherId: ObjectId): Promise<number> {
-    // Implementation for calculating total shares
-    return 0; // Placeholder
+    const [sermonShares, biteShares] = await Promise.all([
+      Sermon.aggregate([
+        { $match: { preacher: preacherId } },
+        { $group: { _id: null, totalShares: { $sum: '$shares' } } }
+      ]),
+      SermonBite.aggregate([
+        { $match: { preacher: preacherId } },
+        { $group: { _id: null, totalShares: { $sum: '$shares' } } }
+      ])
+    ]);
+
+    return (sermonShares[0]?.totalShares || 0) + (biteShares[0]?.totalShares || 0);
   }
 
   public async submitVerification(preacherId: ObjectId, documents: string[]): Promise<void> {

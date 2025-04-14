@@ -15,7 +15,7 @@ class StaffService {
       data: null,
     };
   
-    const { user, avatar } = data;
+    const { user } = data;
   
     const existingStaff = await Staff.findOne({ user: user._id });
     if (existingStaff) {
@@ -39,7 +39,6 @@ class StaffService {
       country: user.country,
       dateOfBirth: user.dateOfBirth,
       gender: user.gender,
-      avatar: avatar,
       type: EUserType.STAFF,
       user: user._id,
       isActive: true,

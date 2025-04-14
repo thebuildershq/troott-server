@@ -4,6 +4,8 @@ import Creator from "../models/Creator.model";
 import { ICreatorProfileDoc, IResult, IUserDoc } from "../utils/interface.util";
 import { EUserType, EVerificationStatus } from "../utils/enums.util";
 import { generateRandomChars } from "../utils/helper.util";
+import Sermon from "../models/Sermon.model";
+import SermonBite from "../models/Bite.model";
 
 class CreatorService {
   public async createCreatorProfile(
@@ -143,13 +145,33 @@ class CreatorService {
   }
 
   private async calculateTotalLikes(creatorId: ObjectId): Promise<number> {
-    // Implementation for calculating total likes
-    return 0; // Placeholder
+    const [sermonLikes, biteLikes] = await Promise.all([
+      Sermon.aggregate([
+        { $match: { creator: creatorId } },
+        { $group: { _id: null, totalLikes: { $sum: '$likes' } } }
+      ]),
+      SermonBite.aggregate([
+        { $match: { creator: creatorId } },
+        { $group: { _id: null, totalLikes: { $sum: '$likes' } } }
+      ])
+    ]);
+
+    return (sermonLikes[0]?.totalLikes || 0) + (biteLikes[0]?.totalLikes || 0);
   }
 
   private async calculateTotalShares(creatorId: ObjectId): Promise<number> {
-    // Implementation for calculating total shares
-    return 0; // Placeholder
+    const [sermonShares, biteShares] = await Promise.all([
+      Sermon.aggregate([
+        { $match: { creator: creatorId } },
+        { $group: { _id: null, totalShares: { $sum: '$shares' } } }
+      ]),
+      SermonBite.aggregate([
+        { $match: { creator: creatorId } },
+        { $group: { _id: null, totalShares: { $sum: '$shares' } } }
+      ])
+    ]);
+
+    return (sermonShares[0]?.totalShares || 0) + (biteShares[0]?.totalShares || 0);
   }
 
   public async submitVerification(creatorId: ObjectId, documents: string[]): Promise<void> {
