@@ -38,8 +38,17 @@ export interface updatePaymentMethodDTO {
 }
 
 
+export interface processTransactionDTO {
+    userId: ObjectId,
+    amount: number,
+    paymentMethod: IPaymentMethod,
+    planId?: ObjectId
+}
 
-
+export interface verifyPaymentDTO {
+    transactionId: string,
+    paymentMethod: IPaymentMethod
+}
 export interface updateSubscriptionDto {
 
 }

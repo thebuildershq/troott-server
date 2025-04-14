@@ -1,12 +1,14 @@
 import { ObjectId } from "mongoose";
-import { IResult, ITransactionDoc, IDebitCard, ISensitiveData, IPaymentMethod } from "../utils/interface.util";
-import { ETransactionsType, ETransactionStatus } from "../utils/enums.util";
-import PaystackProvider from "../utils/paystack.util";
+import PaystackProvider from "./paystack.service";
 import EmailService from "./email.service";
 import NotificationService from "./notification.service";
 import SystemService from "./system.service";
 import User from "../models/User.model";
-import TransactionModel from "../models/Transaction.model";
+import Transaction from "../models/Transaction.model";
+import { processTransactionDTO, verifyPaymentDTO } from "../dtos/billing.dto";
+import { IResult, ITransactionDoc, ISensitiveData, IPaymentMethod } from "../utils/interface.util";
+import { ETransactionsType, ETransactionStatus } from "../utils/enums.util";
+
 
 
 class TransactionService {
@@ -31,13 +33,10 @@ class TransactionService {
    * @returns {Promise<IResult>} Transaction result with encrypted sensitive data
    * @throws {Error} When transaction validation or processing fails
    */
-  public async processTransaction(
-    userId: ObjectId,
-    amount: number,
-    paymentMethod: any,
-    planId?: ObjectId
-  ): Promise<IResult> {
+  public async processTransaction( data: processTransactionDTO  ): Promise<IResult> {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    const { userId, amount, paymentMethod, planId } = data;
 
     try {
       await this.validateTransactionRequest(userId, amount, paymentMethod);
@@ -88,6 +87,70 @@ class TransactionService {
     return result;
   }
 
+  public async createTransaction(
+    transactionData: {
+      userId: ObjectId;
+      amount: number;
+      paymentMethod: IPaymentMethod;
+      type: ETransactionsType;
+      description: string;
+      metadata?: Record<string, any>[];
+      resource?: string;
+      planId?: ObjectId;
+    }
+  ): Promise<IResult> {
+    const result: IResult = { error: false, message: "", code: 200, data: {} };
+    const { userId, amount, paymentMethod, type, description, metadata, resource, planId } = transactionData;
+
+    try {
+      await this.validateTransactionRequest(userId, amount, paymentMethod);
+
+      const reference = this.generateReference(userId);
+      if (await this.isDuplicateTransaction(reference)) {
+        throw new Error("Duplicate transaction detected");
+      }
+
+      const paymentResult = await this.processPaymentWithRetry(
+        amount,
+        paymentMethod,
+        reference
+      );
+
+      const transaction = await this.recordTransaction({
+        type,
+        medium: paymentMethod.type,
+        resource: resource || 'payment',
+        entity: 'transaction',
+        reference,
+        currency: 'NGN',
+        providerRef: paymentResult.providerRef,
+        providerName: 'paystack',
+        description,
+        narration: `Payment of ${amount} NGN`,
+        amount,
+        unitAmount: amount * 100,
+        fee: paymentResult.fee || 0,
+        unitFee: (paymentResult.fee || 0) * 100,
+        status: ETransactionStatus.PENDING,
+        channel: paymentMethod.type,
+        slug: `${userId}-${Date.now()}`,
+        user: userId,
+        card: paymentResult.card,
+        providerData: [paymentResult],
+        metadata: metadata || [{ planId }]
+      });
+
+      result.message = "Transaction created successfully";
+      result.data = await this.sanitizeTransactionData(transaction);
+    } catch (error: any) {
+      result.error = true;
+      result.message = error.message;
+      result.code = 500;
+    }
+
+    return result;
+  }
+
   private async recordTransaction(transactionData: any): Promise<ITransactionDoc> {
     // Encrypt sensitive data
     const sensitiveData = {
@@ -105,7 +168,7 @@ class TransactionService {
         throw new Error('Failed to encrypt sensitive transaction data');
       }
 
-    const transaction = new TransactionModel({
+    const transaction = new Transaction({
       ...transactionData,
       providerRef: encryptedData, // Store encrypted data
       card: undefined, // Don't store card details in plain text
@@ -124,7 +187,7 @@ class TransactionService {
 
     try {
       const verificationResult = await this.paystackProvider.verifyPayment(reference);
-      const transaction = await TransactionModel.findOne({ reference });
+      const transaction = await Transaction.findOne({ reference });
 
       if (!transaction) {
         throw new Error("Transaction not found");
@@ -254,7 +317,7 @@ class TransactionService {
 
   
   private async isDuplicateTransaction(idempotencyKey: string): Promise<boolean> {
-    const existingTransaction = await TransactionModel.findOne({
+    const existingTransaction = await Transaction.findOne({
       reference: idempotencyKey,
       status: { $ne: ETransactionStatus.FAILED }
     });
@@ -270,7 +333,7 @@ class TransactionService {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
 
     try {
-      const transaction = await TransactionModel.findById(transactionId);
+      const transaction = await Transaction.findById(transactionId);
       if (!transaction) {
         throw new Error("Transaction not found");
       }
@@ -331,21 +394,22 @@ class TransactionService {
 
   // Add this method to your TransactionService class
 public async verifyPaymentMethod(
-    transactionId: ObjectId,
-    paymentMethod: IPaymentMethod
+   data: verifyPaymentDTO
   ): Promise<IResult> {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
 
+    const { paymentMethod, transactionId } = data;
+
     try {
-      const transaction = await TransactionModel.findById(transactionId);
+      const transaction = await Transaction.findById(transactionId);
       if (!transaction) {
         throw new Error("Verification transaction not found");
       }
 
       // Verify card with payment provider
       const verificationResult = await this.paystackProvider.verifyCard(
-        paymentMethod.card,
-        transaction.reference
+        paymentMethod,
+        transaction.reference,
       );
 
       // Update transaction with verification result
@@ -386,87 +450,8 @@ public async verifyPaymentMethod(
 
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
-  }''
+  }
 
 }
 
 export default new TransactionService();
-
-
-
-// import { ObjectId } from "mongoose";
-// import { IResult, ITransactionDoc } from "../utils/interface.util";
-// import { ETransactionsType, ETransactionStatus } from "../utils/enums.util";
-// import PaystackProvider from "../utils/paystack.util";
-// import EmailService from "./email.service";
-// import NotificationService from "./notification.service";
-// import User from "../models/User.model";
-
-
-// class TransactionService {
-//   private maxRetries: number = 3;
-//   private readonly paystackProvider: PaystackProvider;
-
-//   constructor() {
-//     this.paystackProvider = new PaystackProvider();
-//   }
-
-//   public async processTransaction(
-//     userId: ObjectId,
-//     amount: number,
-//     paymentMethod: any,
-//     planId?: ObjectId
-//   ): Promise<IResult> {
-//     const result: IResult = { error: false, message: "", code: 200, data: {} };
-
-//     try {
-//       await this.validateTransactionRequest(userId, amount, paymentMethod);
-
-//       const idempotencyKey = this.generateIdempotencyKey(userId, amount);
-//       if (await this.isDuplicateTransaction(idempotencyKey)) {
-//         throw new Error("Duplicate transaction detected");
-//       }
-
-//       const paymentResult = await this.processPaymentWithRetry(
-//         amount,
-//         paymentMethod,
-//         idempotencyKey
-//       );
-
-//       const transaction = await this.recordTransaction({
-//         type: planId ? ETransactionsType.SUBSCRIPTION : ETransactionsType.ONETIME,
-//         amount,
-//         userId,
-//         paymentResult,
-//         planId,
-//         providerName: 'paystack'
-//       });
-
-//       await this.handlePostTransaction(transaction, planId);
-
-//       result.message = "Transaction processed successfully";
-//       result.data = transaction;
-//     } catch (error: any) {
-//       result.error = true;
-//       result.message = error.message;
-//       result.code = 500;
-//     }
-
-//     return result;
-//   }
-
-//   private async recordTransaction(transactionData: any): Promise<ITransactionDoc> {
-//     const transaction = new TransactionModel({
-//       ...transactionData,
-//       status: ETransactionStatus.PENDING,
-//       createdAt: new Date(),
-//       updatedAt: new Date()
-//     });
-
-//     await transaction.save();
-//     return transaction;
-//   }
-
-// }
-
-// export default new TransactionService();

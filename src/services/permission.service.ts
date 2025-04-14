@@ -322,8 +322,9 @@ class PermissionService {
    * @param permission Permission to verify
    * @returns Boolean indicating if user has permission
    */
-  static hasPermission(user: any, permission: string): boolean {
-    return user.permissions?.includes(permission) || false;
+  static hasPermission(user:IUserDoc, permission: string): boolean {
+    if (!user?.role?.permissions) return false;
+    return user.role.permissions?.includes(permission);
   }
 
   /**

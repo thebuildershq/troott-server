@@ -156,7 +156,9 @@ export enum EBillingFrequency {
 export enum ETransactionsType {
   SUBSCRIPTION = "subscription",
   REFUND = "refund",
-  ONETIME = "onetime"
+  ONETIME = "onetime",
+  UPGRADE = "upgrade",
+  PAYMENT_METHOD_UPDATE = "payment-method-update"
 }
 
 export enum ETransactionType {

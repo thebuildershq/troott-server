@@ -1,7 +1,8 @@
 import { ObjectId } from "mongoose";
 import { IResult, IPlanDoc } from "../utils/interface.util";
-import PlanModel from "../models/Plan.model";
-import SubscriptionModel from "../models/Subscription.model";
+import Plan from "../models/Plan.model";
+import Subscription from "../models/Subscription.model";
+import { ESubscriptionStatus } from "../utils/enums.util";
 
 /**
  * Service for managing subscription plans
@@ -18,7 +19,7 @@ class PlanService {
 
     try {
       const query = includeDisabled ? {} : { isEnabled: true };
-      const plans = await PlanModel.find(query).sort({ 'pricing.monthly': 1 });
+      const plans = await Plan.find(query).sort({ 'pricing.monthly': 1 });
 
       result.message = "Plans retrieved successfully";
       result.data = plans;
@@ -40,7 +41,7 @@ class PlanService {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
 
     try {
-      const plan = await PlanModel.findById(planId);
+      const plan = await Plan.findById(planId);
 
       if (!plan) {
         throw new Error("Plan not found");
@@ -85,7 +86,7 @@ class PlanService {
         _versions: 1
       };
 
-      const plan = new PlanModel(newPlan);
+      const plan = new Plan(newPlan);
       await plan.save();
 
       result.message = "Plan created successfully";
@@ -109,7 +110,7 @@ class PlanService {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
 
     try {
-      const plan = await PlanModel.findById(planId);
+      const plan = await Plan.findById(planId);
 
       if (!plan) {
         throw new Error("Plan not found");
@@ -150,13 +151,13 @@ class PlanService {
 
     try {
       // Check if plan is in use by any subscriptions
-      const subscriptionsUsingPlan = await SubscriptionModel.countDocuments({ plan: planId });
+      const subscriptionsUsingPlan = await Subscription.countDocuments({ plan: planId });
 
       if (subscriptionsUsingPlan > 0) {
         throw new Error("Cannot delete plan that is in use by active subscriptions");
       }
 
-      const deletedPlan = await PlanModel.findByIdAndDelete(planId);
+      const deletedPlan = await Plan.findByIdAndDelete(planId);
 
       if (!deletedPlan) {
         throw new Error("Plan not found");
@@ -183,7 +184,7 @@ class PlanService {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
 
     try {
-      const plan = await PlanModel.findById(planId);
+      const plan = await Plan.findById(planId);
 
       if (!plan) {
         throw new Error("Plan not found");
@@ -191,9 +192,9 @@ class PlanService {
 
       // If disabling a plan, check if it's in use
       if (!isEnabled) {
-        const activeSubscriptions = await SubscriptionModel.countDocuments({
+        const activeSubscriptions = await Subscription.countDocuments({
           plan: planId,
-          status: "active"
+          status: ESubscriptionStatus.ACTIVE
         });
 
         if (activeSubscriptions > 0) {
@@ -227,8 +228,8 @@ class PlanService {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
 
     try {
-      const plan1 = await PlanModel.findById(planId1);
-      const plan2 = await PlanModel.findById(planId2);
+      const plan1 = await Plan.findById(planId1);
+      const plan2 = await Plan.findById(planId2);
 
       if (!plan1 || !plan2) {
         throw new Error("One or both plans not found");
@@ -243,7 +244,7 @@ class PlanService {
           percentageMonthly: ((plan2.pricing.monthly - plan1.pricing.monthly) / plan1.pricing.monthly) * 100,
           percentageYearly: ((plan2.pricing.yearly - plan1.pricing.yearly) / plan1.pricing.yearly) * 100
         },
-        featureComparison: this.compareFeatures(plan1, plan2)
+    
       };
 
       result.message = "Plan comparison completed successfully";
@@ -265,18 +266,18 @@ class PlanService {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
 
     try {
-      const plans = await PlanModel.find();
+      const plans = await Plan.find();
       const planStats = [];
 
       for (const plan of plans) {
-        const activeSubscriptions = await SubscriptionModel.countDocuments({
+        const activeSubscriptions = await Subscription.countDocuments({
           plan: plan._id,
-          status: "active"
+          status: ESubscriptionStatus.ACTIVE
         });
 
-        const trialSubscriptions = await SubscriptionModel.countDocuments({
+        const trialSubscriptions = await Subscription.countDocuments({
           plan: plan._id,
-          status: "trial"
+          status: ESubscriptionStatus.TRIAL
         });
 
         planStats.push({
@@ -308,7 +309,7 @@ class PlanService {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
 
     try {
-      const plans = await PlanModel.find({
+      const plans = await Plan.find({
         isEnabled: true,
         'trial.isActive': true
       });
@@ -335,7 +336,7 @@ class PlanService {
 
     try {
       // Check if plan exists and has trial enabled
-      const plan = await PlanModel.findById(planId);
+      const plan = await Plan.findById(planId);
       
       if (!plan) {
         throw new Error("Plan not found");
@@ -352,7 +353,7 @@ class PlanService {
       }
       
       // Check if user has previously used a trial for this plan
-      const previousTrial = await SubscriptionModel.findOne({
+      const previousTrial = await Subscription.findOne({
         user: userId,
         plan: planId,
         status: { $in: ["trial", "active", "cancelled", "expired"] },
@@ -394,61 +395,67 @@ class PlanService {
       .replace(/(^-|-$)/g, '');
   }
 
-  /**
-   * Compares features between two plans
-   * @param {IPlanDoc} plan1 - First plan
-   * @param {IPlanDoc} plan2 - Second plan
-   * @returns {Object} Feature comparison
-   * @private
-   */
-  private compareFeatures(plan1: IPlanDoc, plan2: IPlanDoc): any {
-    const allFeatureKeys = new Set([
-      ...(plan1.features ? Object.keys(plan1.features) : []),
-      ...(plan2.features ? Object.keys(plan2.features) : [])
-    ]);
-    
-    const comparison: Record<string, any> = {};
-    
-    allFeatureKeys.forEach(key => {
-      const feature1 = plan1.features?.[key];
-      const feature2 = plan2.features?.[key];
-      
-      comparison[key] = {
-        plan1: feature1,
-        plan2: feature2,
-        difference: this.compareFeatureValues(feature1, feature2)
-      };
-    });
-    
-    return comparison;
-  }
 
   /**
-   * Compares individual feature values
-   * @param {any} value1 - First feature value
-   * @param {any} value2 - Second feature value
-   * @returns {string|number} Comparison result
+   * Deeply compares two values
+   * @param {any} value1 - First value
+   * @param {any} value2 - Second value
+   * @returns {any} Comparison result
    * @private
    */
-  private compareFeatureValues(value1: any, value2: any): string | number {
-    // If both are numbers, return the difference
-    if (typeof value1 === 'number' && typeof value2 === 'number') {
-      return value2 - value1;
+  private deepCompare(obj1: any, obj2: any): Record<string, any> {
+    // Handle null/undefined cases
+    if (!obj1 && !obj2) return { difference: false };
+    if (!obj1 || !obj2) {
+      return {
+        plan1: obj1,
+        plan2: obj2,
+        difference: true,
+        reason: 'one_value_missing'
+      };
     }
-    
-    // If both are booleans, compare them
-    if (typeof value1 === 'boolean' && typeof value2 === 'boolean') {
-      if (value1 === value2) return 'same';
-      if (value1 === false && value2 === true) return 'upgrade';
-      return 'downgrade';
+
+    // Handle primitive types
+    if (typeof obj1 !== 'object' || typeof obj2 !== 'object') {
+      return {
+        plan1: obj1,
+        plan2: obj2,
+        difference: obj1 !== obj2,
+        reason: obj1 === obj2 ? 'equal' : 'value_mismatch'
+      };
     }
-    
-    // If one is undefined, the feature is only in one plan
-    if (value1 === undefined) return 'only_in_plan2';
-    if (value2 === undefined) return 'only_in_plan1';
-    
-    // For other types, just indicate if they're different
-    return value1 === value2 ? 'same' : 'different';
+
+    const keys = new Set([...Object.keys(obj1), ...Object.keys(obj2)]);
+    const differences: Record<string, any> = {};
+
+    keys.forEach((key) => {
+      const value1 = obj1[key];
+      const value2 = obj2[key];
+
+      // Handle nested objects
+      if (typeof value1 === 'object' && typeof value2 === 'object') {
+        differences[key] = this.deepCompare(value1, value2);
+      } else {
+        differences[key] = {
+          plan1: value1,
+          plan2: value2,
+          difference: value1 !== value2,
+          reason: this.getComparisonReason(value1, value2)
+        };
+      }
+    });
+
+    return differences;
+  }
+
+  private getComparisonReason(value1: any, value2: any): string {
+    if (value1 === value2) return 'equal';
+    if (value1 === undefined) return 'missing_in_plan1';
+    if (value2 === undefined) return 'missing_in_plan2';
+    if (typeof value1 !== typeof value2) return 'type_mismatch';
+    if (typeof value1 === 'number') return value1 > value2 ? 'decrease' : 'increase';
+    if (typeof value1 === 'boolean') return value2 ? 'upgrade' : 'downgrade';
+    return 'value_mismatch';
   }
 }
 

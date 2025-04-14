@@ -1,15 +1,31 @@
 import { ObjectId } from "mongoose";
-import { IResult, ISubscriptionDoc, IPlanDoc, IBillingInfo, IPaymentMethod } from "../utils/interface.util";
-import { ETransactionsType, ETransactionStatus, EBillingFrequency, ESubscriptionStatus } from "../utils/enums.util";
+import {
+  IResult,
+  ISubscriptionDoc,
+  IPlanDoc,
+  IBillingInfo,
+  IPaymentMethod,
+} from "../utils/interface.util";
+import {
+  ETransactionsType,
+  ETransactionStatus,
+  EBillingFrequency,
+  ESubscriptionStatus,
+  EProviders,
+} from "../utils/enums.util";
 import TransactionService from "./transaction.service";
 import EmailService from "./email.service";
 import NotificationService from "./notification.service";
 import Subscription from "../models/Subscription.model";
 import Plan from "../models/Plan.model";
 import User from "../models/User.model";
-import { cancelSubscriptionDto, changePlanDTO, createSubscriptionDto, renewSubscriptionDto, updatePaymentMethodDTO } from "../dtos/billing.dto";
-
-
+import {
+  cancelSubscriptionDto,
+  changePlanDTO,
+  createSubscriptionDto,
+  renewSubscriptionDto,
+  updatePaymentMethodDTO,
+} from "../dtos/billing.dto";
 
 class SubscriptionService {
   private readonly transactionService: typeof TransactionService;
@@ -29,9 +45,11 @@ class SubscriptionService {
    * @param {string} frequency - Billing frequency (monthly/yearly)
    * @returns {Promise<IResult>} Subscription result
    */
-  public async createSubscription(data: createSubscriptionDto  ): Promise<IResult> {
+  public async createSubscription(
+    data: createSubscriptionDto
+  ): Promise<IResult> {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
-    const {   userId , planId, paymentMethod, frequency} = data
+    const { userId, planId, paymentMethod, frequency } = data;
 
     try {
       // Validate user and plan
@@ -49,7 +67,9 @@ class SubscriptionService {
       const existingSubscription = await Subscription.findOne({
         user: userId,
         plan: planId,
-        status: { $in: [ESubscriptionStatus.ACTIVE, ESubscriptionStatus.TRIAL] }
+        status: {
+          $in: [ESubscriptionStatus.ACTIVE, ESubscriptionStatus.TRIAL],
+        },
       });
 
       if (existingSubscription) {
@@ -62,10 +82,13 @@ class SubscriptionService {
       // Check if trial is available
       if (plan.trial.isActive) {
         // Create trial subscription
-        const subscription = await this.createTrialSubscription(userId, plan, billing);
-        
+        const subscription = await this.createTrialSubscription(
+          userId,
+          plan,
+          billing
+        );
+
         // Send confirmation
-        await this.notifySubscriptionCreated(userId, subscription);
         
         result.message = "Trial subscription created successfully";
         result.data = subscription;
@@ -73,16 +96,17 @@ class SubscriptionService {
       }
 
       // Process payment for paid subscription
-      const amount = frequency === EBillingFrequency.MONTHLY 
-        ? plan.pricing.monthly 
-        : plan.pricing.yearly;
+      const amount =
+        frequency === EBillingFrequency.MONTHLY
+          ? plan.pricing.monthly
+          : plan.pricing.yearly;
 
-      const paymentResult = await this.transactionService.processTransaction(
+      const paymentResult = await this.transactionService.processTransaction({
         userId,
         amount,
         paymentMethod,
-        planId
-      );
+        planId,
+      });
 
       if (paymentResult.error) {
         throw new Error(`Payment failed: ${paymentResult.message}`);
@@ -97,7 +121,7 @@ class SubscriptionService {
       );
 
       // Send confirmation
-      await this.notifySubscriptionCreated(userId, subscription);
+      
 
       result.message = "Subscription created successfully";
       result.data = subscription;
@@ -116,14 +140,14 @@ class SubscriptionService {
    * @param {IPaymentMethod} paymentMethod - Payment method details
    * @returns {Promise<IResult>} Renewal result
    */
-  public async renewSubscription( data: renewSubscriptionDto ): Promise<IResult> {
+  public async renewSubscription(data: renewSubscriptionDto): Promise<IResult> {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
     const { subscriptionId, paymentMethod } = data;
 
     try {
       const subscription = await Subscription.findById(subscriptionId)
-        .populate('plan')
-        .populate('user');
+        .populate("plan")
+        .populate("user");
 
       if (!subscription) {
         throw new Error("Subscription not found");
@@ -133,24 +157,26 @@ class SubscriptionService {
         throw new Error("Subscription is already active");
       }
 
-      const plan = subscription.plan as unknown as IPlanDoc;
+      const plan = subscription.plan as IPlanDoc;
       const userId = subscription.user._id;
+      const planId = subscription.plan._id;
 
       // Calculate new billing period
       const frequency = subscription.billing.frequency;
       const billing = this.calculateBilling(plan, frequency);
 
       // Process payment
-      const amount = frequency === EBillingFrequency.MONTHLY 
-        ? plan.pricing.monthly 
-        : plan.pricing.yearly;
+      const amount =
+        frequency === EBillingFrequency.MONTHLY
+          ? plan.pricing.monthly
+          : plan.pricing.yearly;
 
-      const paymentResult = await this.transactionService.processTransaction(
+      const paymentResult = await this.transactionService.processTransaction({
         userId,
         amount,
         paymentMethod,
-        plan._id
-      );
+        planId,
+      });
 
       if (paymentResult.error) {
         throw new Error(`Renewal payment failed: ${paymentResult.message}`);
@@ -160,14 +186,14 @@ class SubscriptionService {
       subscription.status = ESubscriptionStatus.ACTIVE;
       subscription.isPaid = true;
       subscription.billing = billing;
-      
+
       // Add transaction to subscription
       subscription.transactions.push(paymentResult.data._id);
-      
+
       await subscription.save();
 
       // Send confirmation
-      await this.notifySubscriptionRenewed(userId, subscription);
+      
 
       result.message = "Subscription renewed successfully";
       result.data = subscription;
@@ -186,12 +212,16 @@ class SubscriptionService {
    * @param {string} reason - Reason for cancellation
    * @returns {Promise<IResult>} Cancellation result
    */
-  public async cancelSubscription( data: cancelSubscriptionDto ): Promise<IResult> {
+  public async cancelSubscription(
+    data: cancelSubscriptionDto
+  ): Promise<IResult> {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
     const { subscriptionId, reason } = data;
 
     try {
-      const subscription = await Subscription.findById(subscriptionId).populate('user');
+      const subscription = await Subscription.findById(subscriptionId).populate(
+        "user"
+      );
       if (!subscription) {
         throw new Error("Subscription not found");
       }
@@ -203,9 +233,9 @@ class SubscriptionService {
       if (isTrial) {
         subscription.status = ESubscriptionStatus.CANCELLED;
         await subscription.save();
+
         
-        await this.notifySubscriptionCancelled(userId, subscription);
-        
+
         result.message = "Trial subscription cancelled successfully";
         result.data = subscription;
         return result;
@@ -219,14 +249,15 @@ class SubscriptionService {
         cancelledAt: new Date(),
         cancelReason: reason,
         nextBillingDate: subscription.billing.dueDate,
-        autoRenew: false
+        autoRenew: false,
       };
-      
-      await subscription.save();
-      
-      await this.notifySubscriptionCancelled(userId, subscription, false);
 
-      result.message = "Subscription will be cancelled at the end of the billing cycle";
+      await subscription.save();
+
+      
+
+      result.message =
+        "Subscription will be cancelled at the end of the billing cycle";
       result.data = subscription;
     } catch (error: any) {
       result.error = true;
@@ -244,14 +275,14 @@ class SubscriptionService {
    * @param {IPaymentMethod} paymentMethod - Payment method for additional charges
    * @returns {Promise<IResult>} Change plan result
    */
-  public async changePlan( data: changePlanDTO ): Promise<IResult> {
+  public async changePlan(data: changePlanDTO): Promise<IResult> {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
     const { subscriptionId, newPlanId, paymentMethod } = data;
 
     try {
       const subscription = await Subscription.findById(subscriptionId)
-        .populate('plan')
-        .populate('user');
+        .populate("plan")
+        .populate("user");
 
       if (!subscription) {
         throw new Error("Subscription not found");
@@ -268,7 +299,7 @@ class SubscriptionService {
 
       // Check if it's an upgrade or downgrade
       const isUpgrade = this.isPlanUpgrade(currentPlan, newPlan, frequency);
-      
+
       if (isUpgrade) {
         // Calculate prorated amount for upgrade
         const proratedAmount = this.calculateProratedAmount(
@@ -280,11 +311,20 @@ class SubscriptionService {
 
         // Process payment for the difference
         if (proratedAmount > 0) {
-          const paymentResult = await this.transactionService.processTransaction(
-            userId,
-            proratedAmount,
-            paymentMethod,
-            newPlanId
+          const paymentResult = await this.transactionService.createTransaction(
+            {
+              userId,
+              amount: proratedAmount,
+              paymentMethod,
+              planId: newPlanId,
+              type: ETransactionsType.UPGRADE,
+              description: `Plan upgrade from ${currentPlan.name} to ${newPlan.name}`,
+              metadata: [{
+                previousPlan: currentPlan._id,
+                newPlan: newPlanId,
+                proratedAmount: proratedAmount,
+              }],
+            }
           );
 
           if (paymentResult.error) {
@@ -299,35 +339,36 @@ class SubscriptionService {
         const billing = this.calculateBilling(newPlan, frequency);
         subscription.plan = newPlanId;
         subscription.billing = billing;
-        
+
         await subscription.save();
+
         
-        await this.notifyPlanChanged(userId, subscription, true);
-        
+
         result.message = "Subscription upgraded successfully";
       } else {
         // For downgrades, mark for change at end of billing cycle
         subscription.metadata = {
-            ...subscription.metadata,
-            lastBillingDate: subscription.billing.paidDate,
-            nextBillingDate: subscription.billing.dueDate,
-            billingCycle: subscription.billing.frequency,
-            autoRenew: false,
-            downgradedFrom: currentPlan._id.toString(),
+          ...subscription.metadata,
+          lastBillingDate: subscription.billing.paidDate,
+          nextBillingDate: subscription.billing.dueDate,
+          billingCycle: subscription.billing.frequency,
+          autoRenew: false,
+          downgradedFrom: currentPlan._id.toString(),
 
-            // Keep existing metadata properties
-            cancelledAt: subscription.metadata?.cancelledAt,
-            cancelReason: subscription.metadata?.cancelReason,
-            upgradedFrom: subscription.metadata?.upgradedFrom,
-            promotionCode: subscription.metadata?.promotionCode,
-            promotionExpiry: subscription.metadata?.promotionExpiry
-          };
-        
+          // Keep existing metadata properties
+          cancelledAt: subscription.metadata?.cancelledAt,
+          cancelReason: subscription.metadata?.cancelReason,
+          upgradedFrom: subscription.metadata?.upgradedFrom,
+          promotionCode: subscription.metadata?.promotionCode,
+          promotionExpiry: subscription.metadata?.promotionExpiry,
+        };
+
         await subscription.save();
+
         
-        await this.notifyPlanChanged(userId, subscription, false);
-        
-        result.message = "Subscription will be downgraded at the end of the billing cycle";
+
+        result.message =
+          "Subscription will be downgraded at the end of the billing cycle";
       }
 
       result.data = subscription;
@@ -346,72 +387,69 @@ class SubscriptionService {
    * @param {IPaymentMethod} paymentMethod - New payment method details
    * @returns {Promise<IResult>} Update result
    */
-  public async updatePaymentMethod( data: updatePaymentMethodDTO ): Promise<IResult> {
+  public async updatePaymentMethod(
+    data: updatePaymentMethodDTO
+  ): Promise<IResult> {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
     const { subscriptionId, paymentMethod } = data;
 
     try {
       const subscription = await Subscription.findById(subscriptionId)
-        .populate('user');
+        .populate("plan")
+        .populate("user");
 
       if (!subscription) {
         throw new Error("Subscription not found");
       }
 
       const userId = subscription.user._id;
+      const plan = subscription.plan as IPlanDoc;
 
       // Create a transaction record for the payment method update
       const transaction = await this.transactionService.createTransaction({
-        type: ETransactionsType.PAYMENT_METHOD_UPDATE,
-        medium: 'card',
-        resource: 'subscription',
-        entity: subscription.code,
-        reference: `pm_${Date.now()}`,
-        currency: subscription.billing.currency,
-        providerName: paymentMethod.card?.provider || 'unknown',
-        description: 'Payment method update',
-        narration: 'Subscription payment method update',
+        userId,
+        planId: plan._id,
         amount: 0,
-        unitAmount: 0,
-        fee: 0,
-        unitFee: 0,
-        status: 'success',
-        message: 'Payment method updated successfully',
-        providerData: [],
-        metadata: [{
-          paymentType: paymentMethod.type,
-          updateDate: new Date().toISOString()
-        }],
-        channel: 'web',
-        slug: `pm_update_${subscription.slug}`,
-        card: paymentMethod.card,
-        user: userId
+        paymentMethod,
+        type: ETransactionsType.PAYMENT_METHOD_UPDATE,
+        description: `Payment method update for subscription ${subscription.code}`,
+        resource: "payment_method",
+        metadata: [
+          {
+            subscriptionId: subscription._id,
+            updateType: "payment_method",
+          },
+        ],
       });
-      
 
-      const verificationResult = await this.transactionService.verifyPaymentMethod(
-        verificationTransaction._id,
-        paymentMethod
-      );
-
-      if (verificationResult.error) {
-        throw new Error(`Payment method verification failed: ${verificationResult.message}`);
+      if (transaction.error) {
+        throw new Error(`Payment method update failed: ${transaction.message}`);
       }
 
-      // Store payment method update in metadata
-      subscription.metadata = {
+      const verificationResult =
+        await this.transactionService.verifyPaymentMethod({
+          transactionId: transaction.data._id,
+          paymentMethod,
+        });
+      if (verificationResult.error) {
+        throw new Error(
+          `Payment method verification failed: ${verificationResult.message}`
+        );
+      }
+
+      // Update subscription metadata with proper typing
+      const updatedMetadata = {
         ...subscription.metadata,
-        lastBillingDate: subscription.billing.paidDate,
-        nextBillingDate: subscription.billing.dueDate,
-        billingCycle: subscription.billing.frequency,
-        autoRenew: true
+        paymentMethod: {
+          type: paymentMethod.type,
+          last4: paymentMethod.card?.cardLast,
+          provider: paymentMethod.card?.provider,
+          updatedAt: new Date().toISOString(),
+        },
       };
-      
+
+      subscription.metadata = updatedMetadata;
       await subscription.save();
-      
-      // Notify user of payment method update
-      await EmailService.sendPaymentMethodUpdated(userId, subscription);
-      await NotificationService.sendPaymentMethodUpdated(userId, subscription);
 
       result.message = "Payment method updated successfully";
       result.data = subscription;
@@ -438,8 +476,8 @@ class SubscriptionService {
 
     try {
       const subscription = await Subscription.findById(subscriptionId)
-        .populate('transactions')
-        .populate('user');
+        .populate("transactions")
+        .populate("user");
 
       if (!subscription) {
         throw new Error("Subscription not found");
@@ -450,15 +488,15 @@ class SubscriptionService {
       }
 
       const userId = subscription.user._id;
-      
+
       // Get the latest transaction
       const transactions = subscription.transactions;
       if (!transactions || transactions.length === 0) {
         throw new Error("No transactions found for this subscription");
       }
-      
+
       const latestTransaction = transactions[transactions.length - 1];
-      
+
       // Process refund through transaction service
       const refundResult = await this.transactionService.processRefund(
         latestTransaction._id,
@@ -471,22 +509,16 @@ class SubscriptionService {
 
       // Update subscription status
       subscription.status = ESubscriptionStatus.CANCELLED;
-      subscription.metadata = [
-        ...(subscription.metadata || []),
-        { 
-          refundProcessed: true,
-          refundDate: new Date().toISOString(),
-          refundReason: reason,
-          refundTransactionId: refundResult.data._id
-        }
-      ];
-      
-      await subscription.save();
-      
-      // Notify user of refund
-      await EmailService.sendRefundProcessed(userId, subscription, refundResult.data);
-      await NotificationService.sendRefundProcessed(userId, subscription);
+      subscription.metadata = {
+        ...subscription.metadata,
+        cancelReason: reason,
+        nextBillingDate: subscription.billing.dueDate,
+      };
 
+      await subscription.save();
+
+      // Notify user of refund
+  
       result.message = "Refund processed successfully";
       result.data = { subscription, refund: refundResult.data };
     } catch (error: any) {
@@ -509,8 +541,10 @@ class SubscriptionService {
     try {
       const subscriptions = await Subscription.find({
         user: userId,
-        status: { $in: [ESubscriptionStatus.ACTIVE, ESubscriptionStatus.TRIAL] }
-      }).populate('plan');
+        status: {
+          $in: [ESubscriptionStatus.ACTIVE, ESubscriptionStatus.TRIAL],
+        },
+      }).populate("plan");
 
       result.message = "User subscriptions retrieved successfully";
       result.data = subscriptions;
@@ -528,14 +562,16 @@ class SubscriptionService {
    * @param {ObjectId} subscriptionId - Subscription ID
    * @returns {Promise<IResult>} Subscription details
    */
-  public async getSubscriptionDetails(subscriptionId: ObjectId): Promise<IResult> {
+  public async getSubscriptionDetails(
+    subscriptionId: ObjectId
+  ): Promise<IResult> {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
 
     try {
       const subscription = await Subscription.findById(subscriptionId)
-        .populate('plan')
-        .populate('user')
-        .populate('transactions');
+        .populate("plan")
+        .populate("user")
+        .populate("transactions");
 
       if (!subscription) {
         throw new Error("Subscription not found");
@@ -560,9 +596,9 @@ class SubscriptionService {
   public async hasActiveSubscription(userId: ObjectId): Promise<boolean> {
     const subscription = await Subscription.findOne({
       user: userId,
-      status: { $in: [ESubscriptionStatus.ACTIVE, ESubscriptionStatus.TRIAL] }
+      status: { $in: [ESubscriptionStatus.ACTIVE, ESubscriptionStatus.TRIAL] },
     });
-    
+
     return !!subscription;
   }
 
@@ -576,65 +612,69 @@ class SubscriptionService {
       // Find subscriptions due for renewal (due date is today)
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
-      
+
       const dueSubscriptions = await Subscription.find({
         status: ESubscriptionStatus.ACTIVE,
-        'billing.dueDate': {
+        "billing.dueDate": {
           $gte: today,
-          $lt: tomorrow
-        }
-      }).populate('user').populate('plan');
-      
+          $lt: tomorrow,
+        },
+      })
+        .populate("user")
+        .populate("plan");
+
       for (const subscription of dueSubscriptions) {
         await this.processRenewal(subscription);
       }
-      
+
       // Process subscriptions that should be expired
       const expiredSubscriptions = await Subscription.find({
         status: ESubscriptionStatus.ACTIVE,
-        'billing.dueDate': { $lt: today }
-      }).populate('user');
-      
+        "billing.dueDate": { $lt: today },
+      }).populate("user");
+
       for (const subscription of expiredSubscriptions) {
         await this.expireSubscription(subscription);
       }
-      
+
       // Process subscriptions that need downgrade at end of cycle
       const downgradeDueSubscriptions = await Subscription.find({
-        'metadata.planChangeType': 'downgrade',
-        'billing.dueDate': {
+        "metadata.planChangeType": "downgrade",
+        "billing.dueDate": {
           $gte: today,
-          $lt: tomorrow
-        }
-      }).populate('user');
-      
+          $lt: tomorrow,
+        },
+      }).populate("user");
+
       for (const subscription of downgradeDueSubscriptions) {
         await this.processDowngrade(subscription);
       }
-      
+
       // Send reminders for subscriptions about to expire
       const reminderDate = new Date();
       reminderDate.setDate(reminderDate.getDate() + this.reminderDays);
-      
+
       const reminderEndDate = new Date(reminderDate);
       reminderEndDate.setDate(reminderEndDate.getDate() + 1);
-      
+
       const reminderSubscriptions = await Subscription.find({
         status: ESubscriptionStatus.ACTIVE,
-        'billing.dueDate': {
+        "billing.dueDate": {
           $gte: reminderDate,
-          $lt: reminderEndDate
-        }
-      }).populate('user').populate('plan');
-      
+          $lt: reminderEndDate,
+        },
+      })
+        .populate("user")
+        .populate("plan");
+
       for (const subscription of reminderSubscriptions) {
-        await this.sendExpiryReminder(subscription);
+        //await this.sendExpiryReminder(subscription);
       }
     } catch (error) {
-      console.error('Error processing subscription renewals:', error);
+      console.error("Error processing subscription renewals:", error);
     }
   }
 
@@ -663,9 +703,9 @@ class SubscriptionService {
       metadata: [{ trialStarted: true }],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      _versions: 1
+      _versions: 1,
     });
-    
+
     await subscription.save();
     return subscription;
   }
@@ -685,7 +725,7 @@ class SubscriptionService {
     billing: IBillingInfo,
     transactionId: ObjectId
   ): Promise<ISubscriptionDoc> {
-    const subscription = new SubscriptionModel({
+    const subscription = new Subscription({
       code: this.generateSubscriptionCode(userId, plan._id),
       isPaid: true,
       status: ESubscriptionStatus.ACTIVE,
@@ -697,9 +737,9 @@ class SubscriptionService {
       metadata: [{ subscriptionStarted: true }],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      _versions: 1
+      _versions: 1,
     });
-    
+
     await subscription.save();
     return subscription;
   }
@@ -714,7 +754,7 @@ class SubscriptionService {
   private calculateBilling(plan: IPlanDoc, frequency: string): IBillingInfo {
     const now = new Date();
     const startDate = new Date(now);
-    
+
     // Set due date based on frequency
     const dueDate = new Date(now);
     if (frequency === EBillingFrequency.MONTHLY) {
@@ -722,20 +762,21 @@ class SubscriptionService {
     } else {
       dueDate.setFullYear(dueDate.getFullYear() + 1);
     }
-    
+
     // Set grace period (7 days after due date)
     const graceDate = new Date(dueDate);
     graceDate.setDate(graceDate.getDate() + 7);
-    
+
     return {
-      amount: frequency === EBillingFrequency.MONTHLY 
-        ? plan.pricing.monthly 
-        : plan.pricing.yearly,
+      amount:
+        frequency === EBillingFrequency.MONTHLY
+          ? plan.pricing.monthly
+          : plan.pricing.yearly,
       startDate,
       paidDate: now,
       dueDate,
       graceDate,
-      frequency
+      frequency,
     };
   }
 
@@ -747,7 +788,9 @@ class SubscriptionService {
    * @private
    */
   private generateSubscriptionCode(userId: ObjectId, planId: ObjectId): string {
-    return `SUB-${userId.toString().substring(0, 5)}-${planId.toString().substring(0, 5)}-${Date.now().toString(36)}`;
+    return `SUB-${userId.toString().substring(0, 5)}-${planId
+      .toString()
+      .substring(0, 5)}-${Date.now().toString(36)}`;
   }
 
   /**
@@ -788,30 +831,36 @@ class SubscriptionService {
     const now = new Date();
     const dueDate = new Date(subscription.billing.dueDate);
     const startDate = new Date(subscription.billing.startDate);
-    
+
     // Calculate total days in billing cycle
-    const totalDays = Math.floor((dueDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    
+    const totalDays = Math.floor(
+      (dueDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
     // Calculate days remaining in current cycle
-    const daysRemaining = Math.floor((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    
+    const daysRemaining = Math.floor(
+      (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
     // Calculate proportion of cycle remaining
     const proportionRemaining = daysRemaining / totalDays;
-    
+
     // Calculate prorated refund for current plan
-    const currentAmount = frequency === EBillingFrequency.MONTHLY 
-      ? currentPlan.pricing.monthly 
-      : currentPlan.pricing.yearly;
-    
+    const currentAmount =
+      frequency === EBillingFrequency.MONTHLY
+        ? currentPlan.pricing.monthly
+        : currentPlan.pricing.yearly;
+
     const refundAmount = currentAmount * proportionRemaining;
-    
+
     // Calculate prorated charge for new plan
-    const newAmount = frequency === EBillingFrequency.MONTHLY 
-      ? newPlan.pricing.monthly 
-      : newPlan.pricing.yearly;
-    
+    const newAmount =
+      frequency === EBillingFrequency.MONTHLY
+        ? newPlan.pricing.monthly
+        : newPlan.pricing.yearly;
+
     const chargeAmount = newAmount * proportionRemaining;
-    
+
     // Return difference (positive means additional charge)
     return Math.round((chargeAmount - refundAmount) * 100) / 100;
   }
@@ -826,65 +875,71 @@ class SubscriptionService {
     try {
       const userId = subscription.user._id;
       const plan = subscription.plan as unknown as IPlanDoc;
-      
+      const planId = subscription.plan._id;
+
       // Get latest payment method from last transaction
       const transactions = subscription.transactions;
       if (!transactions || transactions.length === 0) {
         await this.expireSubscription(subscription);
         return;
       }
-      
+
       const latestTransaction = transactions[transactions.length - 1];
-      
+
       // Calculate new billing period
       const frequency = subscription.billing.frequency;
       const billing = this.calculateBilling(plan, frequency);
-      
+
       // Process payment
-      const amount = frequency === EBillingFrequency.MONTHLY 
-        ? plan.pricing.monthly 
-        : plan.pricing.yearly;
-      
+      const amount =
+        frequency === EBillingFrequency.MONTHLY
+          ? plan.pricing.monthly
+          : plan.pricing.yearly;
+
       // Attempt payment with retry logic
       let paymentSuccess = false;
       let attempts = 0;
       let paymentResult;
-      
+
       while (!paymentSuccess && attempts < this.maxRetries) {
         try {
           // We would need to extract payment method from the transaction
           // This is simplified here
           const paymentMethod = {
-            email: latestTransaction.email || '',
-            type: latestTransaction.channel || 'card',
-            card: latestTransaction.card
+            email: latestTransaction.email || "",
+            type: latestTransaction.channel || "card",
+            card: latestTransaction.card,
           };
-          
-          paymentResult = await this.transactionService.processTransaction(
+
+          paymentResult = await this.transactionService.processTransaction({
             userId,
             amount,
             paymentMethod,
-            plan._id
-          );
-          
+            planId,
+          });
+
           if (!paymentResult.error) {
             paymentSuccess = true;
           } else {
             attempts++;
             if (attempts < this.maxRetries) {
               // Wait before retry
-              await new Promise(resolve => setTimeout(resolve, this.retryInterval));
+              await new Promise((resolve) =>
+                setTimeout(resolve, this.retryInterval)
+              );
             }
           }
         } catch (error) {
           attempts++;
           if (attempts < this.maxRetries) {
             // Wait before retry
-            await new Promise(resolve => setTimeout(resolve, this.retryInterval));
+            await new Promise((resolve) =>
+              setTimeout(resolve, this.retryInterval)
+            );
           }
         }
       }
-      
+
       if (paymentSuccess && paymentResult) {
         // Update subscription
         subscription.status = ESubscriptionStatus.ACTIVE;
@@ -892,17 +947,17 @@ class SubscriptionService {
         subscription.billing = billing;
         subscription.transactions.push(paymentResult.data._id);
         subscription.updatedAt = new Date().toISOString();
-        
+
         await subscription.save();
-        
+
         // Notify user of successful renewal
-        await this.notifySubscriptionRenewed(userId, subscription);
+        
       } else {
         // Payment failed after all retries
         await this.expireSubscription(subscription);
       }
     } catch (error) {
-      console.error('Error processing subscription renewal:', error);
+      console.error("Error processing subscription renewal:", error);
       await this.expireSubscription(subscription);
     }
   }
@@ -913,502 +968,60 @@ class SubscriptionService {
    * @returns {Promise<void>}
    * @private
    */
-  private async expireSubscription(subscription: ISubscriptionDoc): Promise<void> {
+  private async expireSubscription(
+    subscription: ISubscriptionDoc
+  ): Promise<void> {
     try {
       const userId = subscription.user._id;
-      
+
       subscription.status = ESubscriptionStatus.EXPIRED;
       subscription.updatedAt = new Date().toISOString();
-      
+
       await subscription.save();
-      
-      // Notify user of expiration
-      await EmailService.sendSubscriptionExpired(userId, subscription);
-      await NotificationService.sendSubscriptionExpired(userId, subscription);
     } catch (error) {
-      console.error('Error expiring subscription:', error);
+      console.error("Error expiring subscription:", error);
     }
   }
 
-  /**
-   * Processes downgrade for a subscription
-   * @param {ISubscriptionDoc} subscription - Subscription to downgrade
-   * @returns {Promise<void>}
-   * @private
-   */
-  private async processDowngrade(subscription: ISubscriptionDoc): Promise<void> {
-    try {
-      // Find the downgrade metadata
-      const downgradeInfo = subscription.metadata.find(
-        meta => meta.planChangeType === 'downgrade'
-      );
-      
-      if (!downgradeInfo || !downgradeInfo.newPlanId) {
-        return;
-      }
-      
-      const newPlanId = downgradeInfo.newPlanId;
-      const newPlan = await Plan.findById(newPlanId);
-      
-      if (!newPlan) {
-        return;
-      }
-      
-      const userId = subscription.user._id;
-      const frequency = subscription.billing.frequency;
-      
-      // Calculate new billing period
-      const billing = this.calculateBilling(newPlan, frequency);
-      
-      // Update subscription with new plan
-
-
-    }}
-
-
-    
   /**
    * Processes a subscription that needs to be downgraded
    * @param {ISubscriptionDoc} subscription - Subscription to downgrade
    * @returns {Promise<void>}
    * @private
    */
+
   private async processDowngrade(subscription: ISubscriptionDoc): Promise<void> {
     try {
-      // Find the downgrade metadata
-      const downgradeInfo = subscription.metadata.find(
-        meta => meta.planChangeType === 'downgrade'
-      );
       
-      if (!downgradeInfo || !downgradeInfo.newPlanId) {
-        return;
-      }
-      
-      const newPlanId = downgradeInfo.newPlanId;
+      const newPlanId = subscription.plan._id;
       const newPlan = await Plan.findById(newPlanId);
-      
+
       if (!newPlan) {
         return;
       }
-      
-      const userId = subscription.user._id;
+
       const frequency = subscription.billing.frequency;
-      
-      // Calculate new billing period
       const billing = this.calculateBilling(newPlan, frequency);
-      
+
       // Update subscription with new plan
       subscription.plan = newPlanId;
       subscription.billing = billing;
       subscription.updatedAt = new Date().toISOString();
-      
-      // Remove the downgrade metadata
-      subscription.metadata = subscription.metadata.filter(
-        meta => meta.planChangeType !== 'downgrade'
-      );
-      
+
+      // Update metadata after downgrade
+      subscription.metadata = {
+        ...subscription.metadata,
+        downgradedFrom: subscription.plan,
+        nextBillingDate: billing.dueDate,
+        autoRenew: true
+      };
+
       await subscription.save();
-      
-      // Notify user of plan change
-      await EmailService.sendPlanDowngraded(userId, subscription);
-      await NotificationService.sendPlanDowngraded(userId, subscription);
+
     } catch (error) {
-      console.error('Error processing subscription downgrade:', error);
+      console.error("Error processing subscription downgrade:", error);
     }
-  }
-
-  /**
-   * Sends expiry reminder for a subscription
-   * @param {ISubscriptionDoc} subscription - Subscription to send reminder for
-   * @returns {Promise<void>}
-   * @private
-   */
-  private async sendExpiryReminder(subscription: ISubscriptionDoc): Promise<void> {
-    try {
-      const userId = subscription.user._id;
-      const plan = subscription.plan as unknown as IPlanDoc;
-      
-      await EmailService.sendSubscriptionExpiryReminder(userId, subscription, plan);
-      await NotificationService.sendSubscriptionExpiryReminder(userId, subscription);
-    } catch (error) {
-      console.error('Error sending expiry reminder:', error);
-    }
-  }
-
-  /**
-   * Notifies user of subscription creation
-   * @param {ObjectId} userId - User ID
-   * @param {ISubscriptionDoc} subscription - Created subscription
-   * @returns {Promise<void>}
-   * @private
-   */
-  private async notifySubscriptionCreated(
-    userId: ObjectId,
-    subscription: ISubscriptionDoc
-  ): Promise<void> {
-    try {
-      await EmailService.sendSubscriptionCreated(userId, subscription);
-      await NotificationService.sendSubscriptionCreated(userId, subscription);
-    } catch (error) {
-      console.error('Error sending subscription creation notification:', error);
-    }
-  }
-
-  /**
-   * Notifies user of subscription renewal
-   * @param {ObjectId} userId - User ID
-   * @param {ISubscriptionDoc} subscription - Renewed subscription
-   * @returns {Promise<void>}
-   * @private
-   */
-  private async notifySubscriptionRenewed(
-    userId: ObjectId,
-    subscription: ISubscriptionDoc
-  ): Promise<void> {
-    try {
-      await EmailService.sendSubscriptionRenewed(userId, subscription);
-      await NotificationService.sendSubscriptionRenewed(userId, subscription);
-    } catch (error) {
-      console.error('Error sending subscription renewal notification:', error);
-    }
-  }
-
-  /**
-   * Notifies user of subscription cancellation
-   * @param {ObjectId} userId - User ID
-   * @param {ISubscriptionDoc} subscription - Cancelled subscription
-   * @param {boolean} immediate - Whether cancellation is immediate
-   * @returns {Promise<void>}
-   * @private
-   */
-  private async notifySubscriptionCancelled(
-    userId: ObjectId,
-    subscription: ISubscriptionDoc,
-    immediate: boolean = true
-  ): Promise<void> {
-    try {
-      await EmailService.sendSubscriptionCancelled(userId, subscription, immediate);
-      await NotificationService.sendSubscriptionCancelled(userId, subscription, immediate);
-    } catch (error) {
-      console.error('Error sending subscription cancellation notification:', error);
-    }
-  }
-
-  /**
-   * Notifies user of plan change
-   * @param {ObjectId} userId - User ID
-   * @param {ISubscriptionDoc} subscription - Updated subscription
-   * @param {boolean} isUpgrade - Whether it's an upgrade or downgrade
-   * @returns {Promise<void>}
-   * @private
-   */
-  private async notifyPlanChanged(
-    userId: ObjectId,
-    subscription: ISubscriptionDoc,
-    isUpgrade: boolean
-  ): Promise<void> {
-    try {
-      if (isUpgrade) {
-        await EmailService.sendPlanUpgraded(userId, subscription);
-        await NotificationService.sendPlanUpgraded(userId, subscription);
-      } else {
-        await EmailService.sendPlanDowngradeScheduled(userId, subscription);
-        await NotificationService.sendPlanDowngradeScheduled(userId, subscription);
-      }
-    } catch (error) {
-      console.error('Error sending plan change notification:', error);
-    }
-  }
-
-  /**
-   * Creates a trial subscription
-   * @param {ObjectId} userId - User ID
-   * @param {IPlanDoc} plan - Plan document
-   * @param {IBillingInfo} billing - Billing information
-   * @returns {Promise<ISubscriptionDoc>} Created subscription
-   * @private
-   */
-  private async createTrialSubscription(
-    userId: ObjectId,
-    plan: IPlanDoc,
-    billing: IBillingInfo
-  ): Promise<ISubscriptionDoc> {
-    const subscription = new SubscriptionModel({
-      code: this.generateSubscriptionCode(userId, plan._id),
-      isPaid: false,
-      status: ESubscriptionStatus.TRIAL,
-      slug: `${userId}-${plan.slug}-${Date.now()}`,
-      billing,
-      user: userId,
-      transactions: [],
-      plan: plan._id,
-      metadata: [{ trialStarted: true }],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      _versions: 1
-    });
-    
-    await subscription.save();
-    return subscription;
-  }
-
-  /**
-   * Creates a paid subscription
-   * @param {ObjectId} userId - User ID
-   * @param {IPlanDoc} plan - Plan document
-   * @param {IBillingInfo} billing - Billing information
-   * @param {ObjectId} transactionId - Transaction ID
-   * @returns {Promise<ISubscriptionDoc>} Created subscription
-   * @private
-   */
-  private async createPaidSubscription(
-    userId: ObjectId,
-    plan: IPlanDoc,
-    billing: IBillingInfo,
-    transactionId: ObjectId
-  ): Promise<ISubscriptionDoc> {
-    const subscription = new SubscriptionModel({
-      code: this.generateSubscriptionCode(userId, plan._id),
-      isPaid: true,
-      status: ESubscriptionStatus.ACTIVE,
-      slug: `${userId}-${plan.slug}-${Date.now()}`,
-      billing,
-      user: userId,
-      transactions: [transactionId],
-      plan: plan._id,
-      metadata: [{ subscriptionStarted: true }],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      _versions: 1
-    });
-    
-    await subscription.save();
-    return subscription;
-  }
-
-  /**
-   * Calculates billing information for a subscription
-   * @param {IPlanDoc} plan - Plan document
-   * @param {string} frequency - Billing frequency
-   * @returns {IBillingInfo} Billing information
-   * @private
-   */
-  private calculateBilling(plan: IPlanDoc, frequency: string): IBillingInfo {
-    const now = new Date();
-    const startDate = new Date(now);
-    
-    // Set due date based on frequency
-    const dueDate = new Date(now);
-    if (frequency === EBillingFrequency.MONTHLY) {
-      dueDate.setMonth(dueDate.getMonth() + 1);
-    } else {
-      dueDate.setFullYear(dueDate.getFullYear() + 1);
-    }
-    
-    // Set grace period (7 days after due date)
-    const graceDate = new Date(dueDate);
-    graceDate.setDate(graceDate.getDate() + 7);
-    
-    return {
-      amount: frequency === EBillingFrequency.MONTHLY 
-        ? plan.pricing.monthly 
-        : plan.pricing.yearly,
-      startDate,
-      paidDate: now,
-      dueDate,
-      graceDate,
-      frequency
-    };
-  }
-
-  /**
-   * Generates a unique subscription code
-   * @param {ObjectId} userId - User ID
-   * @param {ObjectId} planId - Plan ID
-   * @returns {string} Subscription code
-   * @private
-   */
-  private generateSubscriptionCode(userId: ObjectId, planId: ObjectId): string {
-    return `SUB-${userId.toString().substring(0, 5)}-${planId.toString().substring(0, 5)}-${Date.now().toString(36)}`;
-  }
-
-  /**
-   * Determines if changing to a new plan is an upgrade
-   * @param {IPlanDoc} currentPlan - Current plan
-   * @param {IPlanDoc} newPlan - New plan
-   * @param {string} frequency - Billing frequency
-   * @returns {boolean} True if it's an upgrade
-   * @private
-   */
-  private isPlanUpgrade(
-    currentPlan: IPlanDoc,
-    newPlan: IPlanDoc,
-    frequency: string
-  ): boolean {
-    if (frequency === EBillingFrequency.MONTHLY) {
-      return newPlan.pricing.monthly > currentPlan.pricing.monthly;
-    } else {
-      return newPlan.pricing.yearly > currentPlan.pricing.yearly;
-    }
-  }
-
-  /**
-   * Calculates prorated amount for plan change
-   * @param {ISubscriptionDoc} subscription - Current subscription
-   * @param {IPlanDoc} currentPlan - Current plan
-   * @param {IPlanDoc} newPlan - New plan
-   * @param {string} frequency - Billing frequency
-   * @returns {number} Prorated amount
-   * @private
-   */
-  private calculateProratedAmount(
-    subscription: ISubscriptionDoc,
-    currentPlan: IPlanDoc,
-    newPlan: IPlanDoc,
-    frequency: string
-  ): number {
-    const now = new Date();
-    const dueDate = new Date(subscription.billing.dueDate);
-    const startDate = new Date(subscription.billing.startDate);
-    
-    // Calculate total days in billing cycle
-    const totalDays = Math.floor((dueDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    
-    // Calculate days remaining in current cycle
-    const daysRemaining = Math.floor((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    
-    // Calculate proportion of cycle remaining
-    const proportionRemaining = daysRemaining / totalDays;
-    
-    // Calculate prorated refund for current plan
-    const currentAmount = frequency === EBillingFrequency.MONTHLY 
-      ? currentPlan.pricing.monthly 
-      : currentPlan.pricing.yearly;
-    
-    const refundAmount = currentAmount * proportionRemaining;
-    
-    // Calculate prorated charge for new plan
-    const newAmount = frequency === EBillingFrequency.MONTHLY 
-      ? newPlan.pricing.monthly 
-      : newPlan.pricing.yearly;
-    
-    const chargeAmount = newAmount * proportionRemaining;
-    
-    // Return difference (positive means additional charge)
-    return Math.round((chargeAmount - refundAmount) * 100) / 100;
-  }
-
-  /**
-   * Processes renewal for a subscription
-   * @param {ISubscriptionDoc} subscription - Subscription to renew
-   * @returns {Promise<void>}
-   * @private
-   */
-  private async processRenewal(subscription: ISubscriptionDoc): Promise<void> {
-    try {
-      const userId = subscription.user._id;
-      const plan = subscription.plan as unknown as IPlanDoc;
-      
-      // Get latest payment method from last transaction
-      const transactions = subscription.transactions;
-      if (!transactions || transactions.length === 0) {
-        await this.expireSubscription(subscription);
-        return;
-      }
-      
-      const latestTransaction = transactions[transactions.length - 1];
-      
-      // Calculate new billing period
-      const frequency = subscription.billing.frequency;
-      const billing = this.calculateBilling(plan, frequency);
-      
-      // Process payment
-      const amount = frequency === EBillingFrequency.MONTHLY 
-        ? plan.pricing.monthly 
-        : plan.pricing.yearly;
-      
-      // Attempt payment with retry logic
-      let paymentSuccess = false;
-      let attempts = 0;
-      let paymentResult;
-      
-      while (!paymentSuccess && attempts < this.maxRetries) {
-        try {
-          // We would need to extract payment method from the transaction
-          // This is simplified here
-          const paymentMethod = {
-            email: latestTransaction.email || '',
-            type: latestTransaction.channel || 'card',
-            card: latestTransaction.card
-          };
-          
-          paymentResult = await this.transactionService.processTransaction(
-            userId,
-            amount,
-            paymentMethod,
-            plan._id
-          );
-          
-          if (!paymentResult.error) {
-            paymentSuccess = true;
-          } else {
-            attempts++;
-            if (attempts < this.maxRetries) {
-              // Wait before retry
-              await new Promise(resolve => setTimeout(resolve, this.retryInterval));
-            }
-          }
-        } catch (error) {
-          attempts++;
-          if (attempts < this.maxRetries) {
-            // Wait before retry
-            await new Promise(resolve => setTimeout(resolve, this.retryInterval));
-          }
-        }
-      }
-      
-      if (paymentSuccess && paymentResult) {
-        // Update subscription
-        subscription.status = ESubscriptionStatus.ACTIVE;
-        subscription.isPaid = true;
-        subscription.billing = billing;
-        subscription.transactions.push(paymentResult.data._id);
-        subscription.updatedAt = new Date().toISOString();
-        
-        await subscription.save();
-        
-        // Notify user of successful renewal
-        await this.notifySubscriptionRenewed(userId, subscription);
-      } else {
-        // Payment failed after all retries
-        await this.expireSubscription(subscription);
-      }
-    } catch (error) {
-      console.error('Error processing subscription renewal:', error);
-      await this.expireSubscription(subscription);
-    }
-  }
-
-  /**
-   * Expires a subscription
-   * @param {ISubscriptionDoc} subscription - Subscription to expire
-   * @returns {Promise<void>}
-   * @private
-   */
-  private async expireSubscription(subscription: ISubscriptionDoc): Promise<void> {
-    try {
-      const userId = subscription.user._id;
-      
-      subscription.status = ESubscriptionStatus.EXPIRED;
-      subscription.updatedAt = new Date().toISOString();
-      
-      await subscription.save();
-      
-      // Notify user of expiration
-      await EmailService.sendSubscriptionExpired(userId, subscription);
-      await NotificationService.sendSubscriptionExpired(userId, subscription);
-    } catch (error) {
-      console.error('Error expiring subscription:', error);
-    }
-  }
 }
+}
+
+export default new SubscriptionService
