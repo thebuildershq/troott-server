@@ -1,21 +1,16 @@
 import mongoose, { Model, Schema } from "mongoose";
-import { IAPIKeyMetadata } from "../utils/interface.util";
+import { IAPIKeyDoc } from "../utils/interface.util";
 import {
   EAPIKeyEnvironment,
   EAPIKeyStatus,
   EAPIKeyType,
   EDbModels,
 } from "../utils/enums.util";
-import systemService from "../services/system.service";
 
-const APIKeySchema = new Schema<IAPIKeyMetadata>(
+
+const APIKeySchema = new Schema<IAPIKeyDoc>(
   {
     keyHash: { type: String, required: true, unique: true },
-    userId: {
-      type: Schema.Types.ObjectId,
-      required: true,
-      ref: EDbModels.USER,
-    },
     environment: {
       type: String,
       enum: Object.values(EAPIKeyEnvironment),
@@ -26,18 +21,21 @@ const APIKeySchema = new Schema<IAPIKeyMetadata>(
       enum: Object.values(EAPIKeyType),
       required: true,
     },
-    createdAt: { type: Date, required: true },
-    lastUsed: { type: Date, default: null },
-    expiresAt: { type: Date, default: null },
     status: {
       type: String,
       enum: Object.values(EAPIKeyStatus),
       required: true,
     },
     permissions: [{ type: String }],
-    revokedAt: { type: Date },
+    expiresAt: { type: String  },
+    revokedAt: { type: String },
     revokedBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
     description: { type: String },
+    staff: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: EDbModels.STAFF,
+    },
   },
   {
     timestamps: true,
@@ -56,7 +54,7 @@ APIKeySchema.index({ userId: 1 });
 APIKeySchema.index({ status: 1 });
 
 
-const APIkey: Model<IAPIKeyMetadata> = mongoose.model<IAPIKeyMetadata>(
+const APIkey: Model<IAPIKeyDoc> = mongoose.model<IAPIKeyDoc>(
   EDbModels.API_KEY,
   APIKeySchema
 );

@@ -25,11 +25,11 @@ export interface IRoleDoc extends Document {
   slug: string;
   scope?: string;
   scopeId?: string;
-  
+
   // relationships
-  permissions: Array<string>
+  permissions: Array<string>;
   users: Array<ObjectId | any>;
-  
+
   // timestamps
   createdAt: string;
   updatedAt: string;
@@ -54,11 +54,11 @@ export interface IUserDoc extends Document {
   firstName: string;
   lastName: string;
   email: string;
-  password: string; 
-  passwordType: EPasswordType;// encrypt this data
+  password: string;
+  passwordType: EPasswordType; // encrypt this data
   userType: EUserType;
 
-  user: string
+  user: string;
   phoneNumber: string;
   phoneCode: string;
   country: string;
@@ -104,7 +104,7 @@ export interface IUserDoc extends Document {
     staff?: ObjectId | any;
   };
 
-  deviceToken: IDeviceToken 
+  deviceToken: IDeviceToken;
   matchPassword: (password: string) => boolean;
   getAuthToken: () => string;
 
@@ -114,12 +114,6 @@ export interface IUserDoc extends Document {
   _version: number;
   _id: ObjectId;
   id: ObjectId;
-}
-
-export interface IDeviceToken {
-  token: string;
-  platform: 'ios' | 'android' | 'web';
-  lastUsed: Date;
 }
 
 export interface IListenerDoc extends Document {
@@ -426,13 +420,13 @@ export interface ISermonBiteDoc extends Document {
 
   // Modifications
   versionId?: ObjectId;
-  modifiedAt: Date;
+  modifiedAt: string;
   modifiedBy: ObjectId | any;
   changesSummary: string;
   deletedBites: Array<{
     id: ObjectId;
     deletedBy: ObjectId | any;
-    deletedAt: Date;
+    deletedAt: string;
     reason?: string;
   }>;
 
@@ -627,19 +621,44 @@ export interface IPlanDoc extends Document {
   _id: ObjectId;
   id: ObjectId;
 }
+export interface IAPIKeyDoc extends Document {
+  keyHash: string;
+  environment: EAPIKeyEnvironment;
+  type: EAPIKeyType;
+  status: EAPIKeyStatus;
+  permissions: Array<string>;
+  expiresAt: string;
+  revokedAt?: string;
+  revokedBy?: string;
+  description?: string;
 
+  // relationships
+  staff: ObjectId | any;
+
+  // timestamps
+  createdAt: string;
+  updatedAt: string;
+  _id: ObjectId;
+  id: ObjectId;
+}
+
+export interface IDeviceToken {
+  token: string;
+  platform: "ios" | "android" | "web";
+  lastUsed: Date;
+}
 export interface ILoginType {
   ip: string;
   deviceType: string;
-  platform: 'web' | 'mobile' | 'tablet';
+  platform: "web" | "mobile" | "tablet";
   deviceInfo: {
-    manufacturer?: string;  // For mobile devices
-    model?: string;        // For mobile devices
-    osName: string;        // iOS, Android, Windows, macOS, etc.
+    manufacturer?: string; // For mobile devices
+    model?: string; // For mobile devices
+    osName: string; // iOS, Android, Windows, macOS, etc.
     osVersion: string;
-    browser?: string;      // For web access
+    browser?: string; // For web access
     browserVersion?: string;
-    appVersion?: string;   // For mobile app
+    appVersion?: string; // For mobile app
   };
   location?: {
     country: string;
@@ -683,7 +702,6 @@ export interface IPlanTrial {
   endDate: Date;
   days: number;
 }
-
 
 export interface IPaymentMethod {
   email: string;
@@ -768,13 +786,12 @@ export interface IData {
   value: any;
 }
 
-export interface IResult <T = any>{
+export interface IResult<T = any> {
   error: boolean;
   message: string;
   code: number;
   data: any;
 }
-
 
 export interface IBulkUser {
   _id: ObjectId | null | string;
@@ -791,7 +808,6 @@ export interface ILogin {
   password: string;
   code: string;
 }
-
 
 export interface ISearchQuery {
   model: Model<any>;
@@ -827,21 +843,6 @@ export interface IPagination {
 }
 
 
-export interface IAPIKeyMetadata {
-  keyHash: string;
-  userId: ObjectId;
-  environment: EAPIKeyEnvironment;
-  type: EAPIKeyType;
-  createdAt: Date;
-  lastUsed: Date | null;
-  expiresAt: Date | null;
-  status: EAPIKeyStatus;
-  permissions: string[];
-  revokedAt?: Date;
-  revokedBy?: string;
-  description?: string;
-}
-
 export interface IAPIKeyUsage {
   keyHash: string;
   timestamp: Date;
@@ -868,7 +869,7 @@ export interface IEmailPreferences {
 }
 
 export interface ISensitiveData {
-    card?: IDebitCard;
-    providerRef: string;
-    providerData: Array<Record<string, any>>;
-  }
+  card?: IDebitCard;
+  providerRef: string;
+  providerData: Array<Record<string, any>>;
+}

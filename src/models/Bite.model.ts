@@ -30,7 +30,7 @@ const SermonBiteSchema = new Schema<ISermonBiteDoc>(
 
     // Modifications
     versionId: { type: Schema.Types.ObjectId, ref: EDbModels.BITE, default: null },
-    modifiedAt: { type: Date, default: Date.now },
+    modifiedAt: { type: String },
     modifiedBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
     changesSummary: { type: String, default: "" },
     deletedBites: [
