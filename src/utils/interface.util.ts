@@ -873,3 +873,31 @@ export interface ISensitiveData {
   providerRef: string;
   providerData: Array<Record<string, any>>;
 }
+
+export interface ICustomResponse<T> extends Response {
+  customResults?: {
+    success: boolean;
+    count: number;
+    total: number;
+    pagination: {
+      next?: { page: number; limit: number };
+      prev?: { page: number; limit: number };
+    };
+    data: T[];
+  },
+  status: any,
+}
+
+// // Extend the Response type
+// interface CustomResponse<T> extends Response {
+//   customResults?: {
+//     success: boolean;
+//     count: number;
+//     total: number
+//     pagination: {
+//       next?: { page: number; limit: number };
+//       prev?: { page: number; limit: number };
+//     };
+//     data: T[];
+//   };
+// }
