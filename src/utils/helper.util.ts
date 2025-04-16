@@ -85,10 +85,22 @@ export const generateApiKey = () => {
 
 
 
+  /**
+   * Helper method to determine platform type
+   */
+export const detectPlatform = (deviceType: string | undefined): 'web' | 'mobile' | 'tablet' => {
+    if (!deviceType) return 'web';
+    if (deviceType.toLowerCase() === 'tablet') return 'tablet';
+    if (['mobile', 'phone'].includes(deviceType.toLowerCase())) return 'mobile';
+    return 'web';
+  }
+
+
 export default {
     generateRandomChars,
     generateRandomNumbers,
     generateRandomCode,
     generateRandomCharswithSpecialChars,
     generateApiKey,
+    detectPlatform
 }

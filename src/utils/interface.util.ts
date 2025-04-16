@@ -1,20 +1,51 @@
 import { Model, Document, ObjectId } from "mongoose";
-import { EBiteState, EBiteStatus, EcatalogueType, EOtpType, EPlaylistType, ESermonState, ESermonStatus, ETransactionsType, EUserType } from "./enums.util";
+import {
+  EAccountManagerRole,
+  EAPIKeyEnvironment,
+  EAPIKeyStatus,
+  EAPIKeyType,
+  EContentState,
+  EContentStatus,
+  EmailType,
+  EOtpType,
+  EPasswordType,
+  EPlaylistType,
+  EStaffPermissions,
+  EStaffRole,
+  EStaffUnit,
+  ETransactionsType,
+  EUserType,
+  EVerificationStatus,
+} from "./enums.util";
 
 export type Nullable<T> = T | null;
 export interface IRoleDoc extends Document {
   name: string;
   description: string;
   slug: string;
-  user: ObjectId | any;
-  permissions: Array<string>;
+  scope?: string;
+  scopeId?: string;
 
-  getAll(): Array<IRoleDoc>;
-  findByName(name: string): Nullable<IRoleDoc>;
+  // relationships
+  permissions: Array<string>;
+  users: Array<ObjectId | any>;
 
   // timestamps
   createdAt: string;
   updatedAt: string;
+  _version: number;
+  _id: ObjectId;
+  id: ObjectId;
+}
+
+export interface IPermissionDoc extends Document {
+  action: string;
+  description: string;
+
+  // timestamps
+  createdAt: string;
+  updatedAt: string;
+  _version: number;
   _id: ObjectId;
   id: ObjectId;
 }
@@ -24,96 +55,105 @@ export interface IUserDoc extends Document {
   lastName: string;
   email: string;
   password: string;
-  
+  passwordType: EPasswordType; // encrypt this data
   userType: EUserType;
 
-  country: string;
+  user: string;
   phoneNumber: string;
   phoneCode: string;
+  country: string;
+  countryPhone: string;
 
+  avatar: string;
   dateOfBirth: Date;
   gender: string;
-  avatar: string;
-  passwordType: string;
-  savedPassword: string;
-  
 
-  activationCode: string;
-  activationCodeExpiry: Date;
+  Otp: string;
+  OtpExpiry: number;
+  otpType: EOtpType;
   accessToken: string;
   accessTokenExpiry: Date;
 
-  passwordOtp: string;
-  passwordOtpExpiry: Date;
-  otpType: EOtpType
-
-  login: {
-    lastLogin: Date;
-    ip: string;
-    deviceType: string;
-  };
-
-
-  isActivated: boolean;
   isSuper: boolean;
-  isAdmin: boolean;
+  isStaff: boolean;
+  isPreacher: boolean;
   isCreator: boolean;
   isListener: boolean;
-  isUser: boolean;
 
+  loginInfo: ILoginType;
+  lastLogin: string;
   isActive: boolean;
+  isDeactivated: boolean;
   loginLimit: number;
   isLocked: boolean;
   lockedUntil: Nullable<Date>;
-  lastLogin: Date;
+
+  // Notification Preferences
+  notificationPreferences: {
+    email: boolean;
+    push: boolean;
+    sms: boolean;
+  };
 
   // relationships
-  roles: Array<ObjectId | any>;
-  playlists: Array<ObjectId | any>;
-  following: Array<string>;
-  notifications: Array<string>;
-  favoritePreachers: Array<string>;
-  favoriteCreators: Array<string>;
+  role: ObjectId | any;
+  profiles: {
+    listener?: ObjectId | any;
+    creator?: ObjectId | any;
+    preacher?: ObjectId | any;
+    staff?: ObjectId | any;
+  };
 
-  sermonHistory: Array<ISermonDoc>;
-  likedSermons: Array<string>;
-  sharedSermons: Array<string>
-
-  biteHistory: Array<ISermonBiteDoc>;
-  savedSermonBites: Array<string>;
-  sharedSermonBites: Array<string>
-  
-
-
-  // functions
-  matchPassword(password: string): boolean;
+  deviceToken: IDeviceToken;
+  matchPassword: (password: string) => boolean;
   getAuthToken: () => string;
-  getResetPasswordToken: () => string;
-  getActivationCode: () => string;
-  getInviteToken: () => string;
 
   // time stamps
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   _version: number;
   _id: ObjectId;
   id: ObjectId;
 }
 
-export interface IListenerProfileDoc extends Document {
-  listenerId: string;
+export interface IListenerDoc extends Document {
   firstName: string;
   lastName: string;
   email: string;
 
   gender: string;
+  avatar: string;
   dateOfBirth: Date;
+  country: string;
   phoneNumber: string;
   phoneCode: string;
   location: ILocationInfo;
   slug: string;
   type: string;
-  card: IDebitCard;
+  card?: IDebitCard;
+
+  // Engagement Tracking
+  playlists: Array<ObjectId | any>;
+  listeningHistory: Array<ObjectId | any>;
+  likedSermons: Array<ObjectId | any>;
+  sharedSermons: Array<ObjectId | any>;
+
+  viewedSermonBites: Array<ObjectId | any>;
+  sharedSermonBites: Array<ObjectId | any>;
+  savedSermonBites: Array<ObjectId | any>;
+
+  followers: Array<ObjectId | any>;
+  following: Array<ObjectId | any>;
+  interests: Array<string>;
+  badges: Array<string>;
+
+  // Security & Access Control
+  permissions: Array<string>;
+  twoFactorEnabled: boolean;
+  loginHistory: Array<{ date: Date; ip: string; device: string }>;
+  isActive: boolean;
+  isSuspended: boolean;
+  isDeleted: boolean;
 
   //relationships
   user: ObjectId | any;
@@ -130,30 +170,62 @@ export interface IListenerProfileDoc extends Document {
   id: ObjectId;
 }
 export interface IPreacherProfileDoc extends Document {
-  preacherId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+
+  gender: string;
+  avatar: string;
+  dateOfBirth: Date;
+  country: string;
+  phoneNumber: string;
+  phoneCode: string;
+  location: ILocationInfo;
+  slug: string;
+
+  // Ministry & Content
   description: string;
   ministry: string;
+  sermons: Array<ObjectId | any>;
+  featuredSermons: Array<ObjectId | any>;
+  bites: Array<ObjectId | any>;
+  topSermons: Array<ObjectId | any>;
+  topBites: Array<ObjectId | any>;
 
-  sermons: Array<string>;
-  bites: Array<string>;
-  followers: Array<string>;
-  topSermons: Array<string>;
-  topBites: Array<string>;
+  // Playlist System
+  playlists: Array<ObjectId | any>; // Playlists created by the preacher
+  featuredPlaylists: Array<ObjectId | any>;
+
+  // Followers & Listeners
+  followers: Array<ObjectId | any>;
   monthlyListeners: number;
+  likes: number;
+  shares: number;
 
-  uploads: string;
-  published: string;
-  isVerfied: boolean;
+  // Uploads & Publications
+  uploads: Array<ObjectId | any>;
+  uploadHistory: Array<ObjectId | any>;
+  publishedCount: number;
 
-  identification: string;
-  historyUpload: string;
+  // Security & Verification
+  identification: Array<string>;
+  verificationStatus: EVerificationStatus;
+  isVerified: boolean;
+  verifiedAt: Date | null;
+  permissions: Array<string>;
+  twoFactorEnabled: boolean;
+  lastLogin: Date;
+  devices: Array<{ deviceId: string; deviceType: string; lastUsed: Date }>;
+  isActive: boolean;
+  isSuspended: boolean;
+  isDeleted: boolean;
 
-  location: ILocationInfo
-  slug: string;
+  // Account Managers
+  accountManagers: Array<{ userId: ObjectId; role: EAccountManagerRole }>;
 
   //relationships
   user: ObjectId | any;
-  transactions: Array<ObjectId | any>
+  transactions: Array<ObjectId | any>;
   createdBy: ObjectId | any;
   settings: ObjectId | any;
 
@@ -164,31 +236,55 @@ export interface IPreacherProfileDoc extends Document {
   _id: ObjectId;
   id: ObjectId;
 }
-
 export interface ICreatorProfileDoc extends Document {
-  creatorId: string;
-  description: string;
-  ministry: string;
+  firstName: string;
+  lastName: string;
+  email: string;
 
-  sermons: Array<string>;
-  bites: Array<string>;
-  followers: Array<string>;
-  topSermons: Array<string>;
-  topBites: Array<string>;
-  monthlyListeners: number;
-
-  uploads: string;
-  published: string;
-  isVerfied: boolean;
-
-  identification: string;
-  historyUpload: string;
-  location: ILocationInfo
+  gender: string;
+  avatar: string;
+  dateOfBirth: Date;
+  country: string;
+  phoneNumber: string;
+  phoneCode: string;
+  location: ILocationInfo;
   slug: string;
+
+  // Content
+  description: string;
+  bites: Array<ObjectId | any>;
+  topBites: Array<ObjectId | any>;
+
+  // Followers & Listeners
+  followers: Array<ObjectId | any>;
+  monthlyListeners: number;
+  likes: number;
+  shares: number;
+
+  // Uploads & Publications
+  uploads: Array<ObjectId | any>;
+  uploadHistory: Array<ObjectId | any>;
+  publishedCount: number;
+
+  // Security & Verification
+  identification: Array<string>;
+  verificationStatus: EVerificationStatus;
+  isVerified: boolean;
+  verifiedAt: Date | null;
+  permissions: Array<string>;
+  twoFactorEnabled: boolean;
+  lastLogin: Date;
+  devices: Array<{ deviceId: string; deviceType: string; lastUsed: Date }>;
+  isActive: boolean;
+  isSuspended: boolean;
+  isDeleted: boolean;
+
+  // Account Managers
+  accountManagers: Array<{ userId: ObjectId; role: EAccountManagerRole }>;
 
   //relationships
   user: ObjectId | any;
-  transactions: Array<ObjectId | any>
+  transactions: Array<ObjectId | any>;
   createdBy: ObjectId | any;
   settings: ObjectId | any;
 
@@ -201,7 +297,49 @@ export interface ICreatorProfileDoc extends Document {
 }
 
 export interface IStaffProfileDoc extends Document {
-  apiKeys: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+
+  gender: string;
+  avatar: string;
+  dateOfBirth: Date;
+  country: string;
+  phoneNumber: string;
+  phoneCode: string;
+  location: ILocationInfo;
+  slug: string;
+
+  // Staff Role & Access
+  unit: EStaffUnit;
+  role: EStaffRole;
+  accessLevel: number;
+  permissions: Array<EStaffPermissions>;
+
+  // API & Security
+  apiKeys: Array<{ key: string; createdAt: Date; lastUsed: Date }>; // encrypt this data
+  ipWhitelist: Array<string>;
+  twoFactorEnabled: boolean;
+  lastLogin: Date;
+  devices: Array<{ deviceId: string; deviceType: string; lastUsed: Date }>;
+
+  // Actions & Moderation
+  actionsTaken: Array<{ action: string; targetId: string; timestamp: Date }>;
+  moderatedContent: Array<ObjectId>;
+
+  // Uploads & Publications
+  uploads: Array<ObjectId | any>;
+  uploadHistory: Array<ObjectId | any>;
+  publishedCount: number;
+
+  // Security & Verification
+  identification: Array<string>;
+  verificationStatus: EVerificationStatus;
+  isVerified: boolean;
+  verifiedAt: Date | null;
+  isActive: boolean;
+  isSuspended: boolean;
+  isDeleted: boolean;
 
   //relationships
   user: ObjectId | any;
@@ -212,37 +350,50 @@ export interface IStaffProfileDoc extends Document {
   createdAt: string;
   updatedAt: string;
   _version: number;
+  _id: ObjectId;
+  id: ObjectId;
 }
-
 
 export interface ISermonDoc extends Document {
   title: string;
   description: string;
   duration: number; // In seconds
-  category: Array<string>
+  category: Array<string>;
   sermonUrl: string;
-  imageURL: string
+  imageUrl: string;
   tags: Array<string>;
-  
-  isPublic: boolean
-  playCount: ISermonPlayCount;
-  shareCount: ISermonShareCount;
-  isSeries: boolean
-  sermonType: ISermonType;
-  state: ESermonState
-  status: ESermonStatus
 
-  createdBy:  ObjectId | any;
+  isPublic: boolean;
+  totalPlay: ISermonPlayCount;
+  totalShares: ISermonShareCount;
+  isSeries: boolean;
+  state: EContentState;
+  status: EContentStatus;
+
+  //Modifications
+  versionId?: ObjectId;
+  modifiedAt: Date;
+  modifiedBy: ObjectId | any;
+  changesSummary: string;
+  deletedSermons: Array<{
+    id: ObjectId;
+    deletedBy: ObjectId | any;
+    deletedAt: Date;
+    reason?: string;
+  }>;
 
   // relatiionships
   preacher: ObjectId | any;
+  series: ObjectId | any;
+  staff: ObjectId | any;
   playlist: ObjectId | any;
   library: ObjectId | any;
+  createdBy: ObjectId | any;
 
   // timestamps
   createdAt: string;
   updatedAt: string;
-  _version: number
+  _version: number;
   _id: ObjectId;
   id: ObjectId;
 }
@@ -250,99 +401,128 @@ export interface ISermonBiteDoc extends Document {
   title: string;
   description: string;
   duration: number; // In seconds
-  category: Array<string>
+  category: Array<string>;
   biteURL: string;
-  thumbnailUrl?: string
+  thumbnailUrl?: string;
   tags: Array<string>;
-  
-  likes: IBiteLike
-  views: IBiteViewHistory;
-  shareCount: IBiteShareCount;
-  
-  saved: IBiteSavedHistory
-  state: EBiteState
-  status: EBiteStatus
 
-  createdBy:  ObjectId | any;
-  
-    
+  // Engagement & Analytics
+  engagementStats: IBiteEngagementStats;
+  viewHistory: Array<IBiteViewHistory>;
+  likeHistory: Array<IBiteLike>;
+  shareHistory: Array<IBiteShareHistory>;
+  savedHistory: Array<IBiteSavedHistory>;
+
+  // State Management
+  isPublic: boolean;
+  state: EContentState;
+  status: EContentStatus;
+
+  // Modifications
+  versionId?: ObjectId;
+  modifiedAt: string;
+  modifiedBy: ObjectId | any;
+  changesSummary: string;
+  deletedBites: Array<{
+    id: ObjectId;
+    deletedBy: ObjectId | any;
+    deletedAt: string;
+    reason?: string;
+  }>;
+
   // relationship
+  preacher: ObjectId | any;
+  creator: ObjectId | any;
+  staff: ObjectId | any;
   playlist: Array<ObjectId>;
   library: Array<ObjectId>;
+  createdBy: ObjectId | any;
 
   // timestamps
   createdAt: string;
   updatedAt: string;
-  _version: number
+  _version: number;
   _id: ObjectId;
   id: ObjectId;
 }
 
-export interface ICatalogDoc extends Document {
-  type: EcatalogueType;
-  sermon?: string; // Sermon ID`
-  bite?: string; // Sermon bite ID
-  preacher?: string; // Preacher ID
+export interface ISeriesDoc extends Document {
   title: string;
-  category: string;
-  isTrending: boolean;
-  tags: string[];
+  description: string;
+  preacher: ObjectId | any;
+  sermons: Array<ObjectId | any>;
+  imageUrl?: string;
+  part: string;
+  toatlDuration: string;
+  tags: Array<string>;
 
-  // timestamps
+  isPublic: boolean;
+  state: EContentState;
+  status: EContentStatus;
+
+  // Engagement & Analytics
+  totalPlay: number;
+  totalShares: number;
+  totalLikes: number;
+
+  // Modifications
+  versionId?: ObjectId;
+  modifiedAt: Date;
+  modifiedBy: ObjectId | any;
+  changesSummary: string;
+  deletedSeries: Array<{
+    id: ObjectId;
+    deletedBy: ObjectId | any;
+    deletedAt: Date;
+    reason?: string;
+  }>;
+
+  // Relationships
+
+  staff: ObjectId | any;
+  createdBy: ObjectId | any;
+
+  // Timestamps
   createdAt: string;
   updatedAt: string;
-  _id: ObjectId;
-  id: ObjectId;
-}
-
-export interface IStreamingDoc extends Document {
-  user: string; // User ID
-  sermon: string; // Sermon ID
-  status: "Playing" | "Paused" | "Stopped";
-  lastPosition: number; // Timestamp (seconds)
-  duration: number; // Total sermon duration
-  deviceType: "Mobile" | "Web" | "Tablet" | "TV";
-  deviceId: string;
-  queue: string[]; // Array of sermon IDs in queue
-  currentIndex: number; // Current position in queue
-  quality: "Low" | "Medium" | "High";
-  playbackSpeed: 0.5 | 1 | 1.5 | 2;
-  repeatMode: "None" | "One" | "All";
-  shuffle: boolean;
-
-  // timestamps
-  createdAt: string;
-  updatedAt: string;
+  _version: number;
   _id: ObjectId;
   id: ObjectId;
 }
 
 export interface ILibraryDoc extends Document {
-  
+  user: ObjectId | any;
+  likedSermons: Array<ObjectId | any>;
+  savedBtes: Array<ObjectId | any>;
+  playlists: Array<ObjectId | any>;
+  favouritePreachers: Array<ObjectId | any>;
+  mostPlayed: Array<ObjectId | any>;
+
+  createdAt: string;
+  updatedAt: string;
+  _version: number;
+  _id: ObjectId;
+  id: ObjectId;
 }
 
 export interface IPlaylistDoc extends Document {
   title: string;
   description: string;
   imageURL: string;
-  type: EPlaylistType;
-  totalDuration: string
+  totalDuration: string;
   isDefault: boolean;
   isPublic: boolean;
-  likes: string
+  likes: number;
 
   // relationships
   user: ObjectId | any;
-  sermon: ObjectId | any;
-  bites: ObjectId | any;
-  preacher:  ObjectId | any
-  listener:  ObjectId | any
-  creator:  ObjectId | any
+  createdBy: ObjectId | any;
+  items: Array<{ itemId: ObjectId | any; type: EPlaylistType }>;
 
   // timestamps
   createdAt: string;
   updatedAt: string;
-  _version: number
+  _version: number;
   _id: ObjectId;
   id: ObjectId;
 }
@@ -352,21 +532,21 @@ export interface ITransactionDoc extends Document {
   medium: string;
   resource: string;
   entity: string;
-  referenece: string;
+  reference: string;
   currency: string;
   providerRef: string;
   providerName: string;
   description: string;
   narration: string;
-  amount: string;
-  unitAmount: string; // kobo unit * 100
+  amount: number;
+  unitAmount: number; // kobo unit * 100
   fee: number;
   unitFee: number; // kobo unit * 100
   status: string;
   reason: string;
   message: string;
-  providerData: string;
-  metadata: Array<any>;
+  providerData: Array<Record<string, any>>;
+  metadata: Array<Record<string, any>>;
   channel: string;
   slug: string;
   card: IDebitCard;
@@ -384,12 +564,25 @@ export interface ITransactionDoc extends Document {
   // functions
   getAll(): Array<ITransactionDoc>;
 }
+
 export interface ISubscriptionDoc extends Document {
   code: string;
   isPaid: boolean;
   status: string;
   slug: string;
   billing: IBillingInfo;
+  metadata: {
+    lastBillingDate: Date;
+    nextBillingDate: Date;
+    billingCycle: string;
+    autoRenew: boolean;
+    cancelledAt?: Date;
+    cancelReason?: string;
+    upgradedFrom?: string;
+    downgradedFrom?: string;
+    promotionCode?: string;
+    promotionExpiry?: Date;
+  };
 
   // relationships
   user: ObjectId | any;
@@ -428,6 +621,51 @@ export interface IPlanDoc extends Document {
   _id: ObjectId;
   id: ObjectId;
 }
+export interface IAPIKeyDoc extends Document {
+  keyHash: string;
+  environment: EAPIKeyEnvironment;
+  type: EAPIKeyType;
+  status: EAPIKeyStatus;
+  permissions: Array<string>;
+  expiresAt: string;
+  revokedAt?: string;
+  revokedBy?: string;
+  description?: string;
+
+  // relationships
+  staff: ObjectId | any;
+
+  // timestamps
+  createdAt: string;
+  updatedAt: string;
+  _id: ObjectId;
+  id: ObjectId;
+}
+
+export interface IDeviceToken {
+  token: string;
+  platform: "ios" | "android" | "web";
+  lastUsed: Date;
+}
+export interface ILoginType {
+  ip: string;
+  deviceType: string;
+  platform: "web" | "mobile" | "tablet";
+  deviceInfo: {
+    manufacturer?: string; // For mobile devices
+    model?: string; // For mobile devices
+    osName: string; // iOS, Android, Windows, macOS, etc.
+    osVersion: string;
+    browser?: string; // For web access
+    browserVersion?: string;
+    appVersion?: string; // For mobile app
+  };
+  location?: {
+    country: string;
+    city: string;
+    timezone: string;
+  };
+}
 
 export interface ILocationInfo {
   address: string;
@@ -435,12 +673,12 @@ export interface ILocationInfo {
   state: string;
 }
 
-export interface ISermonType {
+export interface ISeries {
   title: string;
   description: string;
   part: Array<string>;
-  position: string
-  imageURL: string;
+  position: string;
+  imageURL?: string;
   toatlDuration: string;
 }
 
@@ -465,6 +703,11 @@ export interface IPlanTrial {
   days: number;
 }
 
+export interface IPaymentMethod {
+  email: string;
+  type: string;
+  card?: IDebitCard;
+}
 export interface IPlanSermon {
   limit: {
     value: number;
@@ -490,45 +733,47 @@ export interface IDebitCard {
 }
 
 export interface ISermonPlayCount {
-  userId: ObjectId
-  sermonBiteId: ObjectId;
-  watchedAt: Date;
-}
-export interface ISermonLike {
-  userId: ObjectId
-  sermonBiteId: ObjectId;
-  likedAt: Date;
+  userId: ObjectId;
+  playedAt: Date;
 }
 
 export interface ISermonShareCount {
-  userId: ObjectId
-  sermonBiteId: ObjectId;
-  ShareCount: number;
+  userId: ObjectId;
+  playedAt: Date;
 }
-
-export interface IBiteViewHistory {
-  userId: ObjectId
-  sermonBiteId: ObjectId;
-  watchedAt: Date;
-}
-export interface IBiteLike {
-  userId: ObjectId
-  sermonBiteId: ObjectId;
+export interface ISermonLike {
+  userId: ObjectId;
   likedAt: Date;
 }
 
-export interface IBiteShareCount {
-  userId: ObjectId
-  sermonBiteId: ObjectId;
+export interface IBiteViewHistory {
+  userId: ObjectId;
+  watchedAt: Date;
+}
+export interface IBiteLike {
+  userId: ObjectId;
+  likedAt: Date;
+}
+
+export interface IBiteShareHistory {
+  userId: ObjectId;
   ShareCount: number;
 }
 
 export interface IBiteSavedHistory {
-  userId: ObjectId
-  sermonBiteId: ObjectId;
-  saved: string
+  userId: ObjectId;
+  saved: boolean;
+  savedAt: Date;
 }
-//IViewHistory
+
+export interface IBiteEngagementStats {
+  totalLikes: number;
+  totalShares: number;
+  totalViews: number;
+  totalSaves: number;
+  avgWatchTime: number; // Average watch duration in seconds
+  completionRate: number; // % of people who finished watching
+}
 
 export interface IOptions {
   host: string;
@@ -541,11 +786,27 @@ export interface IData {
   value: any;
 }
 
-export interface IResult {
+export interface IResult<T = any> {
   error: boolean;
   message: string;
   code: number;
   data: any;
+}
+
+export interface IBulkUser {
+  _id: ObjectId | null | string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  phoneCode: string;
+  userType: string;
+}
+
+export interface ILogin {
+  email: string;
+  password: string;
+  code: string;
 }
 
 export interface ISearchQuery {
@@ -581,3 +842,34 @@ export interface IPagination {
   id: ObjectId;
 }
 
+
+export interface IAPIKeyUsage {
+  keyHash: string;
+  timestamp: Date;
+  endpoint: string;
+  ipAddress: string;
+  userAgent: string;
+  responseCode: number;
+}
+
+export interface IEmailRequest {
+  recipient: string;
+  subject: string;
+  content: any;
+  type: EmailType;
+  template?: string;
+  attachments?: any[];
+}
+
+export interface IEmailPreferences {
+  marketing: boolean;
+  productUpdates: boolean;
+  featureAnnouncements: boolean;
+  subscriptionStatus: string;
+}
+
+export interface ISensitiveData {
+  card?: IDebitCard;
+  providerRef: string;
+  providerData: Array<Record<string, any>>;
+}

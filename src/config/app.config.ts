@@ -2,7 +2,7 @@ import { config } from "dotenv";
 import express, { Request, Response, NextFunction } from "express";
 import { ENVType } from "../utils/enums.util";
 import ENV from "../utils/env.util";
-import errorHandler from "../middleware/error.mdw";
+import errorHandler from "../middlewares/error.mdw";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import fileUpload from "express-fileupload";

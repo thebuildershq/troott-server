@@ -1,60 +1,27 @@
 [
   {
     "name": "superadmin",
-    "description": "Superadmin can access and manage everything in the system",
     "slug": "super-admin",
-    "permissions": [
-      "system_administration",
-      "user_management",
-      "sermon_management",
-      "sermon_analytics",
-      "content_management",
-      "playlist_management",
-      "audience_insights",
-      "revenue_tracking",
-      "ads_management",
-      "system_management"
-    ]
+    "description": "Has unrestricted access to the entire system for platform-wide configuration, management, and oversight."
   },
   {
-    "name": "admin",
-    "description": "Admin has extensive access but less than superadmin",
-    "slug": "admin",
-    "permissions": [
-      "user_management",
-      "sermon_management",
-      "sermon_analytics",
-      "content_management",
-      "playlist_management",
-      "audience_insights",
-      "revenue_tracking",
-      "ads_management",
-      "system_management"
-    ]
+    "name": "staff",
+    "slug": "staff",
+    "description": "Troott internal team member with elevated access to manage users, content, and platform settings."
+  },
+  {
+    "name": "preacher",
+    "slug": "preacher",
+    "description": "Ministers or churches managing their own preacher accounts. Can publish and organize full-length sermons and sermon series."
   },
   {
     "name": "creator",
-    "description": "Creator can access and manage everything in their own account",
     "slug": "creator",
-    "permissions": [
-      "sermon_management",
-      "sermon_analytics",
-      "content_management",
-      "playlist_management",
-      "audience_insights",
-      "revenue_tracking",
-      "ads_management"
-    ]
+    "description": "Independent content creators focusing on short-form sermonBites."
   },
   {
-    "name": "listeners",
-    "description": "Users who want to explore, stream and share sermons and other content",
-    "slug": "listeners",
-    "permissions": [
-      "content_management",
-      "playlist_management",
-      "subscription_management",
-      "engagement_management"
-    ]
+    "name": "listener",
+    "slug": "listener",
+    "description": "General users who stream, save, and engage with stream content on troott."
   }
 ]

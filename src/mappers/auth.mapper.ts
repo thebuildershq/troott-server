@@ -6,7 +6,7 @@ class AuthMapper {
 
   /**
    * @name mapRegisteredUser
-   * @param user
+   * @param user - IUserDoc
    * @returns result
    */
   public async mapRegisteredUser(
@@ -14,29 +14,34 @@ class AuthMapper {
   ): Promise<MapRegisteredUserDTO> {
     const result: MapRegisteredUserDTO = {
       id: user.id,
-
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
 
       phoneNumber: user.phoneNumber,
       phoneCode: user.phoneCode,
+      country: user.country,
       dateOfBirth: user.dateOfBirth,
       gender: user.gender,
-      profileImage: user.profileImage,
-      device: user.device,
-
-      passwordType: user.passwordType,
+      avatar: user.avatar,
       userType: user.userType,
-      isActivated: user.isActivated,
+      passwordType: user.passwordType,
+
       isSuper: user.isSuper,
-      isAdmin: user.isAdmin,
+      isStaff: user.isStaff,
+      isPreacher: user.isPreacher,
       isCreator: user.isCreator,
-      isUser: user.isUser,
+      isListener: user.isListener,
 
       isActive: user.isActive,
-      lastLogin: user.lastLogin,  
-      role: user.role,
+      isLocked: user.isLocked,
+      lockedUntil: user.lockedUntil,
+
+      roles: user.roles,
+      profiles: user.profiles,
+
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
 
     return result;

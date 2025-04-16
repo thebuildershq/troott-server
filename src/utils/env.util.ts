@@ -1,4 +1,4 @@
-import { ENVType } from "./enums.util";
+import { EENVType } from "./enums.util";
 
 class AppENV {
   constructor() {}
@@ -11,7 +11,7 @@ class AppENV {
   public isProduction(): boolean {
     let result: boolean = false;
 
-    if (process.env.APP_ENV === ENVType.PRODUCTION) {
+    if (process.env.APP_ENV === EENVType.PRODUCTION) {
       result = true;
     }
     return result;
@@ -26,7 +26,7 @@ class AppENV {
   public isStaging(): boolean {
     let result: boolean = false;
 
-    if (process.env.APP_ENV === ENVType.STAGING) {
+    if (process.env.APP_ENV === EENVType.STAGING) {
       result = true;
     }
     return result;
@@ -41,7 +41,7 @@ class AppENV {
   public isDevelopment(): boolean {
     let result: boolean = false;
 
-    if (process.env.APP_ENV === ENVType.DEVELOPMENT) {
+    if (process.env.APP_ENV === EENVType.DEVELOPMENT) {
       result = true;
     }
     return result;
