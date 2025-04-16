@@ -6,16 +6,14 @@ import {
   EPasswordType,
   EUserType,
 } from "../utils/enums.util";
-import bcrypt from "bcrypt";
-import tokenService from "../services/token.service";
 import userService from "../services/user.service";
 
 const UserSchema = new Schema<IUserDoc>(
   {
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
-    email: { type: String, required: true, unique: true, index: true },
-    password: { type: String, required: true, default: "", select: false },
+    email: { type: String, required: true, unique: true, lowercase: true, index: true },
+    password: { type: String, required: true, default: "",  select: false },
     passwordType: {
       type: String,
       enum: Object.values(EPasswordType),
@@ -34,17 +32,15 @@ const UserSchema = new Schema<IUserDoc>(
     dateOfBirth: { type: Date, required: true },
     gender: { type: String, required: true },
 
-    passwordType: { type: String },
-    savedPassword: { type: String },
 
-    activationCode: { type: String },
-    activationCodeExpiry: { type: Date },
-    accessToken: { type: String },
-    accessTokenExpiry: { type: Date },
 
     Otp: { type: String },
-    OtpExpiry: { type: Date },
+    OtpExpiry: {
+      type: Number,
+    },
     otpType: { type: String, enum: Object.values(EOtpType) },
+    accessToken: { type: String },
+    accessTokenExpiry: { type: Date },
 
     isSuper: { type: Boolean, default: false, index: true },
     isStaff: { type: Boolean, default: false, index: true },
@@ -60,25 +56,8 @@ const UserSchema = new Schema<IUserDoc>(
     },
 
     // Relationships
-    roles: [{ type: Schema.Types.ObjectId, ref: EDbModels.ROLE, index: true }],
-    profiles: {
-      listener: {
-        type: Schema.Types.ObjectId,
-        ref: EUserType.LISTENER,
-        index: true,
-      },
-      creator: {
-        type: Schema.Types.ObjectId,
-        ref: EUserType.CREATOR,
-        index: true,
-      },
-      preacher: {
-        type: Schema.Types.ObjectId,
-        ref: EUserType.PREACHER,
-        index: true,
-      },
-      staff: { type: Schema.Types.ObjectId, ref: EUserType.STAFF, index: true },
-    },
+    role: { type: Schema.Types.ObjectId, ref: EDbModels.ROLE, index: true },
+  
   },
   {
     timestamps: true,

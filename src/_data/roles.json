@@ -1,6 +1,6 @@
 [
   {
-    "name": "superadmin",
+    "name": "super",
     "slug": "super-admin",
     "description": "Has unrestricted access to the entire system for platform-wide configuration, management, and oversight."
   },
