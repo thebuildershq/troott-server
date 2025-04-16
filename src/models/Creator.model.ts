@@ -10,9 +10,9 @@ const CreatorProfileSchema = new Schema<ICreatorProfileDoc>(
   {
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
-    email: { type: String, required: true, unique: true, index: true },
+    email: { type: String, required: true, unique: true },
 
-    gender: { type: String, required: true, index: true },
+    gender: { type: String, required: true },
     avatar: { type: String },
     dateOfBirth: { type: Date, required: true },
     country: { type: String, required: true },
@@ -23,20 +23,20 @@ const CreatorProfileSchema = new Schema<ICreatorProfileDoc>(
 
     // Content
     description: { type: String, maxLength: 500 },
-    bites: [{ type: Schema.Types.ObjectId, ref: EDbModels.BITE, index: true }],
+    bites: [{ type: Schema.Types.ObjectId, ref: EDbModels.BITE }],
     topBites: [
-      { type: Schema.Types.ObjectId, ref: EDbModels.BITE, index: true },
+      { type: Schema.Types.ObjectId, ref: EDbModels.BITE},
     ],
 
     // Followers & Listeners
-    followers: [{ type: Schema.Types.ObjectId, ref: EDbModels.USER, index: true }],
+    followers: [{ type: Schema.Types.ObjectId, ref: EDbModels.USER }],
     monthlyListeners: { type: Number, default: 0 },
     likes: { type: Number, default: 0 },
     shares: { type: Number, default: 0 },
 
     // Uploads & Publications
-    uploads: [{ type: Schema.Types.ObjectId, ref: EDbModels.BITE, index: true }],
-    uploadHistory: [{ type: Schema.Types.ObjectId, ref: EDbModels.BITE, index: true }],
+    uploads: [{ type: Schema.Types.ObjectId, ref: EDbModels.BITE }],
+    uploadHistory: [{ type: Schema.Types.ObjectId, ref: EDbModels.BITE }],
     publishedCount: { type: Number, default: 0 },
 
     // Security & Verification
@@ -45,9 +45,9 @@ const CreatorProfileSchema = new Schema<ICreatorProfileDoc>(
       type: String,
       enum: Object.values(EVerificationStatus),
       default: EVerificationStatus.PENDING,
-      index: true
+  
     },
-    isVerified: { type: Boolean, default: false, index: true },
+    isVerified: { type: Boolean, default: false },
     verifiedAt: { type: Date, default: null },
     permissions: [{ type: String }],
     twoFactorEnabled: { type: Boolean, default: false },
@@ -57,11 +57,11 @@ const CreatorProfileSchema = new Schema<ICreatorProfileDoc>(
         deviceId: { type: String },
         deviceType: { type: String },
         lastUsed: { type: Date },
-        index: true
+    
       },
     ],
-    isActive: { type: Boolean, default: true, index: true },
-    isSuspended: { type: Boolean, default: false, index: true },
+    isActive: { type: Boolean, default: true },
+    isSuspended: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
 
     // Account Managers
@@ -77,9 +77,9 @@ const CreatorProfileSchema = new Schema<ICreatorProfileDoc>(
     ],
 
     // Relationships
-    user: { type: Schema.Types.ObjectId, ref: EDbModels.USER, index: true  },
-    transactions: [{ type: Schema.Types.ObjectId, ref: EDbModels.TRANSACTION, index: true  }],
-    createdBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER, index: true  },
+    user: { type: Schema.Types.ObjectId, ref: EDbModels.USER  },
+    transactions: [{ type: Schema.Types.ObjectId, ref: EDbModels.TRANSACTION  }],
+    createdBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER  },
     settings: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
   },
   {

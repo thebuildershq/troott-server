@@ -2,7 +2,10 @@ import jwt from "jsonwebtoken";
 import { IUserDoc, IResult } from "../utils/interface.util";
 import ErrorResponse from "../utils/error.util";
 import User from "../models/User.model";
+import dotenv from 'dotenv';
 
+
+dotenv.config();
 class TokenService {
   private secret: string;
   private expire: string;
@@ -12,10 +15,10 @@ class TokenService {
     this.expire = process.env.JWT_EXPIRY as string;
 
     if (!this.secret) {
-      throw new ErrorResponse("Error", 500, ["JWT secrets are not defined."]);
+      throw new ErrorResponse("Error with JWT SECRET", 500, ["JWT secrets are not defined."]);
     }
     if (!this.expire) {
-      throw new ErrorResponse("Error", 500, ["JWT_EXPIRY is not defined."]);
+      throw new ErrorResponse("Error ", 500, ["JWT_EXPIRY is not defined."]);
     }
   }
 

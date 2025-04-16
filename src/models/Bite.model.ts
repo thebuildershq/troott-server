@@ -8,13 +8,13 @@ import {
 
 const SermonBiteSchema = new Schema<ISermonBiteDoc>(
   {
-    title: { type: String, required: true, index: true },
+    title: { type: String, required: true },
     description: { type: String, maxLength: 500 },
     duration: { type: Number, required: true }, // In seconds
     category: [{ type: String }],
     biteURL: { type: String, required: true },
     thumbnailUrl: { type: String },
-    tags: [{ type: String, index: true }],
+    tags: [{ type: String }],
 
     // Engagement & Analytics
     engagementStats: { type: Object, required: true },
@@ -25,8 +25,8 @@ const SermonBiteSchema = new Schema<ISermonBiteDoc>(
 
     // State Management
     isPublic: { type: Boolean, default: true },
-    state: { type: String, enum: Object.values(EContentState), required: true, index: true },
-    status: { type: String, enum: Object.values(EContentStatus), required: true, index: true },
+    state: { type: String, enum: Object.values(EContentState), required: true },
+    status: { type: String, enum: Object.values(EContentStatus), required: true },
 
     // Modifications
     versionId: { type: Schema.Types.ObjectId, ref: EDbModels.BITE, default: null },
@@ -39,17 +39,17 @@ const SermonBiteSchema = new Schema<ISermonBiteDoc>(
         deletedBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
         deletedAt: { type: Date, default: Date.now },
         reason: { type: String },
-        index: true
+    
       },
     ],
 
     // Relationships
-    preacher: { type: Schema.Types.ObjectId, ref: EDbModels.PREACHER, index: true },
-    creator: { type: Schema.Types.ObjectId, ref: EDbModels.CREATOR, index: true },
-    staff: { type: Schema.Types.ObjectId, ref: EDbModels.STAFF, index: true },
+    preacher: { type: Schema.Types.ObjectId, ref: EDbModels.PREACHER },
+    creator: { type: Schema.Types.ObjectId, ref: EDbModels.CREATOR },
+    staff: { type: Schema.Types.ObjectId, ref: EDbModels.STAFF },
     playlist: [{ type: Schema.Types.ObjectId, ref: EDbModels.PLAYLIST }],
     library: [{ type: Schema.Types.ObjectId, ref: EDbModels.LIBRARY }],
-    createdBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER, index: true },
+    createdBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
   },
   {
     timestamps: true,

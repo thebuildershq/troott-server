@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 5000;
  
 
 const server = app.listen(PORT, () => {
-    console.log(colors.bold.yellow (`Node Server running in ${process.env.NODE_ENV} mode`)) ;
+    console.log(colors.bold.yellow (`troott server running in ${process.env.NODE_ENV} mode`)) ;
 })
 
 process.on('unhandledRejection', (err:any, promise) => {
