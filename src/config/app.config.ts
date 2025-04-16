@@ -1,6 +1,6 @@
-import { config } from "dotenv";
+import  dotenv, { config } from "dotenv";
 import express, { Request, Response, NextFunction } from "express";
-import { ENVType } from "../utils/enums.util";
+import { EENVType } from "../utils/enums.util";
 import ENV from "../utils/env.util";
 import errorHandler from "../middlewares/error.mdw";
 import cookieParser from "cookie-parser";
@@ -11,14 +11,14 @@ import expressSanitize from "express-mongo-sanitize";
 import helmet from "helmet";
 import hpp from "hpp";
 import cors from "cors";
-import userAgent from "express-useragent";
-import v1Routes from "../routes/v1/routers/routes.router";
+
+import v1Routes from "../routes/v1/routes.router"
 
 
 
 
 config();
-
+dotenv.config();
 
 const app = express();
 
@@ -69,14 +69,14 @@ app.set('view engine', 'ejs')
 
 app.get("/", (req: Request, res: Response, next: NextFunction) => {
 
-    let enviornemnt = ENVType.DEVELOPMENT
+    let enviornemnt = EENVType.DEVELOPMENT
 
     if (ENV.isProduction()) {
-        enviornemnt = ENVType.PRODUCTION
+        enviornemnt = EENVType.PRODUCTION
     } else if (ENV.isStaging()) {
-        enviornemnt = ENVType.STAGING
+        enviornemnt = EENVType.STAGING
     } else if (ENV.isDevelopment()) {
-        enviornemnt = ENVType.DEVELOPMENT
+        enviornemnt = EENVType.DEVELOPMENT
     }
 
     res.status(200).json({

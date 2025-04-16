@@ -144,7 +144,7 @@ git merge @username/feature-your-task-name
 git push origin staging
 ```
 
-📌 Your pull request (PR) should target `staging` — not master.  
+Your pull request (PR) should target `staging` — not master.  
 Reference the issue number in the PR description (e.g., Closes #502).
 
 ### 7. Create a Release Branch
