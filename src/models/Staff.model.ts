@@ -10,14 +10,16 @@ const StaffProfileSchema = new Schema<IStaffProfileDoc>(
     lastName: { type: String, required: true, index: true },
     email: { type: String, required: true, unique: true, index: true },
 
-    gender: { type: String, required: true, index: true},
-    avatar: { type: String },
-    dateOfBirth: { type: Date, required: true },
-    country: { type: String, required: true, index: true },
     phoneNumber: { type: String, unique: true, required: true },
     phoneCode: { type: String, default: "+234" },
-    location: { type: Object, required: true },
+    country: { type: String, required: true },
+    countryPhone: { type: String, required: true },
+    avatar: { type: String },
+    dateOfBirth: { type: Date, required: true },
+    gender: { type: String, required: true },
+
     slug: { type: String, required: true, unique: true },
+
 
     // Staff Role & Access
     unit: {

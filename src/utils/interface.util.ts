@@ -212,7 +212,6 @@ export interface IPreacherDoc extends Document {
   user: ObjectId | any;
   transactions: Array<ObjectId | any>;
   createdBy: ObjectId | any;
-  settings: ObjectId | any;
 
   // time stamps
   createdAt: string;
@@ -252,21 +251,13 @@ export interface ICreatorDoc extends Document {
   // Uploads & Publications
   uploads: Array<ObjectId | any>;
   uploadHistory: Array<ObjectId | any>;
-  publishedCount: number;
 
   // Security & Verification
   identification: Array<string>;
   verificationStatus: EVerificationStatus;
   isVerified: boolean;
   verifiedAt: Date | null;
-  permissions: Array<string>;
-  twoFactorEnabled: boolean;
-  lastLogin: Date;
-  devices: Array<{ deviceId: string; deviceType: string; lastUsed: Date }>;
-  isActive: boolean;
-  isSuspended: boolean;
-  isDeleted: boolean;
-
+  
   // Account Managers
   accountManagers: Array<{ userId: ObjectId; role: EAccountManagerRole }>;
 
@@ -274,7 +265,6 @@ export interface ICreatorDoc extends Document {
   user: ObjectId | any;
   transactions: Array<ObjectId | any>;
   createdBy: ObjectId | any;
-  settings: ObjectId | any;
 
   // time stamps
   createdAt: string;

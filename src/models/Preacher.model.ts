@@ -83,7 +83,6 @@ const PreacherSchema = new Schema<IPreacherDoc>(
       ref: EDbModels.USER,
       index: true,
     },
-    settings: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
   },
   {
     timestamps: true,
