@@ -158,19 +158,22 @@ export interface IListenerDoc extends Document {
   _id: ObjectId;
   id: ObjectId;
 }
-export interface IPreacherProfileDoc extends Document {
+export interface IPreacherDoc extends Document {
   firstName: string;
   lastName: string;
   email: string;
-
-  gender: string;
-  avatar: string;
-  dateOfBirth: Date;
-  country: string;
+  //user: string;
   phoneNumber: string;
   phoneCode: string;
-  location: ILocationInfo;
+  country: string;
+  countryPhone: string;
+
+  avatar: string;
+  dateOfBirth: Date;
+  gender: string;
   slug: string;
+  type: string;
+  
 
   // Ministry & Content
   description: string;
@@ -194,20 +197,13 @@ export interface IPreacherProfileDoc extends Document {
   // Uploads & Publications
   uploads: Array<ObjectId | any>;
   uploadHistory: Array<ObjectId | any>;
-  publishedCount: number;
+
 
   // Security & Verification
   identification: Array<string>;
   verificationStatus: EVerificationStatus;
   isVerified: boolean;
-  verifiedAt: Date | null;
-  permissions: Array<string>;
-  twoFactorEnabled: boolean;
-  lastLogin: Date;
-  devices: Array<{ deviceId: string; deviceType: string; lastUsed: Date }>;
-  isActive: boolean;
-  isSuspended: boolean;
-  isDeleted: boolean;
+  verifiedAt: Date;
 
   // Account Managers
   accountManagers: Array<{ userId: ObjectId; role: EAccountManagerRole }>;
@@ -225,19 +221,22 @@ export interface IPreacherProfileDoc extends Document {
   _id: ObjectId;
   id: ObjectId;
 }
-export interface ICreatorProfileDoc extends Document {
+export interface ICreatorDoc extends Document {
   firstName: string;
   lastName: string;
   email: string;
 
-  gender: string;
-  avatar: string;
-  dateOfBirth: Date;
-  country: string;
+    //user: string;
   phoneNumber: string;
   phoneCode: string;
-  location: ILocationInfo;
+  country: string;
+  countryPhone: string;
+
+  avatar: string;
+  dateOfBirth: Date;
+  gender: string;
   slug: string;
+  type: string;
 
   // Content
   description: string;
@@ -290,14 +289,17 @@ export interface IStaffProfileDoc extends Document {
   lastName: string;
   email: string;
 
-  gender: string;
-  avatar: string;
-  dateOfBirth: Date;
-  country: string;
+  //user: string;
   phoneNumber: string;
   phoneCode: string;
-  location: ILocationInfo;
+  country: string;
+  countryPhone: string;
+
+  avatar: string;
+  dateOfBirth: Date;
+  gender: string;
   slug: string;
+  type: string;
 
   // Staff Role & Access
   unit: EStaffUnit;

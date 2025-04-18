@@ -2,7 +2,7 @@ import mongoose, { Schema, Model } from "mongoose";
 import { IListenerDoc } from "../utils/interface.util";
 import { EDbModels } from "../utils/enums.util";
 
-const ListenerProfileSchema = new Schema<IListenerDoc>(
+const ListenerSchema = new Schema<IListenerDoc>(
   {
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
@@ -12,16 +12,13 @@ const ListenerProfileSchema = new Schema<IListenerDoc>(
     phoneCode: { type: String, default: "+234" },
     country: { type: String, required: true },
     countryPhone: { type: String, required: true },
-    
     avatar: { type: String },
     dateOfBirth: { type: Date, required: true },
     gender: { type: String, required: true },
-
-    
     slug: { type: String, required: true },
     type: { type: String, required: true },
+
     card: {
-  
       authCode: String, 
       cardBin: String,
       cardLast: String,
@@ -29,31 +26,30 @@ const ListenerProfileSchema = new Schema<IListenerDoc>(
       expiryYear: String,
       cardPan: String,
       token: String,
-  
       select: false,
     }, 
 
     // Engagement Tracking
-    playlists: [{ type: Schema.Types.ObjectId, ref: EDbModels.PLAYLIST, index: true }],
-    listeningHistory: [{ type: Schema.Types.ObjectId, ref: EDbModels.SERMON, index: true }],
-    likedSermons: [{ type: Schema.Types.ObjectId, ref: EDbModels.SERMON, index: true }],
-    sharedSermons: [{ type: Schema.Types.ObjectId, ref: EDbModels.SERMON, index: true }],
+    playlists: [{ type: Schema.Types.ObjectId, ref: EDbModels.PLAYLIST }],
+    listeningHistory: [{ type: Schema.Types.ObjectId, ref: EDbModels.SERMON }],
+    likedSermons: [{ type: Schema.Types.ObjectId, ref: EDbModels.SERMON }],
+    sharedSermons: [{ type: Schema.Types.ObjectId, ref: EDbModels.SERMON }],
     
-    viewedSermonBites: [{ type: Schema.Types.ObjectId, ref: EDbModels.BITE, index: true }],
-    sharedSermonBites: [{ type: Schema.Types.ObjectId, ref: EDbModels.BITE, index: true }],
-    savedSermonBites: [{ type: Schema.Types.ObjectId, ref: EDbModels.BITE, index: true }],
+    viewedSermonBites: [{ type: Schema.Types.ObjectId, ref: EDbModels.BITE }],
+    sharedSermonBites: [{ type: Schema.Types.ObjectId, ref: EDbModels.BITE }],
+    savedSermonBites: [{ type: Schema.Types.ObjectId, ref: EDbModels.BITE }],
 
-    followers: [{ type: Schema.Types.ObjectId, ref: EDbModels.USER, index: true }],
-    following: [{ type: Schema.Types.ObjectId, ref: EDbModels.USER, index: true }],
+    followers: [{ type: Schema.Types.ObjectId, ref: EDbModels.USER }],
+    following: [{ type: Schema.Types.ObjectId, ref: EDbModels.USER }],
     interests: [{ type: String }],
     badges: [{ type: String }],
 
 
     // Relationships
-    user: { type: Schema.Types.ObjectId, ref: EDbModels.USER, required: true, index: true },
-    subscriptions: [{ type: Schema.Types.ObjectId, ref: EDbModels.SUBSCRIPTION, index: true }],
-    transactions: [{ type: Schema.Types.ObjectId, ref: EDbModels.TRANSACTION, index: true }],
-    createdBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER, index: true },
+    user: { type: Schema.Types.ObjectId, ref: EDbModels.USER, required: true },
+    subscriptions: [{ type: Schema.Types.ObjectId, ref: EDbModels.SUBSCRIPTION }],
+    transactions: [{ type: Schema.Types.ObjectId, ref: EDbModels.TRANSACTION }],
+    createdBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
 
   },
   {
@@ -67,7 +63,7 @@ const ListenerProfileSchema = new Schema<IListenerDoc>(
   }
 );
 
-ListenerProfileSchema.index({
+ListenerSchema.index({
   firstName: "text",
   lastName: "text",
   email: "text",
@@ -76,7 +72,7 @@ ListenerProfileSchema.index({
 
 const Listener: Model<IListenerDoc> = mongoose.model<IListenerDoc>(
   EDbModels.LISTENER,
-  ListenerProfileSchema
+  ListenerSchema
 );
 
 export default Listener;
