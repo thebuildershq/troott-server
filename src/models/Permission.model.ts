@@ -12,7 +12,7 @@ const PermissionSchema = new Schema<IPermissionDoc>(
     },
     description: {
       type: String,
-      required: true,
+      required: [true, "please add a role description"],
     },
   },
   {
@@ -27,10 +27,24 @@ const PermissionSchema = new Schema<IPermissionDoc>(
   }
 );
 
+
+
+PermissionSchema.set("toJSON", {virtuals: true, getters: true})
+
+PermissionSchema.pre<IPermissionDoc>("save", async function (next) {
+  this.action = this.action.toLowerCase();
+  next();
+});
+
+PermissionSchema.pre<IPermissionDoc>("insertMany", async function (next) {
+  this.action = this.action.toLowerCase();
+  next(); 
+});
+
 const Permission: Model<IPermissionDoc> = mongoose.model<IPermissionDoc>(
-    EDbModels.PERMISSION,
-    PermissionSchema
-  );
+  EDbModels.PERMISSION,
+  PermissionSchema
+);
   
 export default Permission;
   

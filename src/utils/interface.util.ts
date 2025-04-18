@@ -58,7 +58,7 @@ export interface IUserDoc extends Document {
   passwordType: EPasswordType; // encrypt this data
   userType: EUserType;
 
-  user: string;
+  //user: string;
   phoneNumber: string;
   phoneCode: string;
   country: string;
@@ -89,6 +89,7 @@ export interface IUserDoc extends Document {
   lockedUntil: Nullable<Date>;
 
   // Notification Preferences
+  // deviceToken: IDeviceToken;
   notificationPreferences: {
     email: boolean;
     push: boolean;
@@ -97,14 +98,7 @@ export interface IUserDoc extends Document {
 
   // relationships
   role: ObjectId | any;
-  profiles: {
-    listener?: ObjectId | any;
-    creator?: ObjectId | any;
-    preacher?: ObjectId | any;
-    staff?: ObjectId | any;
-  };
-
-  deviceToken: IDeviceToken;
+  
   matchPassword: (password: string) => boolean;
   getAuthToken: () => string;
 

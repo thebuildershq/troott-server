@@ -25,14 +25,14 @@ const UserSchema = new Schema<IUserDoc>(
       required: true,
       index: true,
     },
-    country: { type: String, required: true, index: true },
-    phoneNumber: { type: String, unique: true, required: true, index: true },
+    phoneNumber: { type: String, unique: true, required: true },
     phoneCode: { type: String, default: "+234" },
+    country: { type: String, required: true },
+    countryPhone: { type: String, required: true },
+    
     avatar: { type: String },
     dateOfBirth: { type: Date, required: true },
     gender: { type: String, required: true },
-
-
 
     Otp: { type: String },
     OtpExpiry: {
@@ -42,11 +42,40 @@ const UserSchema = new Schema<IUserDoc>(
     accessToken: { type: String },
     accessTokenExpiry: { type: Date },
 
-    isSuper: { type: Boolean, default: false, index: true },
-    isStaff: { type: Boolean, default: false, index: true },
-    isPreacher: { type: Boolean, default: false, index: true },
-    isCreator: { type: Boolean, default: false, index: true },
-    isListener: { type: Boolean, default: false, index: true },
+    isSuper: { type: Boolean, default: false },
+    isStaff: { type: Boolean, default: false },
+    isPreacher: { type: Boolean, default: false },
+    isCreator: { type: Boolean, default: false },
+    isListener: { type: Boolean, default: false },
+
+    loginInfo: { 
+      ip: String,
+      deviceType: String,
+      platform: {
+        type: String,
+        enum: ['web', 'mobile', 'tablet']
+      },
+      deviceInfo: {
+        manufacturer: String,
+        model: String,
+        osName: String,
+        osVersion: String,
+        browser: String,
+        browserVersion: String,
+        appVersion: String
+      },
+      location: {
+        country: String,
+        city: String,
+        timezone: String
+      }
+     },
+    lastLogin: { type: String },
+    isActive: { type: Boolean, default: false },
+    isDeactivated: { type: Boolean, default: false },
+    loginLimit: { type: Number, default: 5 },
+    lockedUntil: { type: Date },
+
 
     // Notification Preferences
     notificationPreferences: {

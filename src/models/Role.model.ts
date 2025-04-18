@@ -11,7 +11,6 @@ const RoleSchema = new mongoose.Schema<IRoleDoc>(
       default: EUserType.USER,
       enum: Object.values(EUserType),
       unique: true,
-      index: true,
     },
 
     description: {
@@ -22,33 +21,13 @@ const RoleSchema = new mongoose.Schema<IRoleDoc>(
 
     slug: { type: String, default: "" },
 
+    permissions: [{ type: String, ref: EDbModels.PERMISSION }],
     users: [
       {
         type: Schema.Types.Mixed,
         ref: EDbModels.USER,
-        index: true,
       },
     ],
-    permissions: [{ type: String }],
-    subroles: {
-      type: Map,
-      of: new Schema(
-        {
-          description: {
-            type: String,
-            required: true,
-          },
-          permissions: [
-            {
-              type: String,
-              required: true,
-            },
-          ],
-        },
-        { _id: false }
-      ),
-      default: {},
-    },
   },
   {
     timestamps: true,
