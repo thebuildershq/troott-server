@@ -1,23 +1,37 @@
 import mongoose, { Schema, Model } from "mongoose";
-import { IListenerProfileDoc } from "../utils/interface.util";
+import { IListenerDoc } from "../utils/interface.util";
 import { EDbModels } from "../utils/enums.util";
 
-const ListenerProfileSchema = new Schema<IListenerProfileDoc>(
+const ListenerProfileSchema = new Schema<IListenerDoc>(
   {
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
-    email: { type: String, required: true, unique: true, index: true  },
+    email: { type: String, required: true, unique: true },
 
-    gender: { type: String, required: true, index: true },
+    phoneNumber: { type: String, unique: true, required: true },
+    phoneCode: { type: String, default: "+234" },
+    country: { type: String, required: true },
+    countryPhone: { type: String, required: true },
+    
     avatar: { type: String },
     dateOfBirth: { type: Date, required: true },
-    country: { type: String, required: true, index: true },
-    phoneNumber: { type: String, required: true },
-    phoneCode: { type: String, default: "+234" },
-    location: { type: Schema.Types.Mixed, required: true, index: "2dsphere" },
-    slug: { type: String, required: true, unique: true },
+    gender: { type: String, required: true },
+
+    
+    slug: { type: String, required: true },
     type: { type: String, required: true },
-    card: { type: Schema.Types.Mixed, select: false }, 
+    card: {
+  
+      authCode: String, 
+      cardBin: String,
+      cardLast: String,
+      expiryMonth: String,
+      expiryYear: String,
+      cardPan: String,
+      token: String,
+  
+      select: false,
+    }, 
 
     // Engagement Tracking
     playlists: [{ type: Schema.Types.ObjectId, ref: EDbModels.PLAYLIST, index: true }],
@@ -34,27 +48,13 @@ const ListenerProfileSchema = new Schema<IListenerProfileDoc>(
     interests: [{ type: String }],
     badges: [{ type: String }],
 
-    // Security & Access Control
-    permissions: [{ type: String }],
-    twoFactorEnabled: { type: Boolean, default: false },
-    lastLogin: { type: Date },
-    loginHistory: [
-      {
-        date: { type: Date, default: Date.now },
-        ip: { type: String },
-        device: { type: String },
-      },
-    ],
-    isActive: { type: Boolean, default: true, index: true },
-    isSuspended: { type: Boolean, default: false, index: true },
-    isDeleted: { type: Boolean, default: false, index: true },
 
     // Relationships
     user: { type: Schema.Types.ObjectId, ref: EDbModels.USER, required: true, index: true },
-    subscriptions: [{ type: Schema.Types.ObjectId, ref: EDbModels.PLAN, index: true }],
+    subscriptions: [{ type: Schema.Types.ObjectId, ref: EDbModels.SUBSCRIPTION, index: true }],
     transactions: [{ type: Schema.Types.ObjectId, ref: EDbModels.TRANSACTION, index: true }],
     createdBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER, index: true },
-    //settings: { type: Schema.Types.ObjectId, ref: "Settings" }, // Adjust model name if needed
+
   },
   {
     timestamps: true,
@@ -74,7 +74,7 @@ ListenerProfileSchema.index({
   description: "text",
 });
 
-const Listener: Model<IListenerProfileDoc> = mongoose.model<IListenerProfileDoc>(
+const Listener: Model<IListenerDoc> = mongoose.model<IListenerDoc>(
   EDbModels.LISTENER,
   ListenerProfileSchema
 );

@@ -67,6 +67,7 @@ export interface IUserDoc extends Document {
   avatar: string;
   dateOfBirth: Date;
   gender: string;
+  location: ILocationInfo;
 
   Otp: string;
   OtpExpiry: number;
@@ -87,6 +88,7 @@ export interface IUserDoc extends Document {
   loginLimit: number;
   isLocked: boolean;
   lockedUntil: Nullable<Date>;
+  twoFactorEnabled: boolean;
 
   // Notification Preferences
   // deviceToken: IDeviceToken;
@@ -115,13 +117,15 @@ export interface IListenerDoc extends Document {
   lastName: string;
   email: string;
 
-  gender: string;
-  avatar: string;
-  dateOfBirth: Date;
-  country: string;
+  //user: string;
   phoneNumber: string;
   phoneCode: string;
-  location: ILocationInfo;
+  country: string;
+  countryPhone: string;
+
+  avatar: string;
+  dateOfBirth: Date;
+  gender: string;
   slug: string;
   type: string;
   card?: IDebitCard;
@@ -141,20 +145,11 @@ export interface IListenerDoc extends Document {
   interests: Array<string>;
   badges: Array<string>;
 
-  // Security & Access Control
-  permissions: Array<string>;
-  twoFactorEnabled: boolean;
-  loginHistory: Array<{ date: Date; ip: string; device: string }>;
-  isActive: boolean;
-  isSuspended: boolean;
-  isDeleted: boolean;
-
   //relationships
   user: ObjectId | any;
   subscriptions: Array<ObjectId | any>;
   transactions: Array<ObjectId | any>;
   createdBy: ObjectId | any;
-  settings: ObjectId | any;
 
   // time stamps
   createdAt: string;

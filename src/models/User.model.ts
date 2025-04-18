@@ -33,6 +33,11 @@ const UserSchema = new Schema<IUserDoc>(
     avatar: { type: String },
     dateOfBirth: { type: Date, required: true },
     gender: { type: String, required: true },
+    location: {
+      address: String,
+      city: String,
+      state: String,
+    },
 
     Otp: { type: String },
     OtpExpiry: {
@@ -75,6 +80,7 @@ const UserSchema = new Schema<IUserDoc>(
     isDeactivated: { type: Boolean, default: false },
     loginLimit: { type: Number, default: 5 },
     lockedUntil: { type: Date },
+    twoFactorEnabled: { type: Boolean, default: false },
 
 
     // Notification Preferences
