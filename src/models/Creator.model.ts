@@ -19,9 +19,7 @@ const CreatorSchema = new Schema<ICreatorDoc>(
     avatar: { type: String },
     dateOfBirth: { type: Date, required: true },
     gender: { type: String, required: true },
-
     slug: { type: String, required: true, unique: true },
-
 
     // Content
     description: { type: String, maxLength: 500 },
@@ -81,13 +79,6 @@ const CreatorSchema = new Schema<ICreatorDoc>(
     },
   }
 );
-
-CreatorSchema.index({
-  firstName: "text",
-  lastName: "text",
-  email: "text",
-  description: "text",
-});
 
 
 CreatorSchema.set("toJSON", { virtuals: true, getters: true });

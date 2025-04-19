@@ -100,7 +100,7 @@ export interface IUserDoc extends Document {
 
   // relationships
   role: ObjectId | any;
-  
+
   matchPassword: (password: string) => boolean;
   getAuthToken: () => string;
 
@@ -127,7 +127,6 @@ export interface IListenerDoc extends Document {
   dateOfBirth: Date;
   gender: string;
   slug: string;
-  type: string;
   card?: IDebitCard;
 
   // Engagement Tracking
@@ -172,8 +171,6 @@ export interface IPreacherDoc extends Document {
   dateOfBirth: Date;
   gender: string;
   slug: string;
-  type: string;
-  
 
   // Ministry & Content
   description: string;
@@ -197,7 +194,6 @@ export interface IPreacherDoc extends Document {
   // Uploads & Publications
   uploads: Array<ObjectId | any>;
   uploadHistory: Array<ObjectId | any>;
-
 
   // Security & Verification
   identification: Array<string>;
@@ -225,7 +221,7 @@ export interface ICreatorDoc extends Document {
   lastName: string;
   email: string;
 
-    //user: string;
+  //user: string;
   phoneNumber: string;
   phoneCode: string;
   country: string;
@@ -235,7 +231,6 @@ export interface ICreatorDoc extends Document {
   dateOfBirth: Date;
   gender: string;
   slug: string;
-  type: string;
 
   // Content
   description: string;
@@ -257,7 +252,7 @@ export interface ICreatorDoc extends Document {
   verificationStatus: EVerificationStatus;
   isVerified: boolean;
   verifiedAt: Date | null;
-  
+
   // Account Managers
   accountManagers: Array<{ userId: ObjectId; role: EAccountManagerRole }>;
 
@@ -274,7 +269,7 @@ export interface ICreatorDoc extends Document {
   id: ObjectId;
 }
 
-export interface IStaffProfileDoc extends Document {
+export interface IStaffDoc extends Document {
   firstName: string;
   lastName: string;
   email: string;
@@ -289,7 +284,6 @@ export interface IStaffProfileDoc extends Document {
   dateOfBirth: Date;
   gender: string;
   slug: string;
-  type: string;
 
   // Staff Role & Access
   unit: EStaffUnit;
@@ -300,10 +294,7 @@ export interface IStaffProfileDoc extends Document {
   // API & Security
   apiKeys: Array<{ key: string; createdAt: Date; lastUsed: Date }>; // encrypt this data
   ipWhitelist: Array<string>;
-  twoFactorEnabled: boolean;
-  lastLogin: Date;
-  devices: Array<{ deviceId: string; deviceType: string; lastUsed: Date }>;
-
+  
   // Actions & Moderation
   actionsTaken: Array<{ action: string; targetId: string; timestamp: Date }>;
   moderatedContent: Array<ObjectId>;
@@ -318,9 +309,6 @@ export interface IStaffProfileDoc extends Document {
   verificationStatus: EVerificationStatus;
   isVerified: boolean;
   verifiedAt: Date | null;
-  isActive: boolean;
-  isSuspended: boolean;
-  isDeleted: boolean;
 
   //relationships
   user: ObjectId | any;
@@ -823,7 +811,6 @@ export interface IPagination {
   id: ObjectId;
 }
 
-
 export interface IAPIKeyUsage {
   keyHash: string;
   timestamp: Date;
@@ -865,8 +852,8 @@ export interface ICustomResponse<T> extends Response {
       prev?: { page: number; limit: number };
     };
     data: T[];
-  },
-  status: any,
+  };
+  status: any;
 }
 
 // // Extend the Response type

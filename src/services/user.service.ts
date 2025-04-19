@@ -227,7 +227,7 @@ class UserService {
     }
 
     if (user.userType === EUserType.STAFF) {
-      const staffProfile = await staffService.createStaffProfile({
+      const staffProfile = await staffService.createStaff({
         user: user,
         type: EUserType.STAFF,
         email: user.email,

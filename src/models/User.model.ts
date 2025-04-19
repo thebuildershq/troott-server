@@ -82,7 +82,6 @@ const UserSchema = new Schema<IUserDoc>(
     lockedUntil: { type: Date },
     twoFactorEnabled: { type: Boolean, default: false },
 
-
     // Notification Preferences
     notificationPreferences: {
       email: { type: Boolean, default: true },

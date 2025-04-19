@@ -16,7 +16,6 @@ const ListenerSchema = new Schema<IListenerDoc>(
     dateOfBirth: { type: Date, required: true },
     gender: { type: String, required: true },
     slug: { type: String, required: true },
-    type: { type: String, required: true },
 
     card: {
       authCode: String, 

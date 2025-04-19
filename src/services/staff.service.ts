@@ -1,18 +1,19 @@
 import { createStaffDTO, updateStaffProfileDTO } from "../dtos/profile.dto";
 import Staff from "../models/Staff.model";
-import { IStaffProfileDoc, IResult, IUserDoc } from "../utils/interface.util";
+import { IStaffDoc, IResult, IUserDoc } from "../utils/interface.util";
 import { EUserType } from "../utils/enums.util";
 import { generateRandomChars } from "../utils/helper.util";
+import SystemService from "./system.service";
 
 class StaffService {
-  public async createStaffProfile(
+  public async createStaff(
     data: createStaffDTO
-  ): Promise<IResult<{ staff: IStaffProfileDoc; user: IUserDoc }>> {
-    const result: IResult<{ staff: IStaffProfileDoc; user: IUserDoc }> = {
+  ): Promise<IResult<{ staff: IStaffDoc; user: IUserDoc }>> {
+    const result: IResult<{ staff: IStaffDoc; user: IUserDoc }> = {
       error: false,
       message: "",
       code: 200,
-      data: null,
+      data: {},
     };
   
     const { user } = data;
@@ -23,7 +24,7 @@ class StaffService {
         error: true,
         message: "Staff profile already exists for this user",
         code: 400,
-        data: null,
+        data: {},
       };
     }
   
@@ -111,6 +112,80 @@ class StaffService {
       }
     });
   }
+
+  
+  /**
+   * @name encryptApiKeys
+   * @param staff
+   * @param ApiKey
+   * @returns
+   */
+  public async encryptApiKeys(
+    staff: IStaffDoc,
+    apikey: string
+  ): Promise<boolean> {
+    try {
+      const encrypted = await SystemService.encryptData({
+        payload: apikey,
+        password: staff.email,
+        separator: "-",
+      });
+
+      if (encrypted) {
+        // Fix: Add the apiKey to the staff's apiKeys array
+        if (!staff.apiKeys) {
+          staff.apiKeys = [];
+        }
+        
+        staff.apiKeys.push({
+          key: encrypted,
+          createdAt: new Date(),
+          lastUsed: new Date()
+        });
+        
+        await staff.save();
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error encrypting API key:", error);
+      return false;
+    }
+  }
+  /**
+   * @name decryptApiKeys
+   * @param user
+   * @returns
+   */
+  public async decryptApiKeys(staff: IStaffDoc, keyIndex?: number): Promise<string | null> {
+    try {
+      if (!staff.apiKeys || staff.apiKeys.length === 0) {
+        return null;
+      }
+
+      const targetKey = typeof keyIndex === 'number' 
+        ? staff.apiKeys[keyIndex]
+        : staff.apiKeys[staff.apiKeys.length - 1];
+
+      if (!targetKey) {
+        return null;
+      }
+
+      const decrypted = await SystemService.decryptData({
+        password: staff.email,
+        payload: targetKey.key,
+        separator: "-",
+      });
+
+      return decrypted.data?.toString() || null;
+    } catch (error) {
+      console.error("Error decrypting API key:", error);
+      return null;
+    }
+  }
+
+
+
 
   public async manageIPWhitelist(staffId: string, ips: string[]): Promise<void> {
     const staff = await Staff.findById(staffId);

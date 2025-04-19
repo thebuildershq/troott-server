@@ -19,8 +19,8 @@ const PreacherSchema = new Schema<IPreacherDoc>(
     avatar: { type: String },
     dateOfBirth: { type: Date, required: true },
     gender: { type: String, required: true },
-
     slug: { type: String, required: true, unique: true },
+    type: { type: String, required: true },
 
     // Ministry & Content
     description: { type: String },
