@@ -9,3 +9,11 @@
 // deactivate preacher account
 // delete preacher account
 
+
+/**
+ * @name createPreacher
+ * @description create preacher profile (admin only)
+ * @route POST /api/v1/preacher/create
+ * @access private (admin only)
+ * @returns {Object} preacher profile
+ */

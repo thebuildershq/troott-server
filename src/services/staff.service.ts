@@ -1,4 +1,4 @@
-import { createStaffDTO, updateStaffProfileDTO } from "../dtos/profile.dto";
+import { createStaffDTO } from "../dtos/profile.dto";
 import Staff from "../models/Staff.model";
 import { IStaffDoc, IResult, IUserDoc } from "../utils/interface.util";
 import { EUserType } from "../utils/enums.util";

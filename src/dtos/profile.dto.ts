@@ -3,14 +3,14 @@ import { IDebitCard, ILocationInfo, IUserDoc } from "../utils/interface.util";
 import { EUserType } from "../utils/enums.util";
 
 // Listener Profile DTO
-export interface createListenerProfileDTO {
+export interface createListenerDTO {
   user: IUserDoc
-  type: EUserType
+  userType: EUserType
   email: string;
 
 }
 
-export interface updateListenerProfileDTO {
+export interface updateListenerDTO {
     user: ObjectId;
     firstName?: string;
     lastName?: string;
@@ -28,14 +28,14 @@ export interface updateListenerProfileDTO {
 
   }
 
-// Preacher Profile DTO
-export interface createPreacherProfileDTO {
+// Preacher  DTO
+export interface createPreacherDTO {
   user: IUserDoc
-  type: EUserType
+  userType: EUserType
   email: string;
 }
 
-export interface updatePreacherProfileDTO {
+export interface updatePreacherDTO {
     user: ObjectId;
     firstName?: string;
     lastName?: string;
@@ -54,28 +54,28 @@ export interface updatePreacherProfileDTO {
   }
 
 // Creator Profile DTO
-export interface createCreatorProfileDTO {
+export interface createCreatoreDTO {
   user: IUserDoc
   type: EUserType
   email: string;
 }
 
-export interface updateCreatorProfileDTO {
+export interface updateCreatoreDTO {
   user: IUserDoc
-  type: EUserType
+  userType: EUserType
   email: string;
 
   }
 
-// Staff Profile DTO
+// Staff e DTO
 export interface createStaffDTO {
   user: IUserDoc
-  type: EUserType
+  
   email: string;
 }
 
 
-export interface updateStaffProfileDTO {
+export interface updateStaffeDTO {
     user: ObjectId;
     firstName?: string;
     lastName?: string;
@@ -93,7 +93,7 @@ export interface updateStaffProfileDTO {
 
   }
 
-//listener profile dto
+//listener e dto
 //   // Engagement Tracking
 //   playlists: Array<ObjectId>;
 //   listeningHistory: Array<ObjectId>;

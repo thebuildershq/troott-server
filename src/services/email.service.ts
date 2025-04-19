@@ -2,14 +2,15 @@ import fs from "fs";
 import ejs, { renderFile } from "ejs";
 import appRootUrl from "app-root-path";
 import appRootPath from "app-root-path";
-import { SendgridEmailDataDTO } from "../dtos/email.dto";
+import { SendgridEmailDataDTO, sendUserEmailDTO } from "../dtos/email.dto";
 import sgMail from "@sendgrid/mail";
 import transporter from "../utils/sendgrid.util";
 import { IEmailRequest, IResult, ITransactionDoc } from "../utils/interface.util";
 import { EmailQueue } from "./queue.service";
-import { EmailPriority, EmailStatus, EmailType } from "../utils/enums.util";
+import { EmailPriority, EmailStatus, EmailType, EUserType } from "../utils/enums.util";
 import userService from "./user.service";
 import User from "../models/User.model";
+import { inviteUserDTO } from "../dtos/user.dto";
 
 const BASE_FOLDER: string = `${appRootPath.path}/src`;
 
@@ -174,6 +175,57 @@ class EmailService {
     }
     return result;
   }
+
+    /**
+   * @description Sends an invitation email to new users with login credentials
+   * @param {string} email - User's email address
+   * @param {string} userType - User type (staff, preacher, creator, listener)
+   * @param {string} tempPassword - Temporary password for initial login
+   * @param {string} firstName - User's first name
+   * @param {string} lastName - User's last name
+   * @returns {Promise<IResult>} Result object with status and message
+   */
+    public async sendUserInviteEmail(data: sendUserEmailDTO): Promise<IResult> {
+      const result: IResult = { error: false, message: "", code: 200, data: {} };
+      try {
+        const templatePath = `${BASE_FOLDER}/views/emails/ejs/${data.template}.ejs`;
+        
+        // Determine login URL and template data based on user type
+        const loginUrls = {
+          [EUserType.STAFF]: '/staff/login',
+          [EUserType.PREACHER]: '/preacher/login',
+          [EUserType.CREATOR]: '/creator/login',
+          [EUserType.LISTENER]: '/login'
+        };
+
+        const loginUrl = data.options.loginUrl || 
+        `${process.env.FRONTEND_URL}${loginUrls[data.options.userType as keyof typeof loginUrls ] || '/login'}`;
+
+        const emailHtml = await ejs.renderFile(templatePath, {
+          userType: data.options.userType,
+          email: data.user.email,
+          temporaryPassword: data.options.temporaryPassword,
+          invitedBy: data.options.invitedBy,
+          loginUrl,
+        });
+  
+        const message = {
+          to: data.user.email,
+          from: process.env.EMAIL_FROM_EMAIL as string,
+          subject: `Welcome to ${process.env.APP_NAME}`,
+          html: emailHtml,
+        };
+  
+        const sendEmail = await sgMail.send(message);
+        result.message = "Invitation email sent successfully";
+        result.data = sendEmail;
+      } catch (error) {
+        result.error = true;
+        result.message = "Failed to send invitation email";
+        result.code = 500;
+      }
+      return result;
+    }
 
   /**
    * @description Sends an invitation email to new staff members with login credentials

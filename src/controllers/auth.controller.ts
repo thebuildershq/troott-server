@@ -30,6 +30,7 @@ import otpService from "../services/otp.service";
  * @description Registers a new user
  * @route POST /auth/register
  * @access Public
+ * @returns registered user
  */
 export const registerUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -630,6 +631,8 @@ export const resendOTP = asyncHandler(
     });
   }
 );
+
+
 
 
 // Sign in with Google

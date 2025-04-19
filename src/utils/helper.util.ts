@@ -1,22 +1,25 @@
-
 /**
  * Generates random characters
  * @param length - The length of the characters to generate.
  * @returns A randomly generated characters.
  */
 export const generateRandomChars = (length: number = 20) => {
-    const numberChars = "0123456789";
-    const letterChars = "abcdefghijklmnopqrstuvwxyz";
-    const allChars = numberChars + letterChars;
-    
-    const shuffle = (str: string) => str.split('').sort(() => 0.5 - Math.random()).join('');
-  
-    const shuffledChars = shuffle(allChars);
-  
-    const randomChars = shuffledChars.slice(0, length);
-  
-    return randomChars;
-}
+  const numberChars = "0123456789";
+  const letterChars = "abcdefghijklmnopqrstuvwxyz";
+  const allChars = numberChars + letterChars;
+
+  const shuffle = (str: string) =>
+    str
+      .split("")
+      .sort(() => 0.5 - Math.random())
+      .join("");
+
+  const shuffledChars = shuffle(allChars);
+
+  const randomChars = shuffledChars.slice(0, length);
+
+  return randomChars;
+};
 
 /**
  * Generates random numbers
@@ -24,11 +27,14 @@ export const generateRandomChars = (length: number = 20) => {
  * @returns A randomly generated numbers.
  */
 export const generateRandomNumbers = (length: number = 20) => {
-    const numberChars = "0123456789";
-    const shuffledChars = numberChars.split('').sort(() => 0.5 - Math.random()).join('');
-    const randomNumbers = shuffledChars.slice(0, length);
-    return randomNumbers;
-}
+  const numberChars = "0123456789";
+  const shuffledChars = numberChars
+    .split("")
+    .sort(() => 0.5 - Math.random())
+    .join("");
+  const randomNumbers = shuffledChars.slice(0, length);
+  return randomNumbers;
+};
 
 /**
  * Generates random characters and numbers
@@ -36,41 +42,60 @@ export const generateRandomNumbers = (length: number = 20) => {
  * @returns A randomly generated characters and numbers.
  */
 export const generateRandomCode = (length: number = 6) => {
-    const numberChars = "0123456789";
-    const letterChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const allChars = numberChars + letterChars;
-    
-    const shuffle = (str: string) => 
-      str.split('').sort(() => 
-      0.5 - Math.random()  * 1000000).join('');
-  
-    const shuffledChars = shuffle(allChars);
-  
-    const randomChars = shuffledChars.slice(0, length);
-  
-    return randomChars;
-}
+  const numberChars = "0123456789";
+  const letterChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const allChars = numberChars + letterChars;
 
+  const shuffle = (str: string) =>
+    str
+      .split("")
+      .sort(() => 0.5 - Math.random() * 1000000)
+      .join("");
+
+  const shuffledChars = shuffle(allChars);
+
+  const randomChars = shuffledChars.slice(0, length);
+
+  return randomChars;
+};
 
 /**
- * Generates random characters, numbers and special characters
- * @param length - The length of the characters, numbers and special characters to generate.
- * @returns A randomly generated characters, numbers and special characters.
+ * Generates a secure random password.
+ * Password will contain:
+ * - At least one uppercase letter
+ * - At least one lowercase letter
+ * - At least one number
+ * - At least one special character
+ * - Minimum length of 8 characters (default is 12)
+ *
+ * @param length - Total length of the password (default: 12).
+ * @returns A randomly generated secure password.
  */
-export const generateRandomCharswithSpecialChars = (length: number = 20) => {
-    const numberChars = "0123456789";
-    const letterChars = "abcdefghijklmnopqrstuvwxyz";
-    const specialChars = "!@#$%^&*()_+~`|}{[]\:;?><,./-=";
-    const allChars = numberChars + letterChars + specialChars;
-    
-    const shuffle = (str: string) => str.split('').sort(() => 0.5 - Math.random()).join('');
+export const generatePassword = (length: number = 16) => {
+  const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const lowercase = "abcdefghijklmnopqrstuvwxyz";
+  const numbers = "0123456789";
+  const special = "!@#$%^&*()_+~`|}{[]:;?><,./-=";
   
-    const shuffledChars = shuffle(allChars);
+  const getRandomChar = (charset: string) => charset[Math.floor(Math.random() * charset.length)];
   
-    const randomChars = shuffledChars.slice(0, length);
-  
-    return randomChars;
-}
+  // Ensure password meets all requirements
+  let password = [
+    getRandomChar(uppercase),
+    getRandomChar(lowercase),
+    getRandomChar(numbers),
+    getRandomChar(special),
+  ];
+
+
+  const allChars = uppercase + lowercase + numbers + special;
+  for (let i = password.length; i < length; i++) {
+    password.push(getRandomChar(allChars));
+  }
+
+  // Shuffle the password to make it more random
+  return password.sort(() => Math.random() - 0.5).join("");
+};
 
 
 /**
@@ -79,28 +104,25 @@ export const generateRandomCharswithSpecialChars = (length: number = 20) => {
  * @param {string[]} permissions - The access rights assigned to this key.
  * @returns {string} - The generated API key.
  */
-export const generateApiKey = () => {
+export const generateApiKey = () => {};
 
-}
-
-
-
-  /**
-   * Helper method to determine platform type
-   */
-export const detectPlatform = (deviceType: string | undefined): 'web' | 'mobile' | 'tablet' => {
-    if (!deviceType) return 'web';
-    if (deviceType.toLowerCase() === 'tablet') return 'tablet';
-    if (['mobile', 'phone'].includes(deviceType.toLowerCase())) return 'mobile';
-    return 'web';
-  }
-
+/**
+ * Helper method to determine platform type
+ */
+export const detectPlatform = (
+  deviceType: string | undefined
+): "web" | "mobile" | "tablet" => {
+  if (!deviceType) return "web";
+  if (deviceType.toLowerCase() === "tablet") return "tablet";
+  if (["mobile", "phone"].includes(deviceType.toLowerCase())) return "mobile";
+  return "web";
+};
 
 export default {
-    generateRandomChars,
-    generateRandomNumbers,
-    generateRandomCode,
-    generateRandomCharswithSpecialChars,
-    generateApiKey,
-    detectPlatform
-}
+  generateRandomChars,
+  generateRandomNumbers,
+  generateRandomCode,
+  generatePassword,
+  generateApiKey,
+  detectPlatform,
+};
