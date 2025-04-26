@@ -7,6 +7,7 @@ import {
   EUserType,
 } from "../utils/enums.util";
 import userService from "../services/user.service";
+import slugify from "slugify";
 
 const UserSchema = new Schema<IUserDoc>(
   {
@@ -21,18 +22,16 @@ const UserSchema = new Schema<IUserDoc>(
     },
     userType: {
       type: String,
-      enum: Object.values(EUserType),
-      required: true,
-      index: true,
+      enum: Object.values(EUserType)
     },
-    phoneNumber: { type: String, unique: true, required: true },
+    phoneNumber: { type: String, unique: true },
     phoneCode: { type: String, default: "+234" },
-    country: { type: String, required: true },
-    countryPhone: { type: String, required: true },
+    country: { type: String },
+    countryPhone: { type: String },
     
     avatar: { type: String },
-    dateOfBirth: { type: Date, required: true },
-    gender: { type: String, required: true },
+    dateOfBirth: { type: Date },
+    gender: { type: String },
     location: {
       address: String,
       city: String,
@@ -110,6 +109,10 @@ UserSchema.set("toJSON", { virtuals: true, getters: true });
 UserSchema.pre<IUserDoc>("save", async function (next) {
   if (!this.isModified("password")) return next();
   await userService.encryptUserPassword(this, this.password);
+  next();
+});
+
+UserSchema.pre<IUserDoc>("insertMany", async function (next) {
   next();
 });
 

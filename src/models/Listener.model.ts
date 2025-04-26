@@ -8,24 +8,26 @@ const ListenerSchema = new Schema<IListenerDoc>(
     lastName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
 
-    phoneNumber: { type: String, unique: true, required: true },
+    phoneNumber: { type: String, unique: true, },
     phoneCode: { type: String, default: "+234" },
-    country: { type: String, required: true },
-    countryPhone: { type: String, required: true },
+    country: { type: String },
+    countryPhone: { type: String },
     avatar: { type: String },
-    dateOfBirth: { type: Date, required: true },
-    gender: { type: String, required: true },
-    slug: { type: String, required: true },
+    dateOfBirth: { type: Date },
+    gender: { type: String},
+    slug: { type: String },
 
     card: {
-      authCode: String, 
-      cardBin: String,
-      cardLast: String,
-      expiryMonth: String,
-      expiryYear: String,
-      cardPan: String,
-      token: String,
-      select: false,
+      type: {
+        authCode: String, 
+        cardBin: String,
+        cardLast: String,
+        expiryMonth: String,
+        expiryYear: String,
+        cardPan: String,
+        token: String,
+      },
+      select: false
     }, 
 
     // Engagement Tracking

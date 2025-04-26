@@ -20,32 +20,40 @@ const rolesData = JSON.parse(
  * @returns {Promise<void>}
  * @throws {Error} If there's an error reading the file or inserting data
  */
-const seedRoles = asyncHandler( async () => {
-  
-  const roles: Array<IRoleDoc> = await Role.find({});
-  if (roles.length === 0) {
-    const seed = await Role.insertMany(rolesData);
+const seedRoles = asyncHandler(async () => {
+  try {
+    const roles: Array<IRoleDoc> = await Role.find({});
+    
+    if (roles.length === 0) {
+      const seed = await Role.insertMany(rolesData);
 
-    if (seed) {
+      if (seed) {
+        logger.log({
+          data: "Roles data seeded successfully",
+          type: "info",
+        });
+
+        // Optional: Log each inserted role
+        for (const role of seed) {
+          logger.log({
+            data: `Role ${role.name} seeded successfully`,
+            type: "info",
+          });
+        }
+      }
+    } else {
       logger.log({
-        data: "roles data seeded succesfully",
+        data: "Roles already exist, skipping seed.",
         type: "info",
       });
     }
-
-    for (let i = 0; i < rolesData.length; i++) {
-      let item = rolesData[i];
-
-      let role = await Role.create(item);
-
-      if (role) {
-        logger.log({
-          data: `role ${role.name} seeded successfully`,
-          type: "info",
-        });
-      }
-    }
+  } catch (error) {
+    logger.log({
+      label: "SEEDING_ERROR",
+      data: `Failed to seed roles: ${(error as Error).message}`,
+      type: "error",
+    });
   }
-}) 
+});
 
 export default seedRoles;

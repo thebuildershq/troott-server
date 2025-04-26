@@ -295,6 +295,7 @@ class PermissionService {
     return result;
   }
 
+
   /**
    * @name getRolePermissions
    * @description Gets all available permissions for a specific role

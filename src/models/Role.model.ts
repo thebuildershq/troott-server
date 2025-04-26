@@ -12,7 +12,6 @@ const RoleSchema = new mongoose.Schema<IRoleDoc>(
       enum: Object.values(EUserType),
       unique: true,
     },
-
     description: {
       type: String,
       required: [true, "please add a role description"],

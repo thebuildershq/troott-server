@@ -66,7 +66,7 @@ export enum EDbModels {
   ROLE = "role",
   PERMISSION = "permission",
   API_KEY = "ApiKey",
-  BITE = "pite",
+  BITE = "bite",
   CATALOG = "catalog",
   CREATOR = "creator",
   LIBRARY = "library",
