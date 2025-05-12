@@ -43,7 +43,7 @@ const seedRoles = asyncHandler(async () => {
       }
     } else {
       logger.log({
-        data: "Roles already exist, skipping seed.",
+        data: "Roles already exist, seeding skipped",
         type: "info",
       });
     }

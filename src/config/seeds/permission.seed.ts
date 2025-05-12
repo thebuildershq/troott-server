@@ -69,7 +69,7 @@ const seedPermissions = asyncHandler(async () => {
     });
   } else {
     logger.log({
-      data: "Permissions already exist, skipping seed",
+      data: "Permissions already exist, seeding skipped",
       type: "info",
     });
   }
