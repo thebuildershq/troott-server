@@ -39,29 +39,21 @@ const seedPermissions = asyncHandler(async () => {
       });
     }
 
-    // Log individual permissions for verification
-    for (const permission of seed) {
-      logger.log({
-        data: `Permission ${permission.action} created
-        with description: ${permission.description}`,
-        type: "info",
-      });
-    }
+    const permissionsMap = new Map(seed.map((p) => [p.action, p._id]));
 
-    const Roles = await Role.find({});
-    const permissionsMap = new Map(seed.map(p => [p.action, p._id]));
+    const roles = await Role.find({});
 
-    
-    for (const role of Roles) {
-      const permissionActions = systemService.rolePermissionMap[role.name as EUserType] || [];
-      const validPermissionIds = permissionActions
-        .map(action => permissionsMap.get(action))
-        .filter(Boolean); // Filters out undefined (non-existent) actions
+    for (const role of roles) {
+      const permissionActions =
+        PermissionService.rolePermissionMap[role.name as EUserType] || [];
 
-      role.permissions = validPermissionIds;
+      const permissionIds = permissionActions
+        .map((action) => permissionsMap.get(action))
+        .filter((id) => id);
+
+      role.permissions = permissionIds;
       await role.save();
     }
-
 
     logger.log({
       data: "Permissions assigned to roles successfully",

@@ -24,7 +24,7 @@ const UserSchema = new Schema<IUserDoc>(
       type: String,
       enum: Object.values(EUserType)
     },
-    phoneNumber: { type: String, unique: true },
+    phoneNumber: { type: String, unique: true, sparse: true, },
     phoneCode: { type: String, default: "+234" },
     country: { type: String },
     countryPhone: { type: String },
@@ -103,6 +103,8 @@ const UserSchema = new Schema<IUserDoc>(
     },
   }
 );
+
+
 
 UserSchema.set("toJSON", { virtuals: true, getters: true });
 

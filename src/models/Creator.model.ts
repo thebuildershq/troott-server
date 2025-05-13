@@ -8,8 +8,8 @@ import {
 
 const CreatorSchema = new Schema<ICreatorDoc>(
   {
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
+    firstName: { type: String },
+    lastName: { type: String },
     email: { type: String, required: true, unique: true },
 
     phoneNumber: { type: String, unique: true, required: true },

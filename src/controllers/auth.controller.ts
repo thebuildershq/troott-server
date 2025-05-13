@@ -54,8 +54,8 @@ export const registerUser = asyncHandler(
     const userExist = await User.findOne({ email: email.toLowerCase() });
     if (userExist) {
       return next(
-        new ErrorResponse("Error", 400, [
-          "email already exist, use another email",
+        new ErrorResponse("email already exist, use another email", 400, [ "Error" 
+          ,
         ])
       );
     }

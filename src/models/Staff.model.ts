@@ -10,30 +10,28 @@ import { decrypt, encrypt } from "../utils/encryption.util";
 
 const StaffSchema = new Schema<IStaffDoc>(
   {
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
+    firstName: { type: String },
+    lastName: { type: String },
     email: { type: String, required: true, unique: true },
 
-    phoneNumber: { type: String, unique: true, required: true },
+    phoneNumber: { type: String, unique: true},
     phoneCode: { type: String, default: "+234" },
-    country: { type: String, required: true },
-    countryPhone: { type: String, required: true },
+    country: { type: String },
+    countryPhone: { type: String},
     avatar: { type: String },
-    dateOfBirth: { type: Date, required: true },
-    gender: { type: String, required: true },
-    slug: { type: String, required: true, unique: true },
+    dateOfBirth: { type: Date },
+    gender: { type: String },
+    slug: { type: String, unique: true },
 
     // Staff Role & Access
     unit: {
       type: String,
       enum: Object.values(EStaffUnit),
-      required: true,
       index: true,
     },
     role: {
       type: String,
       enum: Object.values(EStaffRole),
-      required: true,
       index: true,
     },
     accessLevel: { type: Number, required: true },

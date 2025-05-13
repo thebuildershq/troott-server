@@ -8,19 +8,18 @@ import {
 
 const PreacherSchema = new Schema<IPreacherDoc>(
   {
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
+    firstName: { type: String },
+    lastName: { type: String },
     email: { type: String, required: true, unique: true },
 
-    phoneNumber: { type: String, unique: true, required: true },
+    phoneNumber: { type: String, unique: true, },
     phoneCode: { type: String, default: "+234" },
-    country: { type: String, required: true },
-    countryPhone: { type: String, required: true },
+    country: { type: String },
+    countryPhone: { type: String },
     avatar: { type: String },
-    dateOfBirth: { type: Date, required: true },
-    gender: { type: String, required: true },
-    slug: { type: String, required: true, unique: true },
-    type: { type: String, required: true },
+    dateOfBirth: { type: Date },
+    gender: { type: String},
+    slug: { type: String },
 
     // Ministry & Content
     description: { type: String },

@@ -29,7 +29,6 @@ const PermissionSchema = new Schema<IPermissionDoc>(
 );
 
 
-
 PermissionSchema.set("toJSON", {virtuals: true, getters: true})
 
 PermissionSchema.pre<IPermissionDoc>("save", async function (next) {

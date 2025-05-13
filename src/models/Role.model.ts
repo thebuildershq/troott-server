@@ -15,9 +15,8 @@ const RoleSchema = new mongoose.Schema<IRoleDoc>(
     description: {
       type: String,
       required: [true, "please add a role description"],
-      maxlength: [250, "role description cannot be more than 255 characters"],
+      maxlength: [400, "role description cannot be more than 400 characters"],
     },
-
     slug: { type: String, default: "" },
 
     permissions: [{ type: String, ref: EDbModels.PERMISSION }],
@@ -39,6 +38,7 @@ const RoleSchema = new mongoose.Schema<IRoleDoc>(
     },
   }
 );
+
 
 RoleSchema.set("toJSON", { virtuals: true, getters: true });
 
