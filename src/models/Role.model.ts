@@ -11,44 +11,21 @@ const RoleSchema = new mongoose.Schema<IRoleDoc>(
       default: EUserType.USER,
       enum: Object.values(EUserType),
       unique: true,
-      index: true,
     },
-
     description: {
       type: String,
       required: [true, "please add a role description"],
-      maxlength: [250, "role description cannot be more than 255 characters"],
+      maxlength: [400, "role description cannot be more than 400 characters"],
     },
-
     slug: { type: String, default: "" },
 
+    permissions: [{ type: String, ref: EDbModels.PERMISSION }],
     users: [
       {
         type: Schema.Types.Mixed,
         ref: EDbModels.USER,
-        index: true,
       },
     ],
-    permissions: [{ type: String }],
-    subroles: {
-      type: Map,
-      of: new Schema(
-        {
-          description: {
-            type: String,
-            required: true,
-          },
-          permissions: [
-            {
-              type: String,
-              required: true,
-            },
-          ],
-        },
-        { _id: false }
-      ),
-      default: {},
-    },
   },
   {
     timestamps: true,
@@ -61,6 +38,7 @@ const RoleSchema = new mongoose.Schema<IRoleDoc>(
     },
   }
 );
+
 
 RoleSchema.set("toJSON", { virtuals: true, getters: true });
 

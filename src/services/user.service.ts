@@ -17,7 +17,7 @@ import {
   MatchEncryptedPasswordDTO,
   RegisterUserDTO,
 } from "../dtos/auth.dto";
-import { CreateUserDTO } from "../dtos/user.dto";
+import { createUserDTO } from "../dtos/user.dto";
 import User from "../models/User.model";
 import Role from "../models/Role.model";
 import { detectPlatform } from "../utils/helper.util";
@@ -138,7 +138,7 @@ class UserService {
    * @param data
    * @returns
    */
-  public async createUser(data: CreateUserDTO): Promise<IUserDoc> {
+  public async createUser(data: createUserDTO): Promise<IUserDoc> {
     const {
       firstName,
       lastName,
@@ -227,9 +227,8 @@ class UserService {
     }
 
     if (user.userType === EUserType.STAFF) {
-      const staffProfile = await staffService.createStaffProfile({
+      const staffProfile = await staffService.createStaff({
         user: user,
-        type: EUserType.STAFF,
         email: user.email,
       });
       if (staffProfile.error) {
@@ -645,7 +644,7 @@ class UserService {
 
     if (encrypted) {
       user.password = encrypted;
-      await user.save();
+      //await user.save();
 
       result = true;
     }

@@ -1,12 +1,23 @@
 import { EPasswordType, EUserType } from "../utils/enums.util";
 
-export interface CreateUserDTO {
+export interface inviteUserDTO {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  userType: EUserType;
+  role?: string;
+  permissions?: Array<string>;
+}
+
+export interface createUserDTO {
   firstName: string;
   lastName: string;
   email: string;
   password: string;
   passwordType: EPasswordType
   userType: EUserType;
+  createdBy?: string
   role?: string;
   permissions?: Array<string>;
   location?: {
@@ -49,47 +60,47 @@ export interface UserProfileDTO {
 }
 
 export interface UserDTO {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    
-    phoneNumber?: string;
-    phoneCode?: string;
-    country?: string;
-  
-    avatar?: string;
-    dateOfBirth?: Date;
-    gender?: string;
-  
-    userType: string;
-    isSuper: boolean;
-    isStaff: boolean;
-    isPreacher: boolean;
-    isCreator: boolean;
-    isListener: boolean;
-    isActive: boolean;
-    isLocked: boolean;
-    lockedUntil: Date | null;
-  
-    notificationPreferences: {
-      email: boolean;
-      push: boolean;
-      sms: boolean;
-    };
-  
-    roles: string[];
-    profiles: {
-      listener?: string;
-      creator?: string;
-      preacher?: string;
-      staff?: string;
-    };
-  
-    createdAt: Date;
-    updatedAt: Date;
-  }
-  
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+
+  phoneNumber?: string;
+  phoneCode?: string;
+  country?: string;
+
+  avatar?: string;
+  dateOfBirth?: Date;
+  gender?: string;
+
+  userType: string;
+  isSuper: boolean;
+  isStaff: boolean;
+  isPreacher: boolean;
+  isCreator: boolean;
+  isListener: boolean;
+  isActive: boolean;
+  isLocked: boolean;
+  lockedUntil: Date | null;
+
+  notificationPreferences: {
+    email: boolean;
+    push: boolean;
+    sms: boolean;
+  };
+
+  roles: string[];
+  profiles: {
+    listener?: string;
+    creator?: string;
+    preacher?: string;
+    staff?: string;
+  };
+
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface RoleDTO {
   id: string;
   name: string;

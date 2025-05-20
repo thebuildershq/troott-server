@@ -34,7 +34,7 @@ export interface IRoleDoc extends Document {
   createdAt: string;
   updatedAt: string;
   _version: number;
-  _id: ObjectId;
+  _id: ObjectId; 
   id: ObjectId;
 }
 
@@ -58,7 +58,7 @@ export interface IUserDoc extends Document {
   passwordType: EPasswordType; // encrypt this data
   userType: EUserType;
 
-  user: string;
+  //user: string;
   phoneNumber: string;
   phoneCode: string;
   country: string;
@@ -67,6 +67,7 @@ export interface IUserDoc extends Document {
   avatar: string;
   dateOfBirth: Date;
   gender: string;
+  location: ILocationInfo;
 
   Otp: string;
   OtpExpiry: number;
@@ -87,8 +88,10 @@ export interface IUserDoc extends Document {
   loginLimit: number;
   isLocked: boolean;
   lockedUntil: Nullable<Date>;
+  twoFactorEnabled: boolean;
 
   // Notification Preferences
+  // deviceToken: IDeviceToken;
   notificationPreferences: {
     email: boolean;
     push: boolean;
@@ -97,14 +100,7 @@ export interface IUserDoc extends Document {
 
   // relationships
   role: ObjectId | any;
-  profiles: {
-    listener?: ObjectId | any;
-    creator?: ObjectId | any;
-    preacher?: ObjectId | any;
-    staff?: ObjectId | any;
-  };
 
-  deviceToken: IDeviceToken;
   matchPassword: (password: string) => boolean;
   getAuthToken: () => string;
 
@@ -121,15 +117,16 @@ export interface IListenerDoc extends Document {
   lastName: string;
   email: string;
 
-  gender: string;
-  avatar: string;
-  dateOfBirth: Date;
-  country: string;
+  //user: string;
   phoneNumber: string;
   phoneCode: string;
-  location: ILocationInfo;
+  country: string;
+  countryPhone: string;
+
+  avatar: string;
+  dateOfBirth: Date;
+  gender: string;
   slug: string;
-  type: string;
   card?: IDebitCard;
 
   // Engagement Tracking
@@ -147,20 +144,11 @@ export interface IListenerDoc extends Document {
   interests: Array<string>;
   badges: Array<string>;
 
-  // Security & Access Control
-  permissions: Array<string>;
-  twoFactorEnabled: boolean;
-  loginHistory: Array<{ date: Date; ip: string; device: string }>;
-  isActive: boolean;
-  isSuspended: boolean;
-  isDeleted: boolean;
-
   //relationships
   user: ObjectId | any;
   subscriptions: Array<ObjectId | any>;
   transactions: Array<ObjectId | any>;
   createdBy: ObjectId | any;
-  settings: ObjectId | any;
 
   // time stamps
   createdAt: string;
@@ -169,18 +157,19 @@ export interface IListenerDoc extends Document {
   _id: ObjectId;
   id: ObjectId;
 }
-export interface IPreacherProfileDoc extends Document {
+export interface IPreacherDoc extends Document {
   firstName: string;
   lastName: string;
   email: string;
-
-  gender: string;
-  avatar: string;
-  dateOfBirth: Date;
-  country: string;
+  //user: string;
   phoneNumber: string;
   phoneCode: string;
-  location: ILocationInfo;
+  country: string;
+  countryPhone: string;
+
+  avatar: string;
+  dateOfBirth: Date;
+  gender: string;
   slug: string;
 
   // Ministry & Content
@@ -205,20 +194,12 @@ export interface IPreacherProfileDoc extends Document {
   // Uploads & Publications
   uploads: Array<ObjectId | any>;
   uploadHistory: Array<ObjectId | any>;
-  publishedCount: number;
 
   // Security & Verification
   identification: Array<string>;
   verificationStatus: EVerificationStatus;
   isVerified: boolean;
-  verifiedAt: Date | null;
-  permissions: Array<string>;
-  twoFactorEnabled: boolean;
-  lastLogin: Date;
-  devices: Array<{ deviceId: string; deviceType: string; lastUsed: Date }>;
-  isActive: boolean;
-  isSuspended: boolean;
-  isDeleted: boolean;
+  verifiedAt: Date;
 
   // Account Managers
   accountManagers: Array<{ userId: ObjectId; role: EAccountManagerRole }>;
@@ -227,7 +208,6 @@ export interface IPreacherProfileDoc extends Document {
   user: ObjectId | any;
   transactions: Array<ObjectId | any>;
   createdBy: ObjectId | any;
-  settings: ObjectId | any;
 
   // time stamps
   createdAt: string;
@@ -236,18 +216,20 @@ export interface IPreacherProfileDoc extends Document {
   _id: ObjectId;
   id: ObjectId;
 }
-export interface ICreatorProfileDoc extends Document {
+export interface ICreatorDoc extends Document {
   firstName: string;
   lastName: string;
   email: string;
 
-  gender: string;
-  avatar: string;
-  dateOfBirth: Date;
-  country: string;
+  //user: string;
   phoneNumber: string;
   phoneCode: string;
-  location: ILocationInfo;
+  country: string;
+  countryPhone: string;
+
+  avatar: string;
+  dateOfBirth: Date;
+  gender: string;
   slug: string;
 
   // Content
@@ -264,20 +246,12 @@ export interface ICreatorProfileDoc extends Document {
   // Uploads & Publications
   uploads: Array<ObjectId | any>;
   uploadHistory: Array<ObjectId | any>;
-  publishedCount: number;
 
   // Security & Verification
   identification: Array<string>;
   verificationStatus: EVerificationStatus;
   isVerified: boolean;
   verifiedAt: Date | null;
-  permissions: Array<string>;
-  twoFactorEnabled: boolean;
-  lastLogin: Date;
-  devices: Array<{ deviceId: string; deviceType: string; lastUsed: Date }>;
-  isActive: boolean;
-  isSuspended: boolean;
-  isDeleted: boolean;
 
   // Account Managers
   accountManagers: Array<{ userId: ObjectId; role: EAccountManagerRole }>;
@@ -286,7 +260,6 @@ export interface ICreatorProfileDoc extends Document {
   user: ObjectId | any;
   transactions: Array<ObjectId | any>;
   createdBy: ObjectId | any;
-  settings: ObjectId | any;
 
   // time stamps
   createdAt: string;
@@ -296,18 +269,20 @@ export interface ICreatorProfileDoc extends Document {
   id: ObjectId;
 }
 
-export interface IStaffProfileDoc extends Document {
+export interface IStaffDoc extends Document {
   firstName: string;
   lastName: string;
   email: string;
 
-  gender: string;
-  avatar: string;
-  dateOfBirth: Date;
-  country: string;
+  //user: string;
   phoneNumber: string;
   phoneCode: string;
-  location: ILocationInfo;
+  country: string;
+  countryPhone: string;
+
+  avatar: string;
+  dateOfBirth: Date;
+  gender: string;
   slug: string;
 
   // Staff Role & Access
@@ -319,10 +294,7 @@ export interface IStaffProfileDoc extends Document {
   // API & Security
   apiKeys: Array<{ key: string; createdAt: Date; lastUsed: Date }>; // encrypt this data
   ipWhitelist: Array<string>;
-  twoFactorEnabled: boolean;
-  lastLogin: Date;
-  devices: Array<{ deviceId: string; deviceType: string; lastUsed: Date }>;
-
+  
   // Actions & Moderation
   actionsTaken: Array<{ action: string; targetId: string; timestamp: Date }>;
   moderatedContent: Array<ObjectId>;
@@ -337,9 +309,6 @@ export interface IStaffProfileDoc extends Document {
   verificationStatus: EVerificationStatus;
   isVerified: boolean;
   verifiedAt: Date | null;
-  isActive: boolean;
-  isSuspended: boolean;
-  isDeleted: boolean;
 
   //relationships
   user: ObjectId | any;
@@ -842,7 +811,6 @@ export interface IPagination {
   id: ObjectId;
 }
 
-
 export interface IAPIKeyUsage {
   keyHash: string;
   timestamp: Date;
@@ -884,8 +852,8 @@ export interface ICustomResponse<T> extends Response {
       prev?: { page: number; limit: number };
     };
     data: T[];
-  },
-  status: any,
+  };
+  status: any;
 }
 
 // // Extend the Response type

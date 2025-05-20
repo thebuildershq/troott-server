@@ -1,24 +1,24 @@
 import mongoose, { Schema, Model } from "mongoose";
-import { ICreatorProfileDoc } from "../utils/interface.util";
+import { ICreatorDoc } from "../utils/interface.util";
 import {
   EDbModels,
   EVerificationStatus,
   EAccountManagerRole,
 } from "../utils/enums.util";
 
-const CreatorProfileSchema = new Schema<ICreatorProfileDoc>(
+const CreatorSchema = new Schema<ICreatorDoc>(
   {
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
+    firstName: { type: String },
+    lastName: { type: String },
     email: { type: String, required: true, unique: true },
 
-    gender: { type: String, required: true },
-    avatar: { type: String },
-    dateOfBirth: { type: Date, required: true },
-    country: { type: String, required: true },
     phoneNumber: { type: String, unique: true, required: true },
     phoneCode: { type: String, default: "+234" },
-    location: { type: Object, required: true },
+    country: { type: String, required: true },
+    countryPhone: { type: String, required: true },
+    avatar: { type: String },
+    dateOfBirth: { type: Date, required: true },
+    gender: { type: String, required: true },
     slug: { type: String, required: true, unique: true },
 
     // Content
@@ -37,7 +37,7 @@ const CreatorProfileSchema = new Schema<ICreatorProfileDoc>(
     // Uploads & Publications
     uploads: [{ type: Schema.Types.ObjectId, ref: EDbModels.BITE }],
     uploadHistory: [{ type: Schema.Types.ObjectId, ref: EDbModels.BITE }],
-    publishedCount: { type: Number, default: 0 },
+  
 
     // Security & Verification
     identification: [{ type: String }],
@@ -49,21 +49,7 @@ const CreatorProfileSchema = new Schema<ICreatorProfileDoc>(
     },
     isVerified: { type: Boolean, default: false },
     verifiedAt: { type: Date, default: null },
-    permissions: [{ type: String }],
-    twoFactorEnabled: { type: Boolean, default: false },
-    lastLogin: { type: Date },
-    devices: [
-      {
-        deviceId: { type: String },
-        deviceType: { type: String },
-        lastUsed: { type: Date },
-    
-      },
-    ],
-    isActive: { type: Boolean, default: true },
-    isSuspended: { type: Boolean, default: false },
-    isDeleted: { type: Boolean, default: false },
-
+   
     // Account Managers
     accountManagers: [
       {
@@ -80,7 +66,7 @@ const CreatorProfileSchema = new Schema<ICreatorProfileDoc>(
     user: { type: Schema.Types.ObjectId, ref: EDbModels.USER  },
     transactions: [{ type: Schema.Types.ObjectId, ref: EDbModels.TRANSACTION  }],
     createdBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER  },
-    settings: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
+    
   },
   {
     timestamps: true,
@@ -94,17 +80,10 @@ const CreatorProfileSchema = new Schema<ICreatorProfileDoc>(
   }
 );
 
-CreatorProfileSchema.index({
-  firstName: "text",
-  lastName: "text",
-  email: "text",
-  description: "text",
-});
 
+CreatorSchema.set("toJSON", { virtuals: true, getters: true });
 
-CreatorProfileSchema.set("toJSON", { virtuals: true, getters: true });
+const Creator: Model<ICreatorDoc> =
+  mongoose.model<ICreatorDoc>(EDbModels.CREATOR, CreatorSchema);
 
-const CreatorProfile: Model<ICreatorProfileDoc> =
-  mongoose.model<ICreatorProfileDoc>(EDbModels.CREATOR, CreatorProfileSchema);
-
-export default CreatorProfile;
+export default Creator;

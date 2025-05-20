@@ -14,10 +14,10 @@ import seedPermissions from "./permission.seed";
  * @throws {Error} If any of the seeding operations fail
  */
 const seedData = async () => {
-
-    await seedUsers();
+    
     await seedRoles();
     await seedPermissions();
+    await seedUsers();
 
 }
 

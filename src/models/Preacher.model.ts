@@ -1,29 +1,29 @@
 import mongoose, { Schema, Model } from "mongoose";
-import { IPreacherProfileDoc } from "../utils/interface.util";
+import { IPreacherDoc } from "../utils/interface.util";
 import {
   EDbModels,
   EVerificationStatus,
   EAccountManagerRole,
 } from "../utils/enums.util";
 
-const PreacherProfileSchema = new Schema<IPreacherProfileDoc>(
+const PreacherSchema = new Schema<IPreacherDoc>(
   {
-    firstName: { type: String, required: true, index: true },
-    lastName: { type: String, required: true, index: true },
-    email: { type: String, required: true, unique: true, index: true },
+    firstName: { type: String },
+    lastName: { type: String },
+    email: { type: String, required: true, unique: true },
 
-    gender: { type: String, required: true, index: true },
-    avatar: { type: String },
-    dateOfBirth: { type: Date, required: true },
-    country: { type: String, required: true, index: true },
-    phoneNumber: { type: String, unique: true, required: true },
+    phoneNumber: { type: String, unique: true, },
     phoneCode: { type: String, default: "+234" },
-    location: { type: Object, required: true, index: "2dsphere" },
-    slug: { type: String, required: true, unique: true },
+    country: { type: String },
+    countryPhone: { type: String },
+    avatar: { type: String },
+    dateOfBirth: { type: Date },
+    gender: { type: String},
+    slug: { type: String },
 
     // Ministry & Content
-    description: { type: String, maxLength: 500 },
-    ministry: { type: String, index: true },
+    description: { type: String },
+    ministry: { type: String },
     sermons: [{ type: Schema.Types.ObjectId, ref: EDbModels.SERMON }],
     featuredSermons: [{ type: Schema.Types.ObjectId, ref: EDbModels.SERMON }],
     bites: [{ type: Schema.Types.ObjectId, ref: EDbModels.BITE }],
@@ -38,7 +38,7 @@ const PreacherProfileSchema = new Schema<IPreacherProfileDoc>(
 
     // Followers & Listeners
     followers: [
-      { type: Schema.Types.ObjectId, ref: EDbModels.USER, index: true },
+      { type: Schema.Types.ObjectId, ref: EDbModels.USER },
     ],
     monthlyListeners: { type: Number, default: 0 },
     likes: { type: Number, default: 0 },
@@ -47,7 +47,7 @@ const PreacherProfileSchema = new Schema<IPreacherProfileDoc>(
     // Uploads & Publications
     uploads: [{ type: Schema.Types.ObjectId, ref: EDbModels.SERMON }],
     uploadHistory: [{ type: Schema.Types.ObjectId, ref: EDbModels.SERMON }],
-    publishedCount: { type: Number, default: 0 },
+    
 
     // Security & Verification
     identification: [{ type: String }],
@@ -57,21 +57,8 @@ const PreacherProfileSchema = new Schema<IPreacherProfileDoc>(
       default: EVerificationStatus.PENDING,
       index: true,
     },
-    isVerified: { type: Boolean, default: false, index: true },
-    verifiedAt: { type: Date, default: null },
-    permissions: [{ type: String, index: true }],
-    twoFactorEnabled: { type: Boolean, default: false },
-    lastLogin: { type: Date },
-    devices: [
-      {
-        deviceId: { type: String },
-        deviceType: { type: String },
-        lastUsed: { type: Date },
-      },
-    ],
-    isActive: { type: Boolean, default: true, index: true },
-    isSuspended: { type: Boolean, default: false, index: true },
-    isDeleted: { type: Boolean, default: false, index: true },
+    isVerified: { type: Boolean, default: false },
+    verifiedAt: { type: Date, default: null },   
 
     // Account Managers
     accountManagers: [
@@ -86,16 +73,15 @@ const PreacherProfileSchema = new Schema<IPreacherProfileDoc>(
     ],
 
     // Relationships
-    user: { type: Schema.Types.ObjectId, ref: EDbModels.USER, index: true },
+    user: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
     transactions: [
-      { type: Schema.Types.ObjectId, ref: EDbModels.TRANSACTION, index: true },
+      { type: Schema.Types.ObjectId, ref: EDbModels.TRANSACTION },
     ],
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: EDbModels.USER,
       index: true,
     },
-    settings: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
   },
   {
     timestamps: true,
@@ -109,7 +95,7 @@ const PreacherProfileSchema = new Schema<IPreacherProfileDoc>(
   }
 );
 
-PreacherProfileSchema.index({
+PreacherSchema.index({
   firstName: "text",
   lastName: "text",
   email: "text",
@@ -118,15 +104,15 @@ PreacherProfileSchema.index({
 });
 
 // Compound Indexes*
-PreacherProfileSchema.index({ isVerified: 1, verificationStatus: 1 });
-PreacherProfileSchema.index({ isActive: 1, isSuspended: 1 });
+PreacherSchema.index({ isVerified: 1, verificationStatus: 1 });
+PreacherSchema.index({ isActive: 1, isSuspended: 1 });
 
-PreacherProfileSchema.set("toJSON", { virtuals: true, getters: true });
+PreacherSchema.set("toJSON", { virtuals: true, getters: true });
 
-const PreacherProfile: Model<IPreacherProfileDoc> =
-mongoose.model<IPreacherProfileDoc>(
+const Preacher: Model<IPreacherDoc> =
+mongoose.model<IPreacherDoc>(
     EDbModels.PREACHER,
-    PreacherProfileSchema
+    PreacherSchema
   );
 
-export default PreacherProfile;
+export default Preacher;

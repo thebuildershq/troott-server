@@ -12,12 +12,13 @@ const PermissionSchema = new Schema<IPermissionDoc>(
     },
     description: {
       type: String,
-      required: true,
+      required: [true, "please add a role description"],
     },
   },
   {
     timestamps: true,
     versionKey: "_version",
+    optimisticConcurrency: true,
     toJSON: {
       transform(doc, ret) {
         ret.id = ret._id;
@@ -27,10 +28,23 @@ const PermissionSchema = new Schema<IPermissionDoc>(
   }
 );
 
+
+PermissionSchema.set("toJSON", {virtuals: true, getters: true})
+
+PermissionSchema.pre<IPermissionDoc>("save", async function (next) {
+  this.action = this.action;
+  next();
+});
+
+PermissionSchema.pre<IPermissionDoc>("insertMany", async function (next) {
+  this.action = this.action;
+  next(); 
+});
+
 const Permission: Model<IPermissionDoc> = mongoose.model<IPermissionDoc>(
-    EDbModels.PERMISSION,
-    PermissionSchema
-  );
+  EDbModels.PERMISSION,
+  PermissionSchema
+);
   
 export default Permission;
   

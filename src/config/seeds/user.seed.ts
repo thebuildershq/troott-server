@@ -23,39 +23,44 @@ const userData = JSON.parse(
  * @throws {ErrorResponse} If a specified role doesn't exist
  * @throws {Error} If there's an error reading the file or inserting data
  */
-const seedUsers = asyncHandler(async () => {
- 
-  let count: number = 0;
-  const users = await User.countDocuments();
 
-  if (users === 0) {
-    for (let i = 0; i < userData.length; i++) {
-      let item = userData[i];
-      const role = await Role.findOne({ name: item.role || EUserType.USER });
+const seedUsers = async (): Promise<void> => {
+  try {
+    const existingUsers = await User.countDocuments();
+    if (existingUsers > 0) return;
+
+    let seededCount = 0;
+
+    for (const item of userData) {
+      const roleName = item.role || EUserType.USER;
+      const role = await Role.findOne({ name: roleName });
 
       if (!role) {
-        return new ErrorResponse(
-          `Role ${item.role ?? EUserType.USER} does not exist.`,
-          400,
-          []
-        );
+        throw new ErrorResponse(`Role "${roleName}" does not exist.`, 400, []);
       }
 
-      let user = await User.create({ ...item, role: role._id });
-      if (user) {
-        count += 1;
-        role.users = [...role.users, user._id];
+      const newUser = await User.create({ ...item, role: role._id });
+      if (newUser) {
+        role.users.push(newUser._id);
         await role.save();
-      }
+        seededCount++;
+      } 
     }
-  }
 
-  if (count > 0) {
-    logger.log({
-      data: "User data seeded successfully",
-      type: "success",
-    });
+    if (seededCount > 0) {
+      logger.log({
+        type: "success",
+        data: `${seededCount} user(s) seeded successfully.`,
+      });
+    }
+
+  } catch (err) {
+    logger.log({ 
+      label: "SEEDING_ERROR",
+      type: "error",
+      data: `User seeding failed: ${(err as Error).message}`,
+     });
   }
-});
+};
 
 export default seedUsers;

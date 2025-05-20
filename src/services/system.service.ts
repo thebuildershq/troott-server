@@ -1,6 +1,7 @@
 import crypto from "crypto";
-import { IResult, IStaffProfileDoc, IUserDoc } from "../utils/interface.util";
+import { IResult, IStaffDoc, IUserDoc } from "../utils/interface.util";
 import { DecryptDataDTO, EncryptDataDTO } from "../dtos/system.dto";
+import { EUserType } from "../utils/enums.util";
 
 class SystemService {
   public result: IResult;
@@ -281,7 +282,7 @@ class SystemService {
    * @returns Promise<boolean> - Success status
    */
   public async encryptUserAPIKey(
-    user: IStaffProfileDoc,
+    user: IStaffDoc,
     apiKey: string
   ): Promise<boolean> {
     let result: boolean = false;
@@ -317,7 +318,7 @@ class SystemService {
    * @returns Promise<string | null> - Decrypted API key or null
    */
   public async decryptUserAPIKey(
-    user: IStaffProfileDoc,
+    user: IStaffDoc,
     keyIndex?: number
   ): Promise<string | null> {
     if (!user.apiKeys) {

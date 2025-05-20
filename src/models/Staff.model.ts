@@ -1,39 +1,40 @@
 import mongoose, { Schema, Model } from "mongoose";
-import { IStaffProfileDoc } from "../utils/interface.util";
-import { EDbModels, EVerificationStatus, EStaffUnit, EStaffRole } from "../utils/enums.util";
+import { IStaffDoc } from "../utils/interface.util";
+import {
+  EDbModels,
+  EVerificationStatus,
+  EStaffUnit,
+  EStaffRole,
+} from "../utils/enums.util";
 import { decrypt, encrypt } from "../utils/encryption.util";
 
-
-const StaffProfileSchema = new Schema<IStaffProfileDoc>(
+const StaffSchema = new Schema<IStaffDoc>(
   {
-    firstName: { type: String, required: true, index: true },
-    lastName: { type: String, required: true, index: true },
-    email: { type: String, required: true, unique: true, index: true },
+    firstName: { type: String },
+    lastName: { type: String },
+    email: { type: String, required: true, unique: true },
 
-    gender: { type: String, required: true, index: true},
-    avatar: { type: String },
-    dateOfBirth: { type: Date, required: true },
-    country: { type: String, required: true, index: true },
-    phoneNumber: { type: String, unique: true, required: true },
+    phoneNumber: { type: String, unique: true},
     phoneCode: { type: String, default: "+234" },
-    location: { type: Object, required: true },
-    slug: { type: String, required: true, unique: true },
+    country: { type: String },
+    countryPhone: { type: String},
+    avatar: { type: String },
+    dateOfBirth: { type: Date },
+    gender: { type: String },
+    slug: { type: String, unique: true },
 
     // Staff Role & Access
     unit: {
       type: String,
       enum: Object.values(EStaffUnit),
-      required: true,
-      index: true
+      index: true,
     },
     role: {
       type: String,
       enum: Object.values(EStaffRole),
-      required: true,
-      index: true
+      index: true,
     },
     accessLevel: { type: Number, required: true },
-    permissions: [{ type: String }],
 
     // API & Security
     apiKeys: [
@@ -44,16 +45,7 @@ const StaffProfileSchema = new Schema<IStaffProfileDoc>(
       },
     ],
     ipWhitelist: [{ type: String }],
-    twoFactorEnabled: { type: Boolean, default: false },
-    lastLogin: { type: Date },
-    devices: [
-      {
-        deviceId: { type: String },
-        deviceType: { type: String },
-        lastUsed: { type: Date },
-      },
-    ],
-
+    
     // Actions & Moderation
     actionsTaken: [
       {
@@ -62,8 +54,7 @@ const StaffProfileSchema = new Schema<IStaffProfileDoc>(
         timestamp: { type: Date, default: Date.now },
       },
     ],
-    moderatedContent: [{ type: Schema.Types.ObjectId, ref: EDbModels.SERMON }],
-
+    
     // Uploads & Publications
     uploads: [{ type: Schema.Types.ObjectId, ref: EDbModels.SERMON }],
     uploadHistory: [{ type: Schema.Types.ObjectId, ref: EDbModels.SERMON }],
@@ -76,15 +67,12 @@ const StaffProfileSchema = new Schema<IStaffProfileDoc>(
       enum: Object.values(EVerificationStatus),
       default: EVerificationStatus.PENDING,
     },
-    isVerified: { type: Boolean, default: false, index: true },
+    isVerified: { type: Boolean, default: false },
     verifiedAt: { type: Date },
-    isActive: { type: Boolean, default: true, index: true },
-    isSuspended: { type: Boolean, default: false, index: true },
-    isDeleted: { type: Boolean, default: false, index: true },
-
+    
     // Relationships
-    user: { type: Schema.Types.ObjectId, ref: EDbModels.USER, index: true },
-    createdBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER, index: true },
+    user: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
+    createdBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
     settings: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
   },
   {
@@ -99,18 +87,10 @@ const StaffProfileSchema = new Schema<IStaffProfileDoc>(
   }
 );
 
-StaffProfileSchema.index({
-  firstName: "text",
-  lastName: "text",
-  email: "text",
-  unit: "text",
-  role: "text",
-});
 
+StaffSchema.set("toJSON", { virtuals: true, getters: true });
 
-StaffProfileSchema.set("toJSON", { virtuals: true, getters: true });
-
-StaffProfileSchema.pre("save", function (next) {
+StaffSchema.pre("save", function (next) {
   if (this.isModified("apiKeys")) {
     this.apiKeys = this.apiKeys.map((apiKey) => ({
       ...apiKey,
@@ -120,7 +100,7 @@ StaffProfileSchema.pre("save", function (next) {
   next();
 });
 
-StaffProfileSchema.methods.decryptApiKeys = function () {
+StaffSchema.methods.decryptApiKeys = function () {
   if (this.apiKeys) {
     return this.apiKeys.map((apiKey: any) => ({
       ...apiKey,
@@ -130,10 +110,9 @@ StaffProfileSchema.methods.decryptApiKeys = function () {
   return this.apiKeys;
 };
 
-
-const StaffProfile: Model<IStaffProfileDoc> = mongoose.model<IStaffProfileDoc>(
+const Staff: Model<IStaffDoc> = mongoose.model<IStaffDoc>(
   EDbModels.STAFF,
-  StaffProfileSchema
+  StaffSchema
 );
 
-export default StaffProfile;
+export default Staff;

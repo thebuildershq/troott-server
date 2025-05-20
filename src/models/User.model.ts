@@ -7,13 +7,20 @@ import {
   EUserType,
 } from "../utils/enums.util";
 import userService from "../services/user.service";
+import slugify from "slugify";
 
 const UserSchema = new Schema<IUserDoc>(
   {
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
-    email: { type: String, required: true, unique: true, lowercase: true, index: true },
-    password: { type: String, required: true, default: "",  select: false },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      index: true,
+    },
+    password: { type: String, required: true, default: "", select: false },
     passwordType: {
       type: String,
       enum: Object.values(EPasswordType),
@@ -22,17 +29,20 @@ const UserSchema = new Schema<IUserDoc>(
     userType: {
       type: String,
       enum: Object.values(EUserType),
-      required: true,
-      index: true,
     },
-    country: { type: String, required: true, index: true },
-    phoneNumber: { type: String, unique: true, required: true, index: true },
+    phoneNumber: { type: String, unique: true, sparse: true, default: "" },
     phoneCode: { type: String, default: "+234" },
+    country: { type: String },
+    countryPhone: { type: String },
+
     avatar: { type: String },
-    dateOfBirth: { type: Date, required: true },
-    gender: { type: String, required: true },
-
-
+    dateOfBirth: { type: Date },
+    gender: { type: String },
+    location: {
+      address: String,
+      city: String,
+      state: String,
+    },
 
     Otp: { type: String },
     OtpExpiry: {
@@ -42,11 +52,40 @@ const UserSchema = new Schema<IUserDoc>(
     accessToken: { type: String },
     accessTokenExpiry: { type: Date },
 
-    isSuper: { type: Boolean, default: false, index: true },
-    isStaff: { type: Boolean, default: false, index: true },
-    isPreacher: { type: Boolean, default: false, index: true },
-    isCreator: { type: Boolean, default: false, index: true },
-    isListener: { type: Boolean, default: false, index: true },
+    isSuper: { type: Boolean, default: false },
+    isStaff: { type: Boolean, default: false },
+    isPreacher: { type: Boolean, default: false },
+    isCreator: { type: Boolean, default: false },
+    isListener: { type: Boolean, default: false },
+
+    loginInfo: {
+      ip: String,
+      deviceType: String,
+      platform: {
+        type: String,
+        enum: ["web", "mobile", "tablet"],
+      },
+      deviceInfo: {
+        manufacturer: String,
+        model: String,
+        osName: String,
+        osVersion: String,
+        browser: String,
+        browserVersion: String,
+        appVersion: String,
+      },
+      location: {
+        country: String,
+        city: String,
+        timezone: String,
+      },
+    },
+    lastLogin: { type: String },
+    isActive: { type: Boolean, default: false },
+    isDeactivated: { type: Boolean, default: false },
+    loginLimit: { type: Number, default: 5 },
+    lockedUntil: { type: Date },
+    twoFactorEnabled: { type: Boolean, default: false },
 
     // Notification Preferences
     notificationPreferences: {
@@ -57,7 +96,6 @@ const UserSchema = new Schema<IUserDoc>(
 
     // Relationships
     role: { type: Schema.Types.ObjectId, ref: EDbModels.ROLE, index: true },
-  
   },
   {
     timestamps: true,
@@ -71,11 +109,16 @@ const UserSchema = new Schema<IUserDoc>(
   }
 );
 
+
 UserSchema.set("toJSON", { virtuals: true, getters: true });
 
 UserSchema.pre<IUserDoc>("save", async function (next) {
   if (!this.isModified("password")) return next();
   await userService.encryptUserPassword(this, this.password);
+  next();
+});
+
+UserSchema.pre<IUserDoc>("insertMany", async function (next) {
   next();
 });
 

@@ -7,7 +7,7 @@ import User from "../models/User.model";
 import { EUserType } from "../utils/enums.util";
 import { generateRandomChars } from "../utils/helper.util";
 import {
-  IListenerProfileDoc,
+  IListenerDoc,
   IResult,
   IUserDoc,
 } from "../utils/interface.util";
@@ -18,28 +18,28 @@ class ListenerService {
   /**
    * @name createListener
    * @description
-   * Creates a new listener profile in the database using the provided DTO.
-   * This method handles profile setup for newly registered listeners by saving
+   * Creates a new listener  in the database using the provided DTO.
+   * This method handles  setup for newly registered listeners by saving
    * essential user metadata such as personal details, location, and engagement info.
-   * @param {ListenerProfileDTO} data
-   * @returns {Promise<{listener: IListenerProfileDoc, user: IUserDoc}t>}
+   * @param {ListenerDTO} data
+   * @returns {Promise<{listener: IListenerDoc, user: IUserDoc}t>}
    */
   public async createListener(
-    data: createListenerProfileDTO
-  ): Promise<IResult<{ listener: IListenerProfileDoc; user: IUserDoc }>> {
-    const result: IResult<{ listener: IListenerProfileDoc; user: IUserDoc }> = {
+    data: createListenerDTO
+  ): Promise<IResult<{ listener: IListenerDoc; user: IUserDoc }>> {
+    const result: IResult<{ listener: IListenerDoc; user: IUserDoc }> = {
       error: false,
       message: "",
       code: 200,
       data: null,
     };
   
-    const { firstName, lastName, email, gender, avatar, user }: createListenerProfileDTO = data;
+    const { firstName, lastName, email, gender, avatar, user }: createListenerDTO = data;
   
     if (!user) {
       return {
         error: true,
-        message: "User information is required to create a listener profile",
+        message: "User information is required to create a listener ",
         code: 400,
         data: null,
       };
@@ -49,13 +49,13 @@ class ListenerService {
     if (existingListener) {
       return {
         error: true,
-        message: "Listener profile already exists for this user",
+        message: "Listener  already exists for this user",
         code: 400,
         data: null,
       };
     }
   
-    const listenerProfileData = {
+    const listenerData = {
       _id: user._id,
       id: user.id,
       listenerID: generateRandomChars(12),
@@ -71,10 +71,10 @@ class ListenerService {
       createdBy: user._id,
     };
   
-    const listener = await Listener.create(listenerProfileData);
+    const listener = await Listener.create(listenerData);
   
-    user.profiles = {
-      ...user.profiles,
+    user.s = {
+      ...user.s,
       listener: listener._id,
     };
     await user.save();

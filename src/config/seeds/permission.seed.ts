@@ -2,6 +2,10 @@ import fs from "fs";
 import logger from "../../utils/logger.util";
 import Permission from "../../models/Permission.model";
 import asyncHandler from "../../middlewares/async.mdw";
+import Role from "../../models/Role.model";
+import { EUserType } from "../../utils/enums.util";
+import { IUserDoc } from "../../utils/interface.util";
+import PermissionService from "../../services/permission.service";
 
 /**
  * @description Reads and parses the permissions data from JSON file
@@ -34,17 +38,29 @@ const seedPermissions = asyncHandler(async () => {
       });
     }
 
-    // Log individual permissions for verification
-    for (const permission of seed) {
-      logger.log({
-        data: `Permission ${permission.action} created
-        with description: ${permission.description}`,
-        type: "info",
-      });
+    const permissionsMap = new Map(seed.map((p) => [p.action, p._id]));
+
+    const roles = await Role.find({});
+
+    for (const role of roles) {
+      const permissionActions =
+        PermissionService.rolePermissionMap[role.name as EUserType] || [];
+
+      const permissionIds = permissionActions
+        .map((action) => permissionsMap.get(action))
+        .filter((id) => id);
+
+      role.permissions = permissionIds;
+      await role.save();
     }
+
+    logger.log({
+      data: "Permissions assigned to roles successfully",
+      type: "info",
+    });
   } else {
     logger.log({
-      data: "Permissions already exist, skipping seed",
+      data: "Permissions already exist, seeding skipped",
       type: "info",
     });
   }

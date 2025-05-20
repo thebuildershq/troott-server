@@ -1,4 +1,4 @@
-import { EEmailDriver, EVerifyOTP } from "../utils/enums.util"
+import { EEmailDriver, EEmailTemplate, EUserType, EVerifyOTP } from "../utils/enums.util"
 import { IUserDoc } from "../utils/interface.util"
 
 export interface SendgridEmailDataDTO{
@@ -42,4 +42,16 @@ export interface SendEmailDTO{
         otpType?: EVerifyOTP,
         status?: string
     }
+}
+
+export interface sendUserEmailDTO {
+    driver: EEmailDriver;
+    user: any;
+    template: EEmailTemplate;
+    options: {
+      temporaryPassword: string;
+      invitedBy: string;
+      userType: EUserType;
+      loginUrl?: string;
+    };
 }

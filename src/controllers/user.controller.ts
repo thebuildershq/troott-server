@@ -4,9 +4,98 @@ import { asyncHandler } from "@btffamily/pacitude";
 import ErrorResponse from "../utils/error.util";
 import authMapper from "../mappers/auth.mapper";
 import User from "../models/User.model";
+import { createUserDTO, inviteUserDTO } from "../dtos/user.dto";
+import userService from "../services/user.service";
+import { generatePassword } from "../utils/helper.util";
+import { EEmailDriver, EEmailTemplate, EPasswordType, EUserType } from "../utils/enums.util";
+import emailService from "../services/email.service";
 
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY || "");
+sgMail.setApiKey(process.env.SENDGRID_API_KEY as string);
+
+
+
+
+/**
+ * @name inviteUser
+ * @description invite user to join the platform
+ * @route POST /user/invite
+ * @access private (admin only)
+ * @returns {Object} staff profile
+ */
+export const In = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+      const { firstName, lastName, email, userType }: inviteUserDTO = req.body;
+      const invitedBy = req.user.id;
+
+      // Validate input
+    const validate = await userService.validateRegister(req.body);
+    if (validate.error) {
+      return next(new ErrorResponse("Error", validate.code!, [validate.message]));
+    }
+
+    // Check email validity
+    const mailCheck = await userService.checkEmail(email);
+    if (!mailCheck) {
+      return next(new ErrorResponse("Error", 400, ["A valid email is required"]));
+    }
+
+    // Check if user already exists
+    const userExist = await User.findOne({ email: email.toLowerCase() });
+    if (userExist) {
+      return next(new ErrorResponse("Error", 400, ["Email already exists"]));
+    }
+
+    // Generate temporary password
+    const temporaryPassword = generatePassword(20);
+
+    // Create user with temporary password
+    const user = await userService.createUser({
+      firstName,
+      lastName,
+      email,
+      password: temporaryPassword,
+      passwordType: EPasswordType.SYSTEMGENERATED,
+      userType: userType as EUserType,
+      createdBy: invitedBy._id
+    });
+
+    if (!user) {
+      return next(new ErrorResponse("Error", 404, ["Failed to create user"]));
+    }
+
+        // Send invitation email with temporary password
+        const sendInvite = await emailService.sendUserInviteEmail({
+          driver: EEmailDriver.SENDGRID,
+          user: user,
+          template: EEmailTemplate.USER_INVITE,
+          options: {
+            temporaryPassword,
+            invitedBy: `${invitedBy.firstName} ${invitedBy.lastName}`,
+            userType: userType,
+            loginUrl: process.env.FRONTEND_URL + '/auth/login'
+          }
+        });
+    
+        if (sendInvite.error) {
+          return next(new ErrorResponse("Error", sendInvite.code!, [sendInvite.message]));
+        }
+        res.status(201).json({
+          error: false,
+          errors: [],
+          data: {
+            id: user._id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            userType: user.userType
+          },
+          message: "Invitation sent successfully",
+          status: 201,
+        })
+  }
+)
+
 
 /**
  * @name getUser
@@ -70,7 +159,6 @@ export const editUser = asyncHandler(
 
     // Update user information
     user.firstName = firstName || user.firstName;
-    user.username = username || user.username;
     user.firstName = firstName || user.firstName;
     user.lastName = lastName || user.lastName;
     user.phoneNumber = phoneNumber || user.phoneNumber;
@@ -120,7 +208,7 @@ export const deactivateAccount = asyncHandler(
   }
 );
 
-
+    // create user
     // get all user account 
     // get user account by id
     // update user account

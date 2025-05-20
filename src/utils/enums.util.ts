@@ -66,7 +66,7 @@ export enum EDbModels {
   ROLE = "role",
   PERMISSION = "permission",
   API_KEY = "ApiKey",
-  BITE = "pite",
+  BITE = "bite",
   CATALOG = "catalog",
   CREATOR = "creator",
   LIBRARY = "library",
@@ -243,6 +243,7 @@ export enum EEmailDriver {
 }
 export enum EEmailTemplate {
   WELCOME = "welcome",
+  USER_INVITE = "user-invite",
   PASSWORD_RESET = "password-reset",
   PASSWORD_CHANGED = "password-changed",
   EMAIL_VERIFICATION = "email-verification",
