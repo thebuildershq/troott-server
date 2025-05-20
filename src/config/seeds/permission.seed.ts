@@ -6,7 +6,6 @@ import Role from "../../models/Role.model";
 import { EUserType } from "../../utils/enums.util";
 import { IUserDoc } from "../../utils/interface.util";
 import PermissionService from "../../services/permission.service";
-import systemService from "../../services/system.service";
 
 /**
  * @description Reads and parses the permissions data from JSON file

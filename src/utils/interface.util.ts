@@ -34,7 +34,7 @@ export interface IRoleDoc extends Document {
   createdAt: string;
   updatedAt: string;
   _version: number;
-  _id: ObjectId;
+  _id: ObjectId; 
   id: ObjectId;
 }
 

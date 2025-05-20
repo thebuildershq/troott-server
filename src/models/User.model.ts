@@ -13,8 +13,14 @@ const UserSchema = new Schema<IUserDoc>(
   {
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
-    email: { type: String, required: true, unique: true, lowercase: true, index: true },
-    password: { type: String, required: true, default: "",  select: false },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      index: true,
+    },
+    password: { type: String, required: true, default: "", select: false },
     passwordType: {
       type: String,
       enum: Object.values(EPasswordType),
@@ -22,13 +28,13 @@ const UserSchema = new Schema<IUserDoc>(
     },
     userType: {
       type: String,
-      enum: Object.values(EUserType)
+      enum: Object.values(EUserType),
     },
-    phoneNumber: { type: String, unique: true, sparse: true, },
+    phoneNumber: { type: String, unique: true, sparse: true, default: null },
     phoneCode: { type: String, default: "+234" },
     country: { type: String },
     countryPhone: { type: String },
-    
+
     avatar: { type: String },
     dateOfBirth: { type: Date },
     gender: { type: String },
@@ -52,12 +58,12 @@ const UserSchema = new Schema<IUserDoc>(
     isCreator: { type: Boolean, default: false },
     isListener: { type: Boolean, default: false },
 
-    loginInfo: { 
+    loginInfo: {
       ip: String,
       deviceType: String,
       platform: {
         type: String,
-        enum: ['web', 'mobile', 'tablet']
+        enum: ["web", "mobile", "tablet"],
       },
       deviceInfo: {
         manufacturer: String,
@@ -66,14 +72,14 @@ const UserSchema = new Schema<IUserDoc>(
         osVersion: String,
         browser: String,
         browserVersion: String,
-        appVersion: String
+        appVersion: String,
       },
       location: {
         country: String,
         city: String,
-        timezone: String
-      }
-     },
+        timezone: String,
+      },
+    },
     lastLogin: { type: String },
     isActive: { type: Boolean, default: false },
     isDeactivated: { type: Boolean, default: false },
@@ -90,7 +96,6 @@ const UserSchema = new Schema<IUserDoc>(
 
     // Relationships
     role: { type: Schema.Types.ObjectId, ref: EDbModels.ROLE, index: true },
-  
   },
   {
     timestamps: true,
@@ -104,7 +109,14 @@ const UserSchema = new Schema<IUserDoc>(
   }
 );
 
-
+UserSchema.index(
+  { phoneNumber: 1 },
+  {
+    unique: true,
+    sparse: true,
+    partialFilterExpression: { phoneNumber: { $exists: true, $ne: null } },
+  }
+);
 
 UserSchema.set("toJSON", { virtuals: true, getters: true });
 
