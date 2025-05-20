@@ -30,7 +30,7 @@ const UserSchema = new Schema<IUserDoc>(
       type: String,
       enum: Object.values(EUserType),
     },
-    phoneNumber: { type: String, unique: true, sparse: true, default: null },
+    phoneNumber: { type: String, unique: true, sparse: true, default: "" },
     phoneCode: { type: String, default: "+234" },
     country: { type: String },
     countryPhone: { type: String },
@@ -109,14 +109,6 @@ const UserSchema = new Schema<IUserDoc>(
   }
 );
 
-UserSchema.index(
-  { phoneNumber: 1 },
-  {
-    unique: true,
-    sparse: true,
-    partialFilterExpression: { phoneNumber: { $exists: true, $ne: null } },
-  }
-);
 
 UserSchema.set("toJSON", { virtuals: true, getters: true });
 
