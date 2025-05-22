@@ -53,23 +53,17 @@ export const registerUser = asyncHandler(
 
     const userExist = await User.findOne({ email: email.toLowerCase() });
     if (userExist) {
+      if (userExist.userType === EUserType.SUPERADMIN) {
+        return next(
+          new ErrorResponse("forbidden!, user already exist", 400, ["Error"])
+        );
+      }
+
       return next(
-        new ErrorResponse("email already exist, use another email", 400, [ "Error" 
-          ,
-        ])
+        new ErrorResponse("email already exist, use another email", 400, ["Error"])
       );
     }
 
-    const isSuperadmin = await User.findOne({
-      email: email.toLowerCase(),
-      userType: EUserType.SUPERADMIN,
-    });
-
-    if (isSuperadmin) {
-      return next(
-        new ErrorResponse("Error", 400, ["forbidden!, user already exist"])
-      );
-    }
     const passwordCheck = await userService.checkPassword(password);
     if (!passwordCheck) {
       return next(

@@ -7,7 +7,6 @@ import {
   EUserType,
 } from "../utils/enums.util";
 import userService from "../services/user.service";
-import slugify from "slugify";
 
 const UserSchema = new Schema<IUserDoc>(
   {
