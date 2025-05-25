@@ -203,18 +203,39 @@ export enum EOtpType {
   FORGOTPASSWORD = "forgot-password",
 }
 
+export enum EUploadStatus {
+  PENDING = 'pending',
+  UPLOADING = 'uploading',
+  PROCESSING = 'processing',
+  READY = 'ready',
+  FAILED = 'failed',
+  EXPIRED = 'expired',
+}
+
+export enum EChunkStatus {
+  PENDING = 'pending',
+  UPLOADED = 'uploaded',
+  FAILED = 'failed',
+}
+
+export enum EProcessingStatus {
+  QUEUED = 'queued',
+  PROCESSING = 'processing',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+}
+
+
+
 export enum EContentState {
-  UPLOADING = "uploading",
-  PROCESSING = "processing",
-  PROCESSED = "processed",
-  UPLOADED = "uploaded",
-  FAILED = "failed",
-  RETRYING = "retrying",
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  DELETED = 'deleted',
+  BROKEN = 'broken',
 }
 
 export enum EContentStatus {
   PUBLISHED = "published",
-  PENDING_REVIEW = "pending_review",
   DRAFT = "draft",
   FLAGGED = "flagged",
   DELETED = "deleted",

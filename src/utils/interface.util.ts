@@ -4,6 +4,7 @@ import {
   EAPIKeyEnvironment,
   EAPIKeyStatus,
   EAPIKeyType,
+  EChunkStatus,
   EContentState,
   EContentStatus,
   EmailType,
@@ -14,6 +15,7 @@ import {
   EStaffRole,
   EStaffUnit,
   ETransactionsType,
+  EUploadStatus,
   EUserType,
   EVerificationStatus,
 } from "./enums.util";
@@ -367,6 +369,42 @@ export interface ISermonDoc extends Document {
   _id: ObjectId;
   id: ObjectId;
 }
+
+export interface ISermonUpload extends Document {
+  uploadId: string; // UUID or ULID
+  sermonId?: ObjectId; // link to the sermon
+  filename: string;
+  mimetype: string;
+  rawS3Key: string;
+  streamS3Prefix: string; // e.g. sermons/streaming/<uploadId>/
+  
+  totalChunks: number;
+  uploadedChunks: number;
+  chunkSizeMB: number;
+
+  status: EUploadStatus
+
+
+  expiresAt: Date; // for auto-cleanup (6 hours timeout)
+  error?: string;
+
+    // timestamps
+    createdAt: string;
+    updatedAt: string;
+    _version: number;
+    _id: ObjectId;
+    id: ObjectId;
+}
+
+export interface ISermonChunkMeta extends Document {
+  uploadId: string;
+  chunkIndex: number;
+  chunkSize: number;
+  status: EChunkStatus;
+  uploadedAt?: Date;
+  retryCount: number;
+}
+
 export interface ISermonBiteDoc extends Document {
   title: string;
   description: string;
