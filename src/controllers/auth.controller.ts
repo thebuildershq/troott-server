@@ -55,12 +55,12 @@ export const registerUser = asyncHandler(
     if (userExist) {
       if (userExist.userType === EUserType.SUPERADMIN) {
         return next(
-          new ErrorResponse("forbidden!, user already exist", 400, ["Error"])
+          new ErrorResponse("forbidden!, user already exist", 400, [])
         );
       }
 
       return next(
-        new ErrorResponse("email already exist, use another email", 400, ["Error"])
+        new ErrorResponse("email already exist, use another email", 400, [])
       );
     }
 
