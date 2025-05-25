@@ -432,6 +432,35 @@ class UserService {
     return result;
   }
 
+
+  /**
+   * @name updateUserType
+   * @param user
+   * @param userType
+   */
+  public async updateUserType(user: IUserDoc, userType: EUserType): Promise<void> {
+    
+    user.isListener = false;
+    user.isCreator = false;
+    user.isPreacher = false;
+    user.isStaff = false;
+    
+  if (userType === EUserType.LISTENER) {
+    user.isListener = true;
+  } else if (userType === EUserType.CREATOR) {
+    user.isCreator = true;
+  } else if (userType === EUserType.PREACHER) {
+    user.isPreacher = true;
+  }  else if (userType === EUserType.STAFF) {
+    user.isStaff = true;
+  }
+
+  user.userType = userType;
+
+    await user.save();
+  }
+
+
   /**
    * @name updateLastLogin
    * @description updates the last time user logged into the system

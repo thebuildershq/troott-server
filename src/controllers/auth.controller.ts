@@ -24,7 +24,6 @@ import tokenService from "../services/token.service";
 import { IUserDoc } from "../utils/interface.util";
 import otpService from "../services/otp.service";
 
-
 /**
  * @name registerUser
  * @description Registers a new user
@@ -39,16 +38,12 @@ export const registerUser = asyncHandler(
 
     const validate = await userService.validateRegister(req.body);
     if (validate.error) {
-      return next(
-        new ErrorResponse("Error", validate.code!, [validate.message])
-      );
+      return next(new ErrorResponse(validate.message, validate.code!, []));
     }
 
     const mailCheck = await userService.checkEmail(email);
     if (!mailCheck) {
-      return next(
-        new ErrorResponse("Error", 400, ["a valid email is required"])
-      );
+      return next(new ErrorResponse("a valid email is required", 400, []));
     }
 
     const userExist = await User.findOne({ email: email.toLowerCase() });
@@ -67,9 +62,11 @@ export const registerUser = asyncHandler(
     const passwordCheck = await userService.checkPassword(password);
     if (!passwordCheck) {
       return next(
-        new ErrorResponse("Error", 400, [
+        new ErrorResponse(
           "password must contain at least 8 characters, 1 lowercase letter, 1 uppercase letter, 1 special character and 1 number",
-        ])
+          400,
+          []
+        )
       );
     }
 
@@ -82,8 +79,10 @@ export const registerUser = asyncHandler(
       userType: userType as EUserType,
     });
     if (!user) {
-      return next(new ErrorResponse("Error", 404, ["user not created"]));
+      return next(new ErrorResponse("user not created", 404, []));
     }
+
+    await userService.updateUserType(user, userType as EUserType);
 
     const OTP = await userService.generateOTPCode(user, EOtpType.REGISTER);
 
@@ -102,9 +101,7 @@ export const registerUser = asyncHandler(
       });
 
       if (sendOTP.error) {
-        return next(
-          new ErrorResponse("Error", sendOTP.code!, [sendOTP.message])
-        );
+        return next(new ErrorResponse(sendOTP.message, sendOTP.code!, []));
       }
     }
 
@@ -166,13 +163,13 @@ export const activateUserAccount = asyncHandler(
       return next(new ErrorResponse("Error", token.code!, [token.message]));
     }
 
-    // Send welcome email after activation
-    const welcomeEmail = await emailService.sendUserWelcomeEmail(user);
-    if (welcomeEmail.error) {
-      return next(
-        new ErrorResponse("Error", welcomeEmail.code, [welcomeEmail.message])
-      );
-    }
+    // // Send welcome email after activation
+    // const welcomeEmail = await emailService.sendUserWelcomeEmail(user);
+    // if (welcomeEmail.error) {
+    //   return next(
+    //     new ErrorResponse("Error", welcomeEmail.code, [welcomeEmail.message])
+    //   );
+    // }
 
     await user.save();
 
@@ -458,7 +455,10 @@ export const resetPassword = asyncHandler(
 
     await userService.encryptUserPassword(user, newPassword);
 
-    const sendEmail = await emailService.sendPasswordResetNotificationEmail(user, email);
+    const sendEmail = await emailService.sendPasswordResetNotificationEmail(
+      user,
+      email
+    );
     if (sendEmail.error) {
       return next(
         new ErrorResponse("Error", sendEmail.code, [sendEmail.message])
@@ -520,7 +520,9 @@ export const changePassword = asyncHandler(
 
     await userService.encryptUserPassword(user, newPassword);
 
-    const sendEmail = await emailService.sendPasswordChangeNotificationEmail(user.email);
+    const sendEmail = await emailService.sendPasswordChangeNotificationEmail(
+      user.email
+    );
     if (sendEmail.error) {
       return next(
         new ErrorResponse("Error", sendEmail.code, [sendEmail.message])
@@ -625,9 +627,6 @@ export const resendOTP = asyncHandler(
     });
   }
 );
-
-
-
 
 // Sign in with Google
 // Sign in with Apple
