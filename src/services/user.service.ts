@@ -477,6 +477,7 @@ class UserService {
    * @param user
    */
   public async activateAccount(user: IUserDoc): Promise<void> {
+    user.isActivated = true;
     user.isActive = true;
     user.isLocked = false;
     user.loginLimit = 0;

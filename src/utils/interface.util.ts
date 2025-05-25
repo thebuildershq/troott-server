@@ -81,17 +81,18 @@ export interface IUserDoc extends Document {
   isCreator: boolean;
   isListener: boolean;
 
+  isActivated: boolean;
+  isDeactivated: boolean;
+
   loginInfo: ILoginType;
   lastLogin: string;
   isActive: boolean;
-  isDeactivated: boolean;
   loginLimit: number;
   isLocked: boolean;
   lockedUntil: Nullable<Date>;
   twoFactorEnabled: boolean;
 
   // Notification Preferences
-  // deviceToken: IDeviceToken;
   notificationPreferences: {
     email: boolean;
     push: boolean;

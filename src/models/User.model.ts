@@ -29,7 +29,7 @@ const UserSchema = new Schema<IUserDoc>(
       type: String,
       enum: Object.values(EUserType),
     },
-    phoneNumber: { type: String, unique: true, sparse: true, default: "" },
+    phoneNumber: { type: String },
     phoneCode: { type: String, default: "+234" },
     country: { type: String },
     countryPhone: { type: String },
@@ -57,6 +57,9 @@ const UserSchema = new Schema<IUserDoc>(
     isCreator: { type: Boolean, default: false },
     isListener: { type: Boolean, default: false },
 
+    isActivated: { type: Boolean, default: false },
+    isDeactivated: { type: Boolean, default: false },
+
     loginInfo: {
       ip: String,
       deviceType: String,
@@ -81,7 +84,7 @@ const UserSchema = new Schema<IUserDoc>(
     },
     lastLogin: { type: String },
     isActive: { type: Boolean, default: false },
-    isDeactivated: { type: Boolean, default: false },
+    
     loginLimit: { type: Number, default: 5 },
     lockedUntil: { type: Date },
     twoFactorEnabled: { type: Boolean, default: false },
