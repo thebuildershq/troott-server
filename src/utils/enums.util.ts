@@ -103,6 +103,10 @@ export enum EPartType {
 }
 
 export enum EPlaylistType {
+  DEFAULT = "default",
+  SERIES = "series",
+  PREACHER = "preacher",
+  CATEGORY = "category",
   SERMON = "sermon",
   SERMONBITE = "sermonbite",
 }
@@ -226,7 +230,10 @@ export enum EProcessingStatus {
   FAILED = 'failed',
 }
 
-
+export enum ContentType {
+  SERMON = "sermon",
+  BITE = "bite",
+}
 
 export enum EContentState {
   ACTIVE = 'active',
