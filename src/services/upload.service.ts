@@ -10,7 +10,7 @@ import StorageService from "./storage.service";
 import { v4 as uuidv4 } from "uuid";
 import { ContentType } from "../utils/enums.util";
 
-class UploadService {
+class UploadSermonService {
   private s3Client: S3Client;
   private storageService: typeof StorageService;
   private readonly CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
@@ -34,6 +34,22 @@ class UploadService {
     this.storageService = StorageService;
   }
 
+  /**
+ * Initiates a multipart upload session for large audio/video files.
+ *
+ * - Validates file type and size
+ * - Calculates the number of chunks
+ * - Creates a multipart upload in AWS S3
+ * - Saves a new UploadSession document in DB - MongoDB
+ *
+ * @param {Express.Multer.File} file - The uploaded file (only used for metadata)
+ * @param {ContentType} type - The type of content being uploaded (e.g. 'sermon', 'sermonBite')
+ * @param {IUserDoc} user - The authenticated user initiating the upload
+ *
+ * @returns {Promise<UploadSession>} The newly created upload session document
+ *
+ * @throws {Error} If file is invalid or if S3/mongo operations fail
+ */
  public async initiateUpload(
     file: Express.Multer.File,
     type: ContentType,
@@ -44,7 +60,8 @@ class UploadService {
     }
 
     // Calculate chunks
-    const totalChunks = Math.ceil(file.size / this.CHUNK_SIZE);
+    const chunkSize = this.CHUNK_SIZE;
+    const totalChunks = Math.ceil(file.size / chunkSize);
     const uploadId = uuidv4();
     const s3Key = `uploads/sermons/${uploadId}/${file.originalname}`;
 
@@ -57,18 +74,39 @@ class UploadService {
       })
     );
 
+    //meta
+    /**
+     * name
+     * year
+     * fileType
+     * size
+     * container
+     * Codec
+     * bitrate
+     * audioSampleRate
+     * audioChannels
+     * 
+     * format
+     * generic tags
+     */
+
     // Save upload session
     const session = await UploadSession.create({
       uploadId,
       fileName: file.originalname,
-      fileSize: file.size,
+      fileSize: file.,
       mimeType: file.mimetype,
+      chunkSize,
       totalChunks,
       uploadedChunks: [],
+      status: 'PENDING',  // or use your enum value
+      uploadedBy: user._id,
       multipartUploadId: multipartUpload.UploadId,
       s3Key,
+      streamS3Prefix: '', // fill if you use streaming or leave blank
+      metadata,
+      retryCount: 0,
       expiresAt: new Date(Date.now() + this.UPLOAD_EXPIRY),
-      createdBy: user._id,
     });
 
     return session;
@@ -188,4 +226,4 @@ class UploadService {
 
 }
 
-export default new UploadService();
+export default new UploadSermonService();
