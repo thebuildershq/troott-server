@@ -425,6 +425,28 @@ export interface ISermonChunkMeta extends Document {
   retryCount: number;
 }
 
+export interface IAudioMetadata {
+  //formatName?: string;
+  codec?: string;
+  //duration?: number;
+  bitrate?: number;
+  sampleRate?: number;
+  numberOfChannels?: number;
+  lossless?: boolean;
+  tags?: IAudioTags
+}
+
+export interface IAudioTags {
+  title?: string;
+  artist?: string;
+  album?: string;
+  year?: number;
+  genre?: string[];
+  comment?: string[];
+  [key: string]: any; 
+}
+
+
 export interface ISermonBiteDoc extends Document {
   title: string;
   description: string;
