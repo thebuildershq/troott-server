@@ -1,11 +1,13 @@
 import express, { Request, Response, NextFunction } from "express";
 import authRoutes from "./routers/auth.router";
+import sermonRoutes from "./routers/sermon.router";
 
 
 
 const  router = express.Router()
 
 router.use('/auth', authRoutes)
+router.use('/sermon', sermonRoutes)
 
 
 router.get("/", (req: Request, res: Response, next: NextFunction) => {
@@ -20,7 +22,6 @@ router.get("/", (req: Request, res: Response, next: NextFunction) => {
         },
         message: 'troott api v1.0.0 is healthy',
         status: 200
-
     })
 
 
