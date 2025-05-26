@@ -36,7 +36,7 @@ export interface IRoleDoc extends Document {
   createdAt: string;
   updatedAt: string;
   _version: number;
-  _id: ObjectId; 
+  _id: ObjectId;
   id: ObjectId;
 }
 
@@ -297,7 +297,7 @@ export interface IStaffDoc extends Document {
   // API & Security
   apiKeys: Array<{ key: string; createdAt: Date; lastUsed: Date }>; // encrypt this data
   ipWhitelist: Array<string>;
-  
+
   // Actions & Moderation
   actionsTaken: Array<{ action: string; targetId: string; timestamp: Date }>;
   moderatedContent: Array<ObjectId>;
@@ -371,31 +371,51 @@ export interface ISermonDoc extends Document {
 }
 
 export interface ISermonUpload extends Document {
-  uploadId: string; // UUID or ULID
-  sermonId?: ObjectId; // link to the sermon
+  uploadId: string;
   filename: string;
+  fileSize: number; // in bytes
   mimetype: string;
-  rawS3Key: string;
-  streamS3Prefix: string; // e.g. sermons/streaming/<uploadId>/
-  
+
+  chunkSize: number; // in bytes
   totalChunks: number;
-  uploadedChunks: number;
-  chunkSizeMB: number;
+  uploadedChunks: Array<IUploadChunkInfo>;
 
-  status: EUploadStatus
+  status: EUploadStatus;
+
+  uploadedBy: ObjectId;
+  sermonId?: ObjectId; 
+
+  multipartUploadId?: string;
+  s3Key?: string;
+  streamS3Prefix: string; // e.g. sermons/streaming/<uploadId>/
+  metadata: {
+    title?: string;
+    description?: string;
+    tags?: string[];
+    category?: string[];
+  };
 
 
-  expiresAt: Date; // for auto-cleanup (6 hours timeout)
+  retryCount: number;
+  lastChunkUploadedAt?: Date;
+  expiresAt: Date;
   error?: string;
 
-    // timestamps
-    createdAt: string;
-    updatedAt: string;
-    _version: number;
-    _id: ObjectId;
-    id: ObjectId;
+ 
+  // timestamps
+  createdAt: string;
+  updatedAt: string;
+  _version: number;
+  _id: ObjectId;
+  id: ObjectId;
 }
 
+export interface IUploadChunkInfo {
+  chunkNumber: number;
+  etag: string;
+  size: number;
+  uploadedAt: Date;
+}
 export interface ISermonChunkMeta extends Document {
   uploadId: string;
   chunkIndex: number;

@@ -79,6 +79,7 @@ export enum EDbModels {
   SERMON = "sermon",
   STAFF = "staff",
   TRANSACTION = "transaction",
+  UPLOAD= "sermon-upload"
 }
 
 export enum EModel {
@@ -207,7 +208,7 @@ export enum EUploadStatus {
   PENDING = 'pending',
   UPLOADING = 'uploading',
   PROCESSING = 'processing',
-  READY = 'ready',
+  COMPLETED = 'completed',
   FAILED = 'failed',
   EXPIRED = 'expired',
 }
