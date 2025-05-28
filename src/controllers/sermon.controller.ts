@@ -1,22 +1,17 @@
 import { Request, Response, NextFunction } from "express";
 import asyncHandler from "../middlewares/async.mdw";
-import uploadService from "../services/upload.service";
+import UploadService from "../services/upload.service";
 import ErrorResponse from "../utils/error.util";
-import { IUserDoc } from "../utils/interface.util";
-import { ContentType } from "../utils/enums.util";
 
-// upload sermon
 export const UploadSermon = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const file = req.file;
+
+    const file = (req as any).file;
     if (!file) {
-      return next(new ErrorResponse("No file uploaded", 400, []));
+      return next(new ErrorResponse("No file found in request", 400, []));
     }
 
-    const type = req.body.type || ContentType.SERMON;
-    const user = req.user as IUserDoc;
-
-    const session = await uploadService.initiateUpload(file, type, user);
+    const session = await UploadService.createUpload(file);
     if (!session) {
       return next(new ErrorResponse("Failed to initiate upload", 500, []));
     }
@@ -30,6 +25,7 @@ export const UploadSermon = asyncHandler(
     });
   }
 );
+
 
 
 // create sermon metadata
@@ -50,3 +46,4 @@ export const UploadSermon = asyncHandler(
 // unlike a sermon
 // remove to default library playlit
 // remove to count
+ 

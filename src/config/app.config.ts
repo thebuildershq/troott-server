@@ -5,7 +5,7 @@ import ENV from "../utils/env.util";
 import errorHandler from "../middlewares/error.mdw";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
-import fileUpload from "express-fileupload";
+//import fileUpload from "express-fileupload";
 import path from "path";
 import expressSanitize from "express-mongo-sanitize";
 import helmet from "helmet";
@@ -13,6 +13,9 @@ import hpp from "hpp";
 import cors from "cors";
 
 import v1Routes from "../routes/v1/routes.router"
+import busboy from "busboy";
+import { IncomingHttpHeaders } from "http";
+import uploadFile from "../middlewares/upload.mdw";
 
 
 
@@ -33,9 +36,11 @@ app.use(bodyParser.urlencoded({limit: '50mb', extended: false}))
 app.use(cookieParser())
 
 // temporaary files directory
-app.use(fileUpload({useTempFiles: true, tempFileDir: path.join(__dirname, 'tmp')}))
+//app.use(fileUpload({useTempFiles: true, tempFileDir: path.join(__dirname, 'tmp')}))
 
-
+app.use(uploadFile);
+  
+  
 /**
  * sanitize data
  * secure db against sql injection

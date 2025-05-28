@@ -1,18 +1,10 @@
-export interface CreateSermonDTO {
-  title: string;
-  description: string;
-  preacher: string;
-  duration: number; // In seconds
-  category: Array<string>;
-  sermonUrl: string;
-  imageUrl: string;
-  tags: Array<string>;
-  isPublic: boolean;
-  isSeries: boolean;
-  series?: string;
-  staff?: string;
-  playlist?: string;
-  library?: string;
+import { ContentType } from "../utils/enums.util";
+import { IUserDoc } from "../utils/interface.util";
+
+export interface UploadSermonDTO {
+  type: ContentType;
+  file?: Express.Multer.File;
+  user: IUserDoc;
 }
 
 export interface EditSermonDTO {

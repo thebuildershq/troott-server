@@ -426,9 +426,9 @@ export interface ISermonChunkMeta extends Document {
 }
 
 export interface IAudioMetadata {
-  //formatName?: string;
+  formatName?: string;
   codec?: string;
-  //duration?: number;
+  duration?: number;
   bitrate?: number;
   sampleRate?: number;
   numberOfChannels?: number;

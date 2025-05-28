@@ -4,13 +4,17 @@ import {
   CompleteMultipartUploadCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { IUserDoc } from "../utils/interface.util";
+import { IResult, IUserDoc } from "../utils/interface.util";
 import UploadSession from "../models/Upload.model";
 import StorageService from "./storage.service";
-import { IAudioMetadata, parseBuffer } from "music-metadata";
+import { parseBuffer, parseStream } from "music-metadata";
 import { v4 as uuidv4 } from "uuid";
 import { ContentType, EUploadStatus } from "../utils/enums.util";
-
+import { UploadSermonDTO } from "../dtos/sermon.dto";
+import Busboy, { FileInfo } from "busboy";
+import { PassThrough, Readable } from "stream";
+import { Upload } from "@aws-sdk/lib-storage";
+import { IncomingHttpHeaders } from "http";
 
 class UploadSermonService {
   private s3Client: S3Client;
@@ -53,78 +57,77 @@ class UploadSermonService {
    * @throws {Error} If file is invalid or if S3/mongo operations fail
    */
 
-  public async initiateUpload(
-    file: Express.Multer.File,
-    type: ContentType,
-    user: IUserDoc
-  ) {
-    if (!this.validateFile(file, type)) {
-      throw new Error("Invalid file type or size");
+  public async createUpload(file: {
+    buffer: Buffer;
+    info: { filename: string; mimeType: string };
+    mimeType: string;
+    fileName: string;
+    size: number;
+  }) {
+    if (!this.ALLOWED_AUDIO_TYPES.includes(file.mimeType)) {
+      throw new Error("Invalid file type");
     }
 
-    // extract audio metadata
-    const data = await parseBuffer(file.buffer, file.mimetype);
+    // Create read stream from buffer
+    const readableStream = new PassThrough();
+    readableStream.end(file.buffer);
 
-    const audioMetadata: IAudioMetadata = {
-      // @ts-ignore
-      formatName: data.format.container,
-      codec: data.format.codec,
-      duration: data.format.duration,
-      bitrate: data.format.bitrate,
-      sampleRate: data.format.sampleRate,
-      numberOfChannels: data.format.numberOfChannels,
-      lossless: data.format.lossless,
-      tags: {
-        title: data.common.title,
-        artist: data.common.artist,
-        album: data.common.album,
-        year: data.common.year,
-        genre: data.common.genre,
-        comment: data.common.comment,
-        ...data.common, // optional: keep this if you want full tag support
-      },
-    };
-    // Calculate chunks
-    const chunkSize = this.CHUNK_SIZE;
-    const totalChunks = Math.ceil(file.size / chunkSize);
     const uploadId = uuidv4();
-    const s3Key = `uploads/sermons/${uploadId}/${file.originalname}`;
+    const s3Key = `uploads/sermons/${uploadId}/${file.info.filename}`;
 
-    // Create multipart upload in S3
-    const multipartUpload = await this.s3Client.send(
-      new CreateMultipartUploadCommand({
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: s3Key,
-        ContentType: file.mimetype,
-      })
-    );
+    try {
+      // Parse metadata from buffer
+      const metadata = await parseBuffer(file.buffer, file.mimeType, { duration: true });
 
-    // Save upload session
-    const session = await UploadSession.create({
-      uploadId,
-      fileName: file.originalname,
-      fileSize: file.size,
-      mimeType: file.mimetype,
-      chunkSize,
-      totalChunks,
-      uploadedChunks: [],
-      status: EUploadStatus.PENDING,
-      uploadedBy: user._id,
-      multipartUploadId: multipartUpload.UploadId,
-      s3Key,
-      streamS3Prefix: "",
-      metadata: audioMetadata,
-      retryCount: 0,
-      expiresAt: new Date(Date.now() + this.UPLOAD_EXPIRY),
-    });
+      // Upload stream to S3
+      const multipartUpload = new Upload({
+        client: this.s3Client,
+        params: {
+          Bucket: process.env.AWS_BUCKET_NAME!,
+          Key: s3Key,
+          Body: readableStream,
+          ContentType: file.mimeType,
+        },
+      });
 
-    return session;
+      await multipartUpload.done();
+
+      const audioMetadata = {
+        formatName: metadata.format.container,
+        codec: metadata.format.codec,
+        duration: metadata.format.duration,
+        bitrate: metadata.format.bitrate,
+        sampleRate: metadata.format.sampleRate,
+        numberOfChannels: metadata.format.numberOfChannels,
+        lossless: metadata.format.lossless,
+        tags: metadata.common,
+      };
+
+      const session = await UploadSession.create({
+        uploadId,
+        fileName: file.info.filename,
+        fileSize: file.size,
+        mimeType: file.mimeType,
+        status: EUploadStatus.COMPLETED,
+        s3Key,
+        streamS3Prefix: "",
+        metadata: audioMetadata,
+        retryCount: 0,
+        expiresAt: new Date(Date.now() + this.UPLOAD_EXPIRY),
+      });
+
+      return session;
+    } catch (err) {
+      throw err;
+    }
   }
 
 
-
   //utily functions
-  private validateFile(file: Express.Multer.File, type: ContentType): boolean {
+  public async validateFile(
+    file: Express.Multer.File,
+    type: ContentType
+  ): Promise<boolean> {
     // Check file size
     if (file.size > this.MAX_FILE_SIZE) {
       return false;
@@ -143,6 +146,45 @@ class UploadSermonService {
     // }
 
     return true;
+  }
+
+  
+  public async validateUpload(data: UploadSermonDTO): Promise<IResult> {
+    const allowedAudios = [
+      "audio/mpeg",
+      "audio/aac",
+      "audio/wav",
+      "audio/x-m4a",
+    ];
+
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    if (!data.file) {
+      result.error = true;
+      result.message = "Sermon file is required";
+    } else if (data.file.size > this.MAX_FILE_SIZE) {
+      result.error = true;
+      result.message = "File too large";
+    } else if (!data.user) {
+      result.error = true;
+      result.message = "Authentication is required";
+    } else if (
+      (!data.type && ContentType.SERMON) ||
+      allowedAudios.includes(data.file.mimetype)
+    ) {
+      result.error = true;
+      result.message = "Invalid content type";
+    } else if (!allowedAudios.includes(data.file.mimetype)) {
+      result.error = true;
+      result.message = `Invalid file type. choose from ${allowedAudios.join(
+        ","
+      )}`;
+    } else {
+      result.error = false;
+      result.message = "";
+    }
+
+    return result;
   }
 }
 

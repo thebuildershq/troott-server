@@ -105,12 +105,12 @@ export const registerUser = asyncHandler(
       }
     }
 
-    res.status(201).json({
+    res.status(200).json({
       error: false,
       errors: [],
       data: user,
       message: "OTP has been sent to your email!",
-      status: 201,
+      status: 200,
     });
   }
 );
