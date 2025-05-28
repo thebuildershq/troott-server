@@ -1,8 +1,17 @@
 import { Request, Response, NextFunction } from "express";
-import Logger from "../utils/logger.util"; 
+import Logger from "../utils/logger.util";
 import colors from "colors";
 import { generateRandomChars } from "../utils/helper.util";
 
+const sanitizeData = (data: any) => {
+  const sensitiveFields = ["password", "token", "ssn"];
+  if (typeof data === "object" && data !== null) {
+    for (const field of sensitiveFields) {
+      if (data[field]) data[field] = "***";
+    }
+  }
+  return data;
+};
 
 /**
  * @name requestLogger
@@ -17,7 +26,8 @@ export const requestLogger = (
   next: NextFunction
 ) => {
   const correlationId = generateRandomChars(24);
-  req.headers["x-correlation-id"] = correlationId;
+  (req as any).correlationId = correlationId;
+  res.setHeader("x-correlation-id", correlationId);
 
   if (!req.method || !req.url) {
     Logger.log({
@@ -34,16 +44,6 @@ export const requestLogger = (
     type: "info",
   });
 
-  const sanitizeData = (data: any) => {
-    const sensitiveFields = ["password", "token", "ssn"];
-    if (typeof data === "object" && data !== null) {
-      for (const field of sensitiveFields) {
-        if (data[field]) data[field] = "***";
-      }
-    }
-    return data;
-  };
-
   if (req.body) {
     Logger.log({
       label: colors.blue.bold("Sanitized Request Data"),
@@ -56,6 +56,7 @@ export const requestLogger = (
 
   res.on("finish", () => {
     const duration = Date.now() - startTime;
+
     Logger.log({
       label: colors.blue.bold("Request Completed"),
       data: `
@@ -72,19 +73,13 @@ export const requestLogger = (
           : "success",
     });
 
-    const sanitizeData = (data: any) => {
-        if (typeof data === "object" && data.password) {
-          data.password = "***"; 
-        }
-        return data;
-      };
-
-      Logger.log({ 
-        label: "Request Data", 
-        data: sanitizeData(req.body), 
-        type: "info" 
-    });
-      
+    if (req.body) {
+      Logger.log({
+        label: "Request Data",
+        data: sanitizeData(req.body),
+        type: "info",
+      });
+    }
   });
 
   next();

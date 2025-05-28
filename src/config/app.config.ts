@@ -5,17 +5,13 @@ import ENV from "../utils/env.util";
 import errorHandler from "../middlewares/error.mdw";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
-//import fileUpload from "express-fileupload";
-import path from "path";
 import expressSanitize from "express-mongo-sanitize";
 import helmet from "helmet";
 import hpp from "hpp";
 import cors from "cors";
-
 import v1Routes from "../routes/v1/routes.router"
-import busboy from "busboy";
-import { IncomingHttpHeaders } from "http";
 import uploadFile from "../middlewares/upload.mdw";
+import { requestLogger } from "../services/logger.service";
 
 
 
@@ -39,6 +35,8 @@ app.use(cookieParser())
 //app.use(fileUpload({useTempFiles: true, tempFileDir: path.join(__dirname, 'tmp')}))
 
 app.use(uploadFile);
+
+app.use(requestLogger)
   
   
 /**
