@@ -372,7 +372,7 @@ export interface ISermonDoc extends Document {
 
 export interface ISermonUpload extends Document {
   uploadId: string;
-  filename: string;
+  fileName: string;
   fileSize: number; // in bytes
   mimetype: string;
 

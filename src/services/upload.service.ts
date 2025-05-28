@@ -68,16 +68,41 @@ class UploadSermonService {
       throw new Error("Invalid file type");
     }
 
+    console.log("File:", file);
+
     // Create read stream from buffer
     const readableStream = new PassThrough();
     readableStream.end(file.buffer);
 
     const uploadId = uuidv4();
-    const s3Key = `uploads/sermons/${uploadId}/${file.info.filename}`;
+    const s3Key = `sermons/${uploadId}/${file.info.filename}`;
 
     try {
       // Parse metadata from buffer
-      const metadata = await parseBuffer(file.buffer, file.mimeType, { duration: true });
+      const metadata = await parseBuffer(file.buffer, file.mimeType, {
+        duration: true,
+      });
+
+      //console.log("Metadata:", metadata);
+
+      const audioMetadata = {
+        formatName: metadata.format.container,
+        codec: metadata.format.codec,
+        duration: metadata.format.duration,
+        bitrate: metadata.format.bitrate,
+        sampleRate: metadata.format.sampleRate,
+        numberOfChannels: metadata.format.numberOfChannels,
+        lossless: metadata.format.lossless,
+        tags: {
+          title: metadata.common.title,
+          artist: metadata.common.artist,
+          album: metadata.common.album,
+          year: metadata.common.year,
+          genre: metadata.common.genre,
+          comment: metadata.common.comment,
+          ...metadata.common,
+        },
+      };
 
       // Upload stream to S3
       const multipartUpload = new Upload({
@@ -92,17 +117,7 @@ class UploadSermonService {
 
       await multipartUpload.done();
 
-      const audioMetadata = {
-        formatName: metadata.format.container,
-        codec: metadata.format.codec,
-        duration: metadata.format.duration,
-        bitrate: metadata.format.bitrate,
-        sampleRate: metadata.format.sampleRate,
-        numberOfChannels: metadata.format.numberOfChannels,
-        lossless: metadata.format.lossless,
-        tags: metadata.common,
-      };
-
+      // Save upload session
       const session = await UploadSession.create({
         uploadId,
         fileName: file.info.filename,
@@ -121,7 +136,6 @@ class UploadSermonService {
       throw err;
     }
   }
-
 
   //utily functions
   public async validateFile(
@@ -148,7 +162,6 @@ class UploadSermonService {
     return true;
   }
 
-  
   public async validateUpload(data: UploadSermonDTO): Promise<IResult> {
     const allowedAudios = [
       "audio/mpeg",
