@@ -54,8 +54,70 @@ class UploadSermonService {
    *
    * @throws {Error} If file is invalid or if S3/mongo operations fail
    */
-
   public async createUpload(file: {
+    stream: PassThrough;
+    streamForMetadata: PassThrough;
+    info: { filename: string; mimeType: string };
+    mimeType: string;
+    fileName: string;
+    size: number;
+  }) {
+    const uploadId = uuidv4();
+    const s3Key = `sermons/${uploadId}/${file.info.filename}`;
+  
+    try {
+      // Parse audio metadata
+      const metadata = await parseStream(file.streamForMetadata, file.mimeType, {
+        duration: true,
+      });
+  
+      console.log("Metadata:", metadata);
+  
+      const audioMetadata: IAudioMetadata = {
+        formatName: metadata.format.container,
+        codec: metadata.format.codec,
+        duration: metadata.format.duration,
+        bitrate: metadata.format.bitrate,
+        year: metadata.common.year,
+      };
+  
+      // Upload to S3
+      const multipartUpload = new Upload({
+        client: this.s3Client,
+        params: {
+          Bucket: process.env.AWS_BUCKET_NAME!,
+          Key: s3Key,
+          Body: file.stream,
+          ContentType: file.mimeType,
+        },
+      });
+  
+      await multipartUpload.done();
+  
+      // Save upload session in DB
+      const session = await UploadSession.create({
+        uploadId,
+        fileName: file.info.filename,
+        fileSize: file.size,
+        mimeType: file.mimeType,
+        status: EUploadStatus.COMPLETED,
+        s3Key,
+        streamS3Prefix: `sermons/streaming/${uploadId}/`,
+        metadata: audioMetadata,
+        retryCount: 0,
+        expiresAt: new Date(Date.now() + this.UPLOAD_EXPIRY),
+      });
+  
+      return session;
+    } catch (err) {
+      file.stream.destroy();
+      file.streamForMetadata.destroy();
+      throw err;
+    }
+  }
+
+  
+  public async createUploadS(file: {
     stream: PassThrough;
     streamForMetadata: PassThrough;
     info: { filename: string; mimeType: string };
@@ -95,6 +157,8 @@ class UploadSermonService {
           ContentType: mimeType,
         },
       });
+
+      
 
       await multipartUpload.done();
 
@@ -152,9 +216,9 @@ class UploadSermonService {
       "audio/wav",
       "audio/x-m4a",
     ];
-
+  
     let result: IResult = { error: false, message: "", code: 200, data: {} };
-
+  
     if (!data.file) {
       result.error = true;
       result.message = "Sermon file is required";
@@ -164,24 +228,17 @@ class UploadSermonService {
     } else if (!data.user) {
       result.error = true;
       result.message = "Authentication is required";
-    } else if (
-      (!data.type && ContentType.SERMON) ||
-      allowedAudios.includes(data.file.mimetype)
-    ) {
+    } else if (!data.type || !allowedAudios.includes(data.file.mimetype)) {
       result.error = true;
-      result.message = "Invalid content type";
-    } else if (!allowedAudios.includes(data.file.mimetype)) {
-      result.error = true;
-      result.message = `Invalid file type. choose from ${allowedAudios.join(
-        ","
-      )}`;
+      result.message = `Invalid content type. Choose from ${allowedAudios.join(", ")}`;
     } else {
       result.error = false;
       result.message = "";
     }
-
+  
     return result;
   }
+  
 }
 
 export default new UploadSermonService();
