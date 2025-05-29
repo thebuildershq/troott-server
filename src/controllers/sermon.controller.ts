@@ -1,17 +1,29 @@
 import { Request, Response, NextFunction } from "express";
 import asyncHandler from "../middlewares/async.mdw";
-import UploadService from "../services/upload.service";
+import SermonService from "../services/sermon.service";
 import ErrorResponse from "../utils/error.util";
+import sermonRepository from "../repositories/sermon.repository";
+import { PublishSermonDTO } from "../dtos/sermon.dto";
 
-export const UploadSermon = asyncHandler(
+
+/**
+ * @name uploadSermon
+ * @description A method to handle sermon file uploads.
+ * Processes the multipart form data, validates the upload,
+ * and initiates the upload session.
+ * @route POST /api/v1/sermon/upload
+ * @access Public
+ * @param {File} file
+ * @returns {Object} a uplaod sermon details
+ */
+export const uploadSermon = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-
     const file = (req as any).file;
     if (!file) {
       return next(new ErrorResponse("No file found in request", 400, []));
     }
 
-    const session = await UploadService.createUpload(file);
+    const session = await SermonService.handleUpload(file);
     if (!session) {
       return next(new ErrorResponse("Failed to initiate upload", 500, []));
     }
@@ -26,7 +38,51 @@ export const UploadSermon = asyncHandler(
   }
 );
 
+/**
+ * @name publishSermon
+ * @description A method to publish a processed sermon.
+ * Makes the sermon publicly accessible and updates its status.
+ * @route POST /api/v1/sermon/publish
+ * @access Public
+ * @returns {Object} publlished sermon
+ */
+export const publishSermon = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const {
+      uploadId,
+      title,
+      description,
+      duration,
+      releaseDate,
+      releaseYear,
+      sermonUrl,
+      imageUrl,
+      category,
+      tags,
+      isPublic,
+      isSeries,
+      uploadedBy,
+    }: PublishSermonDTO = req.body;
 
+    const uploadExit = await sermonRepository.findByUploadId(uploadId);
+    if (uploadExit.error) {
+      return next(new ErrorResponse(uploadExit.message, uploadExit.code!, []));
+    }
+
+    const session = await SermonService.handlePublish(req.body);
+    if (!session) {
+      return next(new ErrorResponse("Failed to initiate publish", 500, []));
+    }
+
+    res.status(200).json({
+      error: false,
+      errors: [],
+      data: session,
+      message: "sermon published succesfully",
+      status: 200,
+    });
+  }
+);
 
 // create sermon metadata
 // get sermon metadata
@@ -46,4 +102,3 @@ export const UploadSermon = asyncHandler(
 // unlike a sermon
 // remove to default library playlit
 // remove to count
- 

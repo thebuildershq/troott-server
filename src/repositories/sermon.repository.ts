@@ -1,23 +1,28 @@
 import { Model } from "mongoose";
 import Sermon from "../models/Sermon.model";
-import { IResult, ISermonDoc } from "../utils/interface.util";
+import UploadSermon from "../models/Upload.model";
+import { IResult, ISermonDoc, ISermonUpload } from "../utils/interface.util";
+
 
 class SermonRepository {
-  private model: Model<ISermonDoc>;
+  private SermonModel: Model<ISermonDoc>;
+  private UploadSermonModel: Model<ISermonUpload>;
 
   constructor() {
-    this.model = Sermon;
+    this.SermonModel = Sermon;
+    this.UploadSermonModel = UploadSermon;
   }
 
   /**
    * @name findById
+   * @description Find a sermon by Uplaod ID
    * @param id
    * @returns {Promise<IResult>}
    */
-  public async findById(id: string): Promise<IResult> {
+  public async findByUploadId(id: string): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const sermon = await this.model.findById(id);
+    const sermon = await this.UploadSermonModel.findById(id);
     if (!sermon) {
       result.error = true;
       result.code = 404;
@@ -29,6 +34,28 @@ class SermonRepository {
     return result;
   }
 
+    /**
+   * @name findById
+   * @description Find a sermon by ID
+   * @param id
+   * @returns {Promise<IResult>}
+   */
+    public async findBySermonId(id: string): Promise<IResult> {
+      let result: IResult = { error: false, message: "", code: 200, data: {} };
+  
+      const sermon = await this.SermonModel.findById(id);
+      if (!sermon) {
+        result.error = true;
+        result.code = 404;
+        result.message = "Sermon not found";
+      } else {
+        result.data = sermon;
+      }
+  
+      return result;
+    }
+  
+
   /**
    * @name findByTitle
    * @param title
@@ -37,7 +64,7 @@ class SermonRepository {
   public async findByTitle(title: string): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const sermon = await this.model.findOne({ title }).lean();
+    const sermon = await this.SermonModel.findOne({ title }).lean();
     if (!sermon) {
       result.error = true;
       result.code = 404;
@@ -56,7 +83,7 @@ class SermonRepository {
   public async getSermons(): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const sermons = await this.model.find({}).lean();
+    const sermons = await this.SermonModel.find({}).lean();
     result.data = sermons;
 
     return result;
@@ -70,7 +97,7 @@ class SermonRepository {
   public async createSermon(sermonData: Partial<ISermonDoc>): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 201, data: {} };
 
-    const newSermon = await this.model.create(sermonData);
+    const newSermon = await this.SermonModel.create(sermonData);
     result.data = newSermon;
     result.message = "Sermon created successfully";
 
@@ -86,7 +113,7 @@ class SermonRepository {
   public async updateSermon(id: string, updateData: Partial<ISermonDoc>): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const updatedSermon = await this.model.findByIdAndUpdate(id, updateData, { new: true });
+    const updatedSermon = await this.SermonModel.findByIdAndUpdate(id, updateData, { new: true });
     if (!updatedSermon) {
       result.error = true;
       result.code = 404;
@@ -107,7 +134,7 @@ class SermonRepository {
   public async deleteSermon(id: string): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const deletedSermon = await this.model.findByIdAndDelete(id);
+    const deletedSermon = await this.SermonModel.findByIdAndDelete(id);
     if (!deletedSermon) {
       result.error = true;
       result.code = 404;
@@ -128,7 +155,7 @@ class SermonRepository {
   public async getSermonsByPreacher(preacherId: string): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const sermons = await this.model.find({ preacher: preacherId }).lean();
+    const sermons = await this.SermonModel.find({ preacher: preacherId }).lean();
     result.data = sermons;
 
     return result;
@@ -142,7 +169,7 @@ class SermonRepository {
   public async getSermonsByCategory(category: string): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const sermons = await this.model.find({ category }).lean();
+    const sermons = await this.SermonModel.find({ category }).lean();
     result.data = sermons;
 
     return result;
@@ -156,7 +183,7 @@ class SermonRepository {
   public async getSermonsBySeries(seriesId: string): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const sermons = await this.model.find({ series: seriesId }).lean();
+    const sermons = await this.SermonModel.find({ series: seriesId }).lean();
     result.data = sermons;
 
     return result;
@@ -169,7 +196,7 @@ class SermonRepository {
   public async getPublicSermons(): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const sermons = await this.model.find({ isPublic: true }).lean();
+    const sermons = await this.SermonModel.find({ isPublic: true }).lean();
     result.data = sermons;
 
     return result;
@@ -183,7 +210,7 @@ class SermonRepository {
   public async getTrendingSermons(): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const sermons = await this.model.find({}).sort({ totalPlay: -1 }).limit(10).lean();
+    const sermons = await this.SermonModel.find({}).sort({ totalPlay: -1 }).limit(10).lean();
     result.data = sermons;
 
     return result;

@@ -1,3 +1,4 @@
+import { ObjectId } from "mongoose";
 import { ContentType } from "../utils/enums.util";
 import { IUserDoc } from "../utils/interface.util";
 
@@ -6,6 +7,25 @@ export interface UploadSermonDTO {
   file?: Express.Multer.File;
   user: IUserDoc;
 }
+
+export interface PublishSermonDTO {
+  uploadId: string;
+  title: string;
+  description: string;
+  duration: number;
+  releaseDate: Date;
+  releaseYear: number;
+  sermonUrl: string;
+  imageUrl: string;
+  category: Array<string>;
+  tags: Array<string>;
+  isPublic: boolean;
+  isSeries: boolean;
+  uploadedBy: ObjectId;
+
+}
+
+
 
 export interface EditSermonDTO {
   title?: string;

@@ -4,17 +4,24 @@ import {
   CompleteMultipartUploadCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { IAudioMetadata, IResult, IUserDoc } from "../utils/interface.util";
+import {
+  IAudioMetadata,
+  IResult,
+  ISermonDoc,
+  IUserDoc,
+} from "../utils/interface.util";
 import UploadSession from "../models/Upload.model";
 import StorageService from "./storage.service";
 import { parseBuffer, parseStream } from "music-metadata";
 import { v4 as uuidv4 } from "uuid";
 import { ContentType, EUploadStatus } from "../utils/enums.util";
-import { UploadSermonDTO } from "../dtos/sermon.dto";
+import { PublishSermonDTO, UploadSermonDTO } from "../dtos/sermon.dto";
 import { PassThrough } from "stream";
 import { Upload } from "@aws-sdk/lib-storage";
+import sermonRepository from "../repositories/sermon.repository";
+import Sermon from "../models/Sermon.model";
 
-class UploadSermonService {
+class SermonService {
   private s3Client: S3Client;
   private storageService: typeof StorageService;
   private readonly CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
@@ -38,23 +45,9 @@ class UploadSermonService {
     this.storageService = StorageService;
   }
 
-  /**
-   * Initiates a multipart upload session for large audio/video files.
-   *
-   * - Validates file type and size
-   * - Calculates the number of chunks
-   * - Creates a multipart upload in AWS S3
-   * - Saves a new UploadSession document in DB - MongoDB
-   *
-   * @param {Express.Multer.File} file - The uploaded file (only used for metadata)
-   * @param {ContentType} type - The type of content being uploaded (e.g. 'sermon', 'sermonBite')
-   * @param {IUserDoc} user - The authenticated user initiating the upload
-   *
-   * @returns {Promise<UploadSession>} The newly created upload session document
-   *
-   * @throws {Error} If file is invalid or if S3/mongo operations fail
-   */
-  public async createUpload(file: {
+  //JSDoc
+
+  public async handleUpload(file: {
     stream: PassThrough;
     streamForMetadata: PassThrough;
     info: { filename: string; mimeType: string };
@@ -64,15 +57,19 @@ class UploadSermonService {
   }) {
     const uploadId = uuidv4();
     const s3Key = `sermons/${uploadId}/${file.info.filename}`;
-  
+
     try {
       // Parse audio metadata
-      const metadata = await parseStream(file.streamForMetadata, file.mimeType, {
-        duration: true,
-      });
-  
+      const metadata = await parseStream(
+        file.streamForMetadata,
+        file.mimeType,
+        {
+          duration: true,
+        }
+      );
+
       console.log("Metadata:", metadata);
-  
+
       const audioMetadata: IAudioMetadata = {
         formatName: metadata.format.container,
         codec: metadata.format.codec,
@@ -80,7 +77,7 @@ class UploadSermonService {
         bitrate: metadata.format.bitrate,
         year: metadata.common.year,
       };
-  
+
       // Upload to S3
       const multipartUpload = new Upload({
         client: this.s3Client,
@@ -91,9 +88,9 @@ class UploadSermonService {
           ContentType: file.mimeType,
         },
       });
-  
+
       await multipartUpload.done();
-  
+
       // Save upload session in DB
       const session = await UploadSession.create({
         uploadId,
@@ -107,7 +104,7 @@ class UploadSermonService {
         retryCount: 0,
         expiresAt: new Date(Date.now() + this.UPLOAD_EXPIRY),
       });
-  
+
       return session;
     } catch (err) {
       file.stream.destroy();
@@ -115,6 +112,54 @@ class UploadSermonService {
       throw err;
     }
   }
+
+  // let result: IResult = { error: false, message: "", code: 200, data: null };
+
+  public async handlePublish(data: PublishSermonDTO): Promise<ISermonDoc> {
+    const {
+      uploadId,
+      title,
+      description,
+      duration,
+      releaseDate,
+      releaseYear,
+      sermonUrl,
+      imageUrl,
+      category,
+      tags,
+      isPublic,
+      isSeries,
+      uploadedBy,
+    } = data;
+
+    const session = await sermonRepository.findByUploadId(uploadId)
+    if (!session) {
+      throw new Error("Sermon already exist");
+    }
+
+    let sermon: ISermonDoc = await Sermon.create({
+      title,
+      description,
+      duration,
+      releaseDate,
+      releaseYear,
+      sermonUrl,
+      imageUrl,
+      category,
+      tags,
+      isPublic,
+      isSeries,
+      uploadedBy,
+      uploadId,
+    });
+
+    await sermon.save();
+
+    return sermon;
+      
+    }
+
+  
 
   
 
@@ -150,9 +195,9 @@ class UploadSermonService {
       "audio/wav",
       "audio/x-m4a",
     ];
-  
+
     let result: IResult = { error: false, message: "", code: 200, data: {} };
-  
+
     if (!data.file) {
       result.error = true;
       result.message = "Sermon file is required";
@@ -164,17 +209,58 @@ class UploadSermonService {
       result.message = "Authentication is required";
     } else if (!data.type || !allowedAudios.includes(data.file.mimetype)) {
       result.error = true;
-      result.message = `Invalid content type. Choose from ${allowedAudios.join(", ")}`;
+      result.message = `Invalid content type. Choose from ${allowedAudios.join(
+        ", "
+      )}`;
     } else {
       result.error = false;
       result.message = "";
     }
-  
+
     return result;
   }
-
-
-  
 }
 
-export default new UploadSermonService();
+export default new SermonService();
+
+/**Switch to manual multipart logic
+Add logic to:
+Start multipart
+Upload each chunk manually
+Resume from the last good chunk
+Complete the multipart session 
+
+Handles:
+Metadata extraction using music-metadata
+Uploading original audio to S3
+Creating initial upload session in MongoDB (status: PENDING)
+Methodsz
+extractAudioMetadata(stream)
+uploadOriginal(stream, fileInfo)
+createUploadSession(data)
+
+Processing logic
+After upload completes successfully, offload to a queue/job runner (like BullMQ).
+
+Handles:
+Transcoding into various bitrates using FFmpeg (@ffmpeg/ffmpeg or spawn)
+Uploading processed audio chunks to a CloudFront-backed S3 prefix
+Updating session in MongoDB (status: PROCESSING -> READY)
+
+Methods:
+transcodeAndUploadToBitrates(uploadSession)
+generateHLSManifest() or generateDashManifest() (optional, if you go adaptive)
+updateUploadStatus(uploadId, status)
+
+4. PublishService
+Handles:
+Making the processed sermon publicly accessible
+Updating visibility or status fields in MongoDB
+Optionally, generating pre-signed CDN URLs or attaching sermon to a Series, Preacher, etc.
+
+ 5. Job Queue (e.g. BullMQ)
+After UploadService.createUpload() finishes, enqueue a job for 
+ProcessingService.transcodeAndUploadToBitrates()
+Make this a separate worker process to avoid blocking your main app
+
+*/

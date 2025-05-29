@@ -211,6 +211,13 @@ export interface IPreacherDoc extends Document {
   user: ObjectId | any;
   transactions: Array<ObjectId | any>;
   createdBy: ObjectId | any;
+  deletedSermons: Array<{
+    id: ObjectId;
+    deletedBy: ObjectId | any;
+    deletedAt: Date;
+    reason?: string;
+  }>;
+
 
   // time stamps
   createdAt: string;
@@ -329,37 +336,31 @@ export interface IStaffDoc extends Document {
 export interface ISermonDoc extends Document {
   title: string;
   description: string;
-  duration: number; // In seconds
-  category: Array<string>;
+  duration: number;
+  releaseDate: Date;
+  releaseYear: number;
   sermonUrl: string;
   imageUrl: string;
-  tags: Array<string>;
+  size: number;
 
+  category: Array<string>;
+  tags: Array<string>;
   isPublic: boolean;
+  isSeries: boolean;
+  shareableUrl: string;
+ 
   totalPlay: ISermonPlayCount;
   totalShares: ISermonShareCount;
-  isSeries: boolean;
   state: EContentState;
   status: EContentStatus;
 
   //Modifications
   versionId?: ObjectId;
-  modifiedAt: Date;
-  modifiedBy: ObjectId | any;
   changesSummary: string;
-  deletedSermons: Array<{
-    id: ObjectId;
-    deletedBy: ObjectId | any;
-    deletedAt: Date;
-    reason?: string;
-  }>;
-
+ 
   // relatiionships
   preacher: ObjectId | any;
-  series: ObjectId | any;
-  staff: ObjectId | any;
   playlist: ObjectId | any;
-  library: ObjectId | any;
   createdBy: ObjectId | any;
 
   // timestamps
