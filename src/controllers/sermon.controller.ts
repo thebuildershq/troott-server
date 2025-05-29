@@ -7,9 +7,9 @@ export const UploadSermon = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
 
     const file = (req as any).file;
-    if (!file) {
-      return next(new ErrorResponse("No file found in request", 400, []));
-    }
+    // if (!file) {
+    //   return next(new ErrorResponse("No file found in request", 400, []));
+    // }
 
     const session = await UploadService.createUpload(file);
     if (!session) {

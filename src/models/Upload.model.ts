@@ -6,7 +6,7 @@ import { EDbModels, EUploadStatus } from "../utils/enums.util";
 const SermonUploadSchema = new Schema<ISermonUpload>(
   {
     uploadId: { type: String, required: true, unique: true },
-    filename: { type: String },
+    fileName: { type: String },
     fileSize: { type: Number },
     mimetype: { type: String },
     
@@ -32,10 +32,11 @@ const SermonUploadSchema = new Schema<ISermonUpload>(
     s3Key: { type: String },
     streamS3Prefix: { type: String },
     metadata: {
-      title: { type: String },
-      description: { type: String },
-      tags: [String],
-      category: { type: String },
+      formatName: { type: String },
+      codec: { type: String },
+      duration: { type: Number },
+      bitrate: { type: Number },
+      year: { type: Number },
     },
 
     retryCount: { type: Number, default: 0 },
@@ -55,7 +56,6 @@ const SermonUploadSchema = new Schema<ISermonUpload>(
   }
 );
 
-SermonUploadSchema.set("toJSON", { virtuals: true, getters: true });
 
 const UploadSermon: Model<ISermonUpload> = mongoose.model<ISermonUpload>(
   EDbModels.UPLOAD,

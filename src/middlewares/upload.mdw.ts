@@ -3,13 +3,15 @@ import asyncHandler from "./async.mdw";
 import busboy, { FileInfo } from "busboy";
 import { IncomingHttpHeaders } from "http";
 import { PassThrough } from "stream";
+import { once } from "events";
 
 
 const uploadFile = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const contentType = req.headers["content-type"];
 
-    if (req.method === "POST" || contentType?.includes("multipart/form-data")) {
+    // Validate the request method and content-type
+    if (req.method === "POST" || !contentType?.includes("multipart/form-data")) {
       return next();
     }
 
@@ -17,12 +19,14 @@ const uploadFile = asyncHandler(
       headers: req.headers as IncomingHttpHeaders,
     });
 
-    let fileStream: PassThrough | null = null;
-    let fileInfo: FileInfo | null = null;
-    let fileMimeType = "";
+    let hasFile = false;
+    let mimeType = "";
     let fileName = "";
     let fileSize = 0;
-    let hasFile = false;
+    let fileInfo: FileInfo | null = null;
+
+    const metadataStream = new PassThrough();
+    const uploadStream = new PassThrough();
 
     bb.on("file", (fieldname, file, info) => {
       if (fieldname !== "file") {
@@ -32,12 +36,12 @@ const uploadFile = asyncHandler(
 
       hasFile = true;
       fileInfo = info;
-      fileMimeType = info.mimeType;
+      mimeType = info.mimeType;
       fileName = info.filename;
 
-      const passthrough = new PassThrough();
-      file.pipe(passthrough);
-      fileStream = passthrough;
+      // Pipe the incoming stream into two PassThroughs
+      file.pipe(metadataStream);
+      file.pipe(uploadStream);
 
       file.on("data", (chunk) => {
         fileSize += chunk.length;
@@ -45,12 +49,14 @@ const uploadFile = asyncHandler(
       });
 
       file.on("limit", () => {
-        passthrough.destroy();
+        metadataStream.destroy();
+        uploadStream.destroy();
         return next(new Error("File size limit reached"));
       });
 
       file.on("error", (err) => {
-        passthrough.destroy();
+        metadataStream.destroy(err);
+        uploadStream.destroy(err);
         return next(err);
       });
     });
@@ -60,24 +66,39 @@ const uploadFile = asyncHandler(
     });
 
     bb.on("finish", () => {
-      if (!hasFile || !fileStream) {
+      if (!hasFile) {
         return next(new Error("No file uploaded"));
       }
 
       // Attach file info and stream to req for downstream use
       (req as any).file = {
-        stream: fileStream,
-        info: fileInfo,
-        mimeType: fileMimeType,
+        stream: uploadStream,
+        streamForMetadata: metadataStream,
         fileName,
+        mimeType,
+        info: fileInfo,  
         size: fileSize,
       };
       next();
     });
 
     bb.on("error", (err) => {
-      return next(err);
+        if (err instanceof Error) {
+            metadataStream.destroy(err);
+            uploadStream.destroy(err);
+            return next(err);
+          }
+
+        const error = new Error("Unknown upload error");
+        
+        metadataStream.destroy(error);
+        uploadStream.destroy(error);
+        next(error);
     });
+
+    req.pipe(bb);
+
+    await once(bb, "finish");
   }
 );
 

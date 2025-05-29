@@ -4,17 +4,15 @@ import {
   CompleteMultipartUploadCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { IResult, IUserDoc } from "../utils/interface.util";
+import { IAudioMetadata, IResult, IUserDoc } from "../utils/interface.util";
 import UploadSession from "../models/Upload.model";
 import StorageService from "./storage.service";
 import { parseBuffer, parseStream } from "music-metadata";
 import { v4 as uuidv4 } from "uuid";
 import { ContentType, EUploadStatus } from "../utils/enums.util";
 import { UploadSermonDTO } from "../dtos/sermon.dto";
-import Busboy, { FileInfo } from "busboy";
-import { PassThrough, Readable } from "stream";
+import { PassThrough } from "stream";
 import { Upload } from "@aws-sdk/lib-storage";
-import { IncomingHttpHeaders } from "http";
 
 class UploadSermonService {
   private s3Client: S3Client;
@@ -58,60 +56,43 @@ class UploadSermonService {
    */
 
   public async createUpload(file: {
-    buffer: Buffer;
+    stream: PassThrough;
+    streamForMetadata: PassThrough;
     info: { filename: string; mimeType: string };
     mimeType: string;
     fileName: string;
     size: number;
   }) {
-    if (!this.ALLOWED_AUDIO_TYPES.includes(file.mimeType)) {
-      throw new Error("Invalid file type");
-    }
-
-    console.log("File:", file);
-
-    // Create read stream from buffer
-    const readableStream = new PassThrough();
-    readableStream.end(file.buffer);
+   
+    const { stream, streamForMetadata, mimeType, info, size } = file;
 
     const uploadId = uuidv4();
-    const s3Key = `sermons/${uploadId}/${file.info.filename}`;
+    const s3Key = `sermons/${uploadId}/${info.filename}`;
 
     try {
       // Parse metadata from buffer
-      const metadata = await parseBuffer(file.buffer, file.mimeType, {
+      const metadata = await parseStream(streamForMetadata, mimeType, {
         duration: true,
       });
 
-      //console.log("Metadata:", metadata);
+      console.log("Metadata:", metadata);
 
-      const audioMetadata = {
+      const audioMetadata: IAudioMetadata = {
         formatName: metadata.format.container,
         codec: metadata.format.codec,
         duration: metadata.format.duration,
         bitrate: metadata.format.bitrate,
-        sampleRate: metadata.format.sampleRate,
-        numberOfChannels: metadata.format.numberOfChannels,
-        lossless: metadata.format.lossless,
-        tags: {
-          title: metadata.common.title,
-          artist: metadata.common.artist,
-          album: metadata.common.album,
-          year: metadata.common.year,
-          genre: metadata.common.genre,
-          comment: metadata.common.comment,
-          ...metadata.common,
-        },
+        year: metadata.common.year,
       };
 
-      // Upload stream to S3
+      // Upload the main stream to S3
       const multipartUpload = new Upload({
         client: this.s3Client,
         params: {
           Bucket: process.env.AWS_BUCKET_NAME!,
           Key: s3Key,
-          Body: readableStream,
-          ContentType: file.mimeType,
+          Body: stream,
+          ContentType: mimeType,
         },
       });
 
@@ -120,12 +101,12 @@ class UploadSermonService {
       // Save upload session
       const session = await UploadSession.create({
         uploadId,
-        fileName: file.info.filename,
-        fileSize: file.size,
-        mimeType: file.mimeType,
+        fileName: info.filename,
+        fileSize: size,
+        mimeType,
         status: EUploadStatus.COMPLETED,
         s3Key,
-        streamS3Prefix: "",
+        streamS3Prefix: `sermons/streaming/${uploadId}/`,
         metadata: audioMetadata,
         retryCount: 0,
         expiresAt: new Date(Date.now() + this.UPLOAD_EXPIRY),
@@ -133,6 +114,8 @@ class UploadSermonService {
 
       return session;
     } catch (err) {
+      stream.destroy();
+      streamForMetadata.destroy();
       throw err;
     }
   }

@@ -373,43 +373,35 @@ export interface ISermonDoc extends Document {
 export interface ISermonUpload extends Document {
   uploadId: string;
   fileName: string;
-  fileSize: number; // in bytes
+  fileSize: number;
   mimetype: string;
 
-  chunkSize: number; // in bytes
+  chunkSize: number;
   totalChunks: number;
   uploadedChunks: Array<IUploadChunkInfo>;
 
   status: EUploadStatus;
 
   uploadedBy: ObjectId;
-  sermonId?: ObjectId; 
+  sermonId?: ObjectId;
 
   multipartUploadId?: string;
   s3Key?: string;
-  streamS3Prefix: string; // e.g. sermons/streaming/<uploadId>/
-  metadata: {
-    title?: string;
-    description?: string;
-    tags?: string[];
-    category?: string[];
-  };
+  streamS3Prefix: string;
 
+  metadata:IAudioMetadata
 
   retryCount: number;
   lastChunkUploadedAt?: Date;
   expiresAt: Date;
   error?: string;
 
- 
-  // timestamps
   createdAt: string;
   updatedAt: string;
   _version: number;
   _id: ObjectId;
   id: ObjectId;
 }
-
 export interface IUploadChunkInfo {
   chunkNumber: number;
   etag: string;
@@ -430,10 +422,7 @@ export interface IAudioMetadata {
   codec?: string;
   duration?: number;
   bitrate?: number;
-  sampleRate?: number;
-  numberOfChannels?: number;
-  lossless?: boolean;
-  tags?: IAudioTags
+  year?: number;
 }
 
 export interface IAudioTags {

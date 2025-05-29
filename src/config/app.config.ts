@@ -11,7 +11,7 @@ import hpp from "hpp";
 import cors from "cors";
 import v1Routes from "../routes/v1/routes.router"
 import uploadFile from "../middlewares/upload.mdw";
-import { requestLogger, responseTimeTracker } from "../services/logger.service";
+
 
 
 
@@ -32,8 +32,8 @@ app.use(bodyParser.urlencoded({limit: '50mb', extended: false}))
 app.use(cookieParser())
 
 // request logger
-app.use(responseTimeTracker)
-app.use(requestLogger)
+// app.use(responseTimeTracker)
+// app.use(requestLogger)
 
 // temporaary files directory
 //app.use(fileUpload({useTempFiles: true, tempFileDir: path.join(__dirname, 'tmp')}))
