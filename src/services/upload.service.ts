@@ -117,72 +117,6 @@ class UploadSermonService {
   }
 
   
-  public async createUploadS(file: {
-    stream: PassThrough;
-    streamForMetadata: PassThrough;
-    info: { filename: string; mimeType: string };
-    mimeType: string;
-    fileName: string;
-    size: number;
-  }) {
-   
-    const { stream, streamForMetadata, mimeType, info, size } = file;
-
-    const uploadId = uuidv4();
-    const s3Key = `sermons/${uploadId}/${info.filename}`;
-
-    try {
-      // Parse metadata from buffer
-      const metadata = await parseStream(streamForMetadata, mimeType, {
-        duration: true,
-      });
-
-      console.log("Metadata:", metadata);
-
-      const audioMetadata: IAudioMetadata = {
-        formatName: metadata.format.container,
-        codec: metadata.format.codec,
-        duration: metadata.format.duration,
-        bitrate: metadata.format.bitrate,
-        year: metadata.common.year,
-      };
-
-      // Upload the main stream to S3
-      const multipartUpload = new Upload({
-        client: this.s3Client,
-        params: {
-          Bucket: process.env.AWS_BUCKET_NAME!,
-          Key: s3Key,
-          Body: stream,
-          ContentType: mimeType,
-        },
-      });
-
-      
-
-      await multipartUpload.done();
-
-      // Save upload session
-      const session = await UploadSession.create({
-        uploadId,
-        fileName: info.filename,
-        fileSize: size,
-        mimeType,
-        status: EUploadStatus.COMPLETED,
-        s3Key,
-        streamS3Prefix: `sermons/streaming/${uploadId}/`,
-        metadata: audioMetadata,
-        retryCount: 0,
-        expiresAt: new Date(Date.now() + this.UPLOAD_EXPIRY),
-      });
-
-      return session;
-    } catch (err) {
-      stream.destroy();
-      streamForMetadata.destroy();
-      throw err;
-    }
-  }
 
   //utily functions
   public async validateFile(
@@ -238,6 +172,8 @@ class UploadSermonService {
   
     return result;
   }
+
+
   
 }
 

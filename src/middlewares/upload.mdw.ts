@@ -14,7 +14,7 @@ const uploadFile = asyncHandler(
       return next();
     }
 
-    const bb = busboy({
+    const stream = busboy({
       headers: req.headers as IncomingHttpHeaders,
     });
 
@@ -27,7 +27,7 @@ const uploadFile = asyncHandler(
     let uploadStream: PassThrough;
     let metadataStream: PassThrough;
 
-    bb.on("file", (fieldname, file, info) => {
+    stream.on("file", (fieldname, file, info) => {
       if (fieldname !== "file") {
         file.resume();
         return;
@@ -81,22 +81,22 @@ const uploadFile = asyncHandler(
       });
     });
 
-    bb.on("field", (name, val) => {
+    stream.on("field", (name, val) => {
       req.body[name] = val;
     });
 
-    bb.on("finish", () => {
+    stream.on("finish", () => {
       if (!hasFile) {
         return next(new Error("No file uploaded"));
       }
       next();
     });
 
-    bb.on("error", (err) => {
+    stream.on("error", (err) => {
       next(err);
     });
 
-    req.pipe(bb);
+    req.pipe(stream);
   }
 );
 
