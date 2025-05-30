@@ -45,7 +45,9 @@ class SermonService {
     this.storageService = StorageService;
   }
 
-  //JSDoc
+  //validate da
+  // Upload and publish logic
+  // update sermon and published
 
   public async handleUpload(file: {
     stream: PassThrough;
@@ -117,7 +119,6 @@ class SermonService {
 
   public async handlePublish(data: PublishSermonDTO): Promise<ISermonDoc> {
     const {
-      uploadId,
       title,
       description,
       duration,
@@ -132,7 +133,7 @@ class SermonService {
       uploadedBy,
     } = data;
 
-    const session = await sermonRepository.findByUploadId(uploadId)
+    const session = await sermonRepository.findBySermonId(uploadId)
     if (!session) {
       throw new Error("Sermon already exist");
     }
@@ -219,6 +220,89 @@ class SermonService {
 
     return result;
   }
+
+  public async validatePublish(data: PublishSermonDTO): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    if (!data.uploadId) {
+      result.error = true;
+      result.message = "Upload ID is required";
+    } else if (!data.title) {
+      result.error = true;
+      result.message = "Title is required";
+    } else if (!data.description) {
+      result.error = true;
+      result.message = "Description is required";
+    } else if (!data.duration) {
+      result.error = true;
+      result.message = "Duration is required";
+    } else if (!data.releaseDate) {
+      result.error = true;
+      result.message = "Release date is required";
+    } else if (!data.releaseYear) {
+      result.error = true;
+      result.message = "Release year is required";
+    } else if (!data.sermonUrl) {
+      result.error = true;
+      result.message = "Sermon URL is required";
+    } else if (!data.imageUrl) {
+      result.error = true;
+      result.message = "Image URL is required";
+    } else if (!data.category) {
+      result.error = true;
+      result.message = "Category is required";  
+    } else if (!data.tags) {
+      result.error = true;
+      result.message = "Tags are required";
+    } else if (!data.isPublic) {
+      result.error = true;
+      result.message = "Visibility is required";
+    } else if (!data.isSeries) {
+      result.error = true;
+      result.message = "Series status is required";
+    } else if (!data.uploadedBy) {
+      result.error = true;
+      result.message = "Uploaded by is required";
+    } else {
+      result.error = false;
+      result.message = "";
+    }
+
+    return result;
+  }
+
+  public async attachAppUrl(sermon: ISermonDoc, appUrl: string): Promise<void> {
+    appUrl = process.env.APP_URL as string;
+
+    // check if sermon exist
+    const sermonExist = await sermonRepository.findBySermonId(sermon._id);
+    if (!sermonExist) {
+      throw new Error("Sermon not found");
+    }
+    //then do this
+    const shareableurl = `${appUrl}/sermons/${sermon._id}`;
+    sermon.shareableUrl = shareableurl;
+    await sermon.save();
+
+  }
+  
+  public async increaseSermonLikes(): Promise<void> {
+
+  }
+  public async increaseSermonPlayCount(): Promise<void> {
+
+  }
+
+  
+  public async updateSermonState(): Promise<void> {
+
+  }
+
+  public async updateSermonStatus(): Promise<void> {
+
+  }
+
+
 }
 
 export default new SermonService();

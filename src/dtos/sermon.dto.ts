@@ -9,7 +9,7 @@ export interface UploadSermonDTO {
 }
 
 export interface PublishSermonDTO {
-  uploadId: string;
+  uploadId?: string;
   title: string;
   description: string;
   duration: number;

@@ -64,12 +64,26 @@ export const publishSermon = asyncHandler(
       uploadedBy,
     }: PublishSermonDTO = req.body;
 
-    const uploadExit = await sermonRepository.findByUploadId(uploadId);
+    const uploadExit = await sermonRepository.findByUploadId(uploadId as string);
     if (uploadExit.error) {
       return next(new ErrorResponse(uploadExit.message, uploadExit.code!, []));
     }
 
-    const session = await SermonService.handlePublish(req.body);
+
+    const session = await SermonService.handlePublish({
+      title,
+      description,
+      duration,
+      releaseDate,
+      releaseYear,
+      sermonUrl,
+      imageUrl,
+      category,
+      tags,
+      isPublic,
+      isSeries,
+      uploadedBy,
+    });
     if (!session) {
       return next(new ErrorResponse("Failed to initiate publish", 500, []));
     }
