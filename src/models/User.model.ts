@@ -96,6 +96,8 @@ const UserSchema = new Schema<IUserDoc>(
       sms: { type: Boolean, default: false },
     },
 
+    
+
     // Relationships
     role: { type: Schema.Types.ObjectId, ref: EDbModels.ROLE, index: true },
   },

@@ -21,6 +21,7 @@ export interface PublishSermonDTO {
   tags: Array<string>;
   isPublic: boolean;
   isSeries: boolean;
+  preacherId: ObjectId;
   uploadedBy: ObjectId;
 
 }

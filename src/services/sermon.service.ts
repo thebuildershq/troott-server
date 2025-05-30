@@ -130,13 +130,14 @@ class SermonService {
       tags,
       isPublic,
       isSeries,
+      preacherId,
       uploadedBy,
     } = data;
 
-    const session = await sermonRepository.findBySermonId(uploadId)
-    if (!session) {
-      throw new Error("Sermon already exist");
-    }
+    // const session = await sermonRepository.findBySermonUrl(sermonUrl)
+    // if (session) {
+    //   throw new Error("Sermon not found");
+    // }
 
     let sermon: ISermonDoc = await Sermon.create({
       title,
@@ -150,9 +151,11 @@ class SermonService {
       tags,
       isPublic,
       isSeries,
+      preacher: preacherId,
       uploadedBy,
-      uploadId,
     });
+
+    await this.attachAppUrl(sermon);
 
     await sermon.save();
 
@@ -271,17 +274,18 @@ class SermonService {
     return result;
   }
 
-  public async attachAppUrl(sermon: ISermonDoc, appUrl: string): Promise<void> {
-    appUrl = process.env.APP_URL as string;
 
-    // check if sermon exist
+  public async attachAppUrl(sermon: ISermonDoc, appUrl?: string): Promise<void> {
+    const baseUrl = appUrl || process.env.CLIENT_APP_URL as string;
+
     const sermonExist = await sermonRepository.findBySermonId(sermon._id);
     if (!sermonExist) {
       throw new Error("Sermon not found");
     }
-    //then do this
-    const shareableurl = `${appUrl}/sermons/${sermon._id}`;
-    sermon.shareableUrl = shareableurl;
+    
+    const shareableUrl = `${baseUrl}/sermons/${sermon._id}`;
+    sermon.shareableUrl = shareableUrl;
+    
     await sermon.save();
 
   }

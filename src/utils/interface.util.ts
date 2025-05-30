@@ -343,13 +343,16 @@ export interface ISermonDoc extends Document {
   imageUrl: string;
   size: number;
 
-  category: Array<string>;
+  category: string;
   tags: Array<string>;
   isPublic: boolean;
-  isSeries: boolean;
   shareableUrl: string;
- 
+
+  isSeries: boolean;
+  series: Array<ObjectId>;
+  
   totalPlay: ISermonPlayCount;
+  totalLikes: ISermonLike
   totalShares: ISermonShareCount;
   state: EContentState;
   status: EContentStatus;
@@ -779,7 +782,7 @@ export interface ISermonPlayCount {
 
 export interface ISermonShareCount {
   userId: ObjectId;
-  playedAt: Date;
+  shareedAt: Date;
 }
 export interface ISermonLike {
   userId: ObjectId;

@@ -26,7 +26,7 @@ class SermonRepository {
     if (!sermon) {
       result.error = true;
       result.code = 404;
-      result.message = "Sermon not found";
+      result.message = "Not found: Upload sermon again";
     } else {
       result.data = sermon;
     }
@@ -75,6 +75,27 @@ class SermonRepository {
 
     return result;
   }
+
+    /**
+   * @name findBySermonUrl
+   * @param title
+   * @returns {Promise<IResult>}
+   */
+    public async findBySermonUrl(sermonUrl: string): Promise<IResult> {
+      let result: IResult = { error: false, message: "", code: 200, data: {} };
+  
+      const sermon = await this.SermonModel.findOne({ sermonUrl })
+      if (!sermon) {
+        result.error = true;
+        result.code = 404;
+        result.message = "Sermon not found";
+      } else {
+        result.data = sermon;
+      }
+  
+      return result;
+    }
+  
 
   /**
    * @name getSermons

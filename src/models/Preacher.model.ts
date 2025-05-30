@@ -82,6 +82,14 @@ const PreacherSchema = new Schema<IPreacherDoc>(
       ref: EDbModels.USER,
       index: true,
     },
+    deletedSermons: [
+      {
+        id: { type: Schema.Types.ObjectId, ref: EDbModels.SERMON },
+        deletedBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
+        deletedAt: { type: Date, default: Date.now },
+        reason: { type: String },
+      },
+    ],
   },
   {
     timestamps: true,

@@ -61,6 +61,7 @@ export const publishSermon = asyncHandler(
       tags,
       isPublic,
       isSeries,
+      preacherId,
       uploadedBy,
     }: PublishSermonDTO = req.body;
 
@@ -82,6 +83,7 @@ export const publishSermon = asyncHandler(
       tags,
       isPublic,
       isSeries,
+      preacherId,
       uploadedBy,
     });
     if (!session) {
