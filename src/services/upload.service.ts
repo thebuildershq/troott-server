@@ -53,7 +53,7 @@ class UploadService {
     size: number;
   }): Promise<IUploadDoc> {
     const fileType = determineFileType(file.mimeType as string);
-    console.log('file:', file);
+    
     const uploadId = uuidv4();
     const s3Key = `uploads/${fileType.toLowerCase()}/${uploadId}/${
       file.info.filename
@@ -73,7 +73,7 @@ class UploadService {
 
       //s3 is supposed to return data here
       const s3Response = await s3Upload.done();
-      console.log("S3 Response:", s3Response);
+      
 
       let metadata: any = {};
 

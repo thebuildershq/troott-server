@@ -1,12 +1,12 @@
 import { Model, ObjectId } from "mongoose";
 import Sermon from "../models/Sermon.model";
 import UploadSermon from "../models/Upload.model";
-import { IResult, ISermonDoc, ISermonUpload } from "../utils/interface.util";
+import { IResult, ISermonDoc, IUploadDoc } from "../utils/interface.util";
 
 
 class SermonRepository {
   private SermonModel: Model<ISermonDoc>;
-  private UploadSermonModel: Model<ISermonUpload>;
+  private UploadSermonModel: Model<IUploadDoc>;
 
   constructor() {
     this.SermonModel = Sermon;
@@ -40,7 +40,7 @@ class SermonRepository {
    * @param id
    * @returns {Promise<IResult>}
    */
-    public async findBySermonId(id: ObjectId): Promise<IResult> {
+    public async findBySermonId(id: string): Promise<IResult> {
       let result: IResult = { error: false, message: "", code: 200, data: {} };
   
       const sermon = await this.SermonModel.findById(id);

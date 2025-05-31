@@ -38,11 +38,7 @@ app.use(cookieParser())
 // temporaary files directory
 //app.use(fileUpload({useTempFiles: true, tempFileDir: path.join(__dirname, 'tmp')}))
 
-app.use(uploadFile);
-console.log("Upload middleware triggered");
-
-
-  
+app.use(uploadFile);  
   
 /**
  * sanitize data
