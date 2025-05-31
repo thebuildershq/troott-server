@@ -12,16 +12,19 @@ import {
 } from "../utils/interface.util";
 import UploadSession from "../models/Upload.model";
 import StorageService from "./storage.service";
-import { parseBuffer, parseStream } from "music-metadata";
+import { parseStream } from "music-metadata";
 import { v4 as uuidv4 } from "uuid";
-import { ContentType, EUploadStatus } from "../utils/enums.util";
+import { ContentType, EUploadStatus, FileType } from "../utils/enums.util";
 import { PublishSermonDTO, UploadSermonDTO } from "../dtos/sermon.dto";
 import { PassThrough } from "stream";
 import { Upload } from "@aws-sdk/lib-storage";
 import sermonRepository from "../repositories/sermon.repository";
 import Sermon from "../models/Sermon.model";
+import { LinkedModel } from "../utils/types.util";
+import { ObjectId } from "mongoose";
 
-class SermonService {
+
+class UploadService {
   private s3Client: S3Client;
   private storageService: typeof StorageService;
   private readonly CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
@@ -49,7 +52,7 @@ class SermonService {
   // Upload and publish logic
   // update sermon and published
 
-  public async handleUpload(file: {
+  public async handleSermonUpload(file: {
     stream: PassThrough;
     streamForMetadata: PassThrough;
     info: { filename: string; mimeType: string };
@@ -73,6 +76,7 @@ class SermonService {
       console.log("Metadata:", metadata);
 
       const audioMetadata: IAudioMetadata = {
+        metadataType: FileType.AUDIO,
         formatName: metadata.format.container,
         codec: metadata.format.codec,
         duration: metadata.format.duration,
@@ -100,16 +104,19 @@ class SermonService {
       const session = await UploadSession.create({
         uploadId,
         fileName: file.info.filename,
-        fileurl: s3Response.Location,
         fileSize: file.size,
         mimeType: file.mimeType,
-        status: EUploadStatus.COMPLETED,
+        fileType: FileType.AUDIO,
         s3Key,
-        streamS3Prefix: `sermons/streaming/${uploadId}/`,
+        s3Url: s3Response.Location,    
         metadata: audioMetadata,
+        status: EUploadStatus.PENDING,
+        
         retryCount: 0,
         expiresAt: new Date(Date.now() + this.UPLOAD_EXPIRY),
       });
+
+      // status: EUploadStatus.COMPLETED,
 
       return session;
     } catch (err) {
@@ -121,7 +128,7 @@ class SermonService {
 
   // let result: IResult = { error: false, message: "", code: 200, data: null };
 
-  public async handlePublish(data: PublishSermonDTO): Promise<ISermonDoc> {
+  public async handleSermonPublish(data: PublishSermonDTO): Promise<ISermonDoc> {
     const {
       title,
       description,
@@ -196,7 +203,7 @@ class SermonService {
     return true;
   }
 
-  public async validateUpload(data: UploadSermonDTO): Promise<IResult> {
+  public async validateSermonUpload(data: UploadSermonDTO): Promise<IResult> {
     const allowedAudios = [
       "audio/mpeg",
       "audio/aac",
@@ -228,7 +235,7 @@ class SermonService {
     return result;
   }
 
-  public async validatePublish(data: PublishSermonDTO): Promise<IResult> {
+  public async validateSermonPublish(data: PublishSermonDTO): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
     if (!data.uploadId) {
@@ -313,7 +320,7 @@ class SermonService {
 
 }
 
-export default new SermonService();
+export default new UploadService();
 
 /**Switch to manual multipart logic
 Add logic to:

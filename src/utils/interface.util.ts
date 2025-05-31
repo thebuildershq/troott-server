@@ -410,10 +410,6 @@ export interface IUploadDoc extends Document {
   expiresAt: Date;
   error?: string;
 
-  //relationships
-  targetModel: LinkedModel;
-  targetModelId: ObjectId;
-
   //timestamps
   createdAt: string;
   updatedAt: string;

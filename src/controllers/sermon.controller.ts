@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import asyncHandler from "../middlewares/async.mdw";
-import SermonService from "../services/sermon.service";
+import UploadService from "../services/upload.service";
 import ErrorResponse from "../utils/error.util";
 import sermonRepository from "../repositories/sermon.repository";
 import { PublishSermonDTO } from "../dtos/sermon.dto";
@@ -23,7 +23,7 @@ export const uploadSermon = asyncHandler(
       return next(new ErrorResponse("No file found in request", 400, []));
     }
 
-    const session = await SermonService.handleUpload(file);
+    const session = await UploadService.handleSermonUpload(file);
     if (!session) {
       return next(new ErrorResponse("Failed to initiate upload", 500, []));
     }
@@ -71,7 +71,7 @@ export const publishSermon = asyncHandler(
     }
 
 
-    const session = await SermonService.handlePublish({
+    const session = await UploadService.handleSermonPublish({
       title,
       description,
       duration,

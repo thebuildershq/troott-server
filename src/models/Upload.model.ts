@@ -52,14 +52,6 @@ const UploadSchema = new Schema<IUploadDoc>(
     lastChunkUploadedAt: { type: Date },
     expiresAt: { type: Date },
     error: { type: String },
-
-    // relationships
-    targetModel: {
-      type: String,
-      enum: Object.values(EDbModels), // restrict to known models
-      required: true,
-    },
-    targetModelId: { type: Schema.Types.ObjectId, required: true },
   },
   {
     timestamps: true,
