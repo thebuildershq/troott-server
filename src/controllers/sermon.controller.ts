@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+  import { Request, Response, NextFunction } from "express";
 import asyncHandler from "../middlewares/async.mdw";
 import UploadService from "../services/upload.service";
 import ErrorResponse from "../utils/error.util";
@@ -7,7 +7,7 @@ import { PublishSermonDTO } from "../dtos/sermon.dto";
 
 
 /**
- * @name uploadSermon
+ * @name uploadFile
  * @description A method to handle sermon file uploads.
  * Processes the multipart form data, validates the upload,
  * and initiates the upload session.
@@ -19,11 +19,13 @@ import { PublishSermonDTO } from "../dtos/sermon.dto";
 export const uploadSermon = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const file = (req as any).file;
-    if (!file) {
-      return next(new ErrorResponse("No file found in request", 400, []));
-    }
 
-    const session = await UploadService.handleSermonUpload(file);
+    console.log("Controller sees req.file:", file);
+    // if (!file) {
+    //   return next(new ErrorResponse("No file found in request", 400, []));
+    // }
+
+    const session = await UploadService.handleUpload(file);
     if (!session) {
       return next(new ErrorResponse("Failed to initiate upload", 500, []));
     }

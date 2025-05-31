@@ -1,13 +1,8 @@
+import { S3Client } from "@aws-sdk/client-s3";
 import {
-  S3Client,
-  CreateMultipartUploadCommand,
-  CompleteMultipartUploadCommand,
-} from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import {
-  IAudioMetadata,
   IResult,
   ISermonDoc,
+  IUploadDoc,
   IUserDoc,
 } from "../utils/interface.util";
 import UploadSession from "../models/Upload.model";
@@ -20,22 +15,19 @@ import { PassThrough } from "stream";
 import { Upload } from "@aws-sdk/lib-storage";
 import sermonRepository from "../repositories/sermon.repository";
 import Sermon from "../models/Sermon.model";
-import { LinkedModel } from "../utils/types.util";
-import { ObjectId } from "mongoose";
-
+import { determineFileType } from "../utils/helper.util";
+import sharp from "sharp";
 
 class UploadService {
   private s3Client: S3Client;
   private storageService: typeof StorageService;
-  private readonly CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
-  private readonly UPLOAD_EXPIRY = 6 * 60 * 60 * 1000; // 6 hours
+  private readonly UPLOAD_EXPIRY = 6 * 60 * 60 * 1000;
   private readonly ALLOWED_AUDIO_TYPES = [
     "audio/mpeg",
     "audio/aac",
     "audio/wav",
     "audio/x-m4a",
   ];
-  private readonly MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
 
   constructor() {
     this.s3Client = new S3Client({
@@ -52,40 +44,24 @@ class UploadService {
   // Upload and publish logic
   // update sermon and published
 
-  public async handleSermonUpload(file: {
+  public async handleUpload(file: {
     stream: PassThrough;
     streamForMetadata: PassThrough;
     info: { filename: string; mimeType: string };
     mimeType: string;
     fileName: string;
     size: number;
-  }) {
+  }): Promise<IUploadDoc> {
+    const fileType = determineFileType(file.mimeType as string);
+    console.log('file:', file);
     const uploadId = uuidv4();
-    const s3Key = `sermons/${uploadId}/${file.info.filename}`;
+    const s3Key = `uploads/${fileType.toLowerCase()}/${uploadId}/${
+      file.info.filename
+    }`;
 
     try {
-      // Parse audio metadata
-      const metadata = await parseStream(
-        file.streamForMetadata,
-        file.mimeType,
-        {
-          duration: true,
-        }
-      );
-
-      console.log("Metadata:", metadata);
-
-      const audioMetadata: IAudioMetadata = {
-        metadataType: FileType.AUDIO,
-        formatName: metadata.format.container,
-        codec: metadata.format.codec,
-        duration: metadata.format.duration,
-        bitrate: metadata.format.bitrate,
-        year: metadata.common.year,
-      };
-
       // Upload to S3
-      const multipartUpload = new Upload({
+      const s3Upload = new Upload({
         client: this.s3Client,
         params: {
           Bucket: process.env.AWS_BUCKET_NAME!,
@@ -95,30 +71,42 @@ class UploadService {
         },
       });
 
-
       //s3 is supposed to return data here
-      const s3Response = await multipartUpload.done();
+      const s3Response = await s3Upload.done();
       console.log("S3 Response:", s3Response);
 
+      let metadata: any = {};
+
+      if (fileType === FileType.AUDIO) {
+        metadata = await this.extractAudioMetadata(
+          file.streamForMetadata,
+          file.mimeType
+        );
+      } else if (fileType === FileType.IMAGE) {
+        metadata = await this.extractImageMetadata(file.streamForMetadata);
+      } else if (fileType === FileType.VIDEO) {
+        metadata = await this.extractVideoMetadata(file.streamForMetadata);
+      } else if (fileType === FileType.DOCUMENT) {
+        metadata = await this.extractDocumentMetadata(file.streamForMetadata);
+      }
+
       // Save upload session in DB
-      const session = await UploadSession.create({
+      const uploadResult = await UploadSession.create({
         uploadId,
         fileName: file.info.filename,
         fileSize: file.size,
         mimeType: file.mimeType,
-        fileType: FileType.AUDIO,
+        fileType,
         s3Key,
-        s3Url: s3Response.Location,    
-        metadata: audioMetadata,
-        status: EUploadStatus.PENDING,
-        
+        s3Url: s3Response.Location,
+        metadata: { metadataType: fileType, ...metadata },
+        status: EUploadStatus.COMPLETED,
         retryCount: 0,
         expiresAt: new Date(Date.now() + this.UPLOAD_EXPIRY),
       });
 
       // status: EUploadStatus.COMPLETED,
-
-      return session;
+      return uploadResult;
     } catch (err) {
       file.stream.destroy();
       file.streamForMetadata.destroy();
@@ -128,7 +116,9 @@ class UploadService {
 
   // let result: IResult = { error: false, message: "", code: 200, data: null };
 
-  public async handleSermonPublish(data: PublishSermonDTO): Promise<ISermonDoc> {
+  public async handleSermonPublish(
+    data: PublishSermonDTO
+  ): Promise<ISermonDoc> {
     const {
       title,
       description,
@@ -171,23 +161,13 @@ class UploadService {
     await sermon.save();
 
     return sermon;
-      
-    }
-
-  
-
-  
+  }
 
   //utily functions
   public async validateFile(
     file: Express.Multer.File,
     type: ContentType
   ): Promise<boolean> {
-    // Check file size
-    if (file.size > this.MAX_FILE_SIZE) {
-      return false;
-    }
-
     // Check file type
     if (
       type === "sermon" &&
@@ -216,9 +196,6 @@ class UploadService {
     if (!data.file) {
       result.error = true;
       result.message = "Sermon file is required";
-    } else if (data.file.size > this.MAX_FILE_SIZE) {
-      result.error = true;
-      result.message = "File too large";
     } else if (!data.user) {
       result.error = true;
       result.message = "Authentication is required";
@@ -233,6 +210,62 @@ class UploadService {
     }
 
     return result;
+  }
+
+  private async extractAudioMetadata(
+    streamForMetadata: PassThrough,
+    mimeType: string
+  ) {
+    const metadata = await parseStream(streamForMetadata, mimeType, {
+      duration: true,
+    });
+    return {
+      metadataType: FileType.AUDIO,
+      formatName: metadata.format.container,
+      codec: metadata.format.codec,
+      duration: metadata.format.duration,
+      bitrate: metadata.format.bitrate,
+      year: metadata.common.year,
+    };
+  }
+
+  private async extractImageMetadata(streamForMetadata: PassThrough) {
+    const image = sharp();
+    streamForMetadata.pipe(image);
+
+    const metadata = await image.metadata();
+    return {
+      width: metadata.width,
+      height: metadata.height,
+      format: metadata.format,
+    };
+  }
+
+  private async extractDocumentMetadata(streamForMetadata: PassThrough) {
+    // const buffer = await this.streamToBuffer(streamForMetadata);
+    // const data = await pdfParse(buffer);
+    // return {
+    //   pageCount: data.numpages,
+    //   author: data.info.Author,
+    //   title: data.info.Title,
+    //   language: data.info.Language,
+    // };
+  }
+
+  private extractVideoMetadata(streamForMetadata: PassThrough) {
+    // return new Promise((resolve, reject) => {
+    //   const tmpPath = `/tmp/${uuidv4()}.mp4`;
+    //   const ff = ffmpeg(streamForMetadata).ffprobe((err, data) => {
+    //     if (err) return reject(err);
+    //     const videoStream = data.streams.find((s) => s.codec_type === "video");
+    //     resolve({
+    //       resolution: `${videoStream?.width}x${videoStream?.height}`,
+    //       codec: videoStream?.codec_name,
+    //       duration: data.format.duration,
+    //       framerate: eval(videoStream?.r_frame_rate || "0"),
+    //     });
+    //   });
+    // });
   }
 
   public async validateSermonPublish(data: PublishSermonDTO): Promise<IResult> {
@@ -264,7 +297,7 @@ class UploadService {
       result.message = "Image URL is required";
     } else if (!data.category) {
       result.error = true;
-      result.message = "Category is required";  
+      result.message = "Category is required";
     } else if (!data.tags) {
       result.error = true;
       result.message = "Tags are required";
@@ -285,39 +318,31 @@ class UploadService {
     return result;
   }
 
-
-  public async attachAppUrl(sermon: ISermonDoc, appUrl?: string): Promise<void> {
-    const baseUrl = appUrl || process.env.CLIENT_APP_URL as string;
+  public async attachAppUrl(
+    sermon: ISermonDoc,
+    appUrl?: string
+  ): Promise<void> {
+    const baseUrl = appUrl || (process.env.CLIENT_APP_URL as string);
 
     const sermonExist = await sermonRepository.findBySermonId(sermon._id);
     if (!sermonExist) {
       throw new Error("Sermon not found");
     }
-    
+
     const shareableUrl = `${baseUrl}/sermons/${sermon._id}`;
     sermon.shareableUrl = shareableUrl;
-    
+
     await sermon.save();
-
-  }
-  
-  public async increaseSermonLikes(): Promise<void> {
-
-  }
-  public async increaseSermonPlayCount(): Promise<void> {
-
   }
 
-  
-  public async updateSermonState(): Promise<void> {
+  public async streamToBuffer(streamForMetadata: PassThrough): Promise<void> {}
 
-  }
+  public async increaseSermonLikes(): Promise<void> {}
+  public async increaseSermonPlayCount(): Promise<void> {}
 
-  public async updateSermonStatus(): Promise<void> {
+  public async updateSermonState(): Promise<void> {}
 
-  }
-
-
+  public async updateSermonStatus(): Promise<void> {}
 }
 
 export default new UploadService();

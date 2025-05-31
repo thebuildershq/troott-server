@@ -82,6 +82,7 @@ const uploadFile = asyncHandler(
     });
 
     stream.on("field", (name, val) => {
+      if (!req.body) req.body = {};
       req.body[name] = val;
     });
 

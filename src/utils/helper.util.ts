@@ -1,3 +1,5 @@
+import { FileType } from "./enums.util";
+
 /**
  * Generates random characters
  * @param length - The length of the characters to generate.
@@ -118,6 +120,14 @@ export const detectPlatform = (
   return "web";
 };
 
+export const determineFileType = (mimeType: string): FileType => {
+  if (mimeType.startsWith("audio/")) return FileType.AUDIO;
+  if (mimeType.startsWith("image/")) return FileType.IMAGE;
+  if (mimeType.startsWith("video/")) return FileType.VIDEO;
+  if (mimeType === "application/pdf") return FileType.DOCUMENT;
+  throw new Error(`Unsupported MIME type: ${mimeType}`);
+}
+
 export default {
   generateRandomChars,
   generateRandomNumbers,
@@ -125,4 +135,5 @@ export default {
   generatePassword,
   generateApiKey,
   detectPlatform,
+  determineFileType,
 };
