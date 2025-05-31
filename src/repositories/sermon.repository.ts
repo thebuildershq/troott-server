@@ -1,4 +1,4 @@
-import { Model, ObjectId } from "mongoose";
+import { Model, ObjectId, Types } from "mongoose";
 import Sermon from "../models/Sermon.model";
 import UploadSermon from "../models/Upload.model";
 import { IResult, ISermonDoc, IUploadDoc } from "../utils/interface.util";
@@ -40,9 +40,9 @@ class SermonRepository {
    * @param id
    * @returns {Promise<IResult>}
    */
-    public async findBySermonId(id: string): Promise<IResult> {
+    public async findBySermonId(id: string | ObjectId): Promise<IResult> {
       let result: IResult = { error: false, message: "", code: 200, data: {} };
-  
+      
       const sermon = await this.SermonModel.findById(id);
       if (!sermon) {
         result.error = true;
@@ -134,7 +134,8 @@ class SermonRepository {
   public async updateSermon(id: string, updateData: Partial<ISermonDoc>): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const updatedSermon = await this.SermonModel.findByIdAndUpdate(id, updateData, { new: true });
+    const objectId = new Types.ObjectId(id);
+    const updatedSermon = await this.SermonModel.findByIdAndUpdate(objectId, updateData, { new: true });
     if (!updatedSermon) {
       result.error = true;
       result.code = 404;
@@ -156,7 +157,8 @@ class SermonRepository {
   public async deleteSermon(id: string): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const deletedSermon = await this.SermonModel.findByIdAndUpdate(id);
+    const objectId = new Types.ObjectId(id);
+    const deletedSermon = await this.SermonModel.findByIdAndUpdate(objectId);
     if (!deletedSermon) {
       result.error = true;
       result.code = 404;
@@ -170,7 +172,7 @@ class SermonRepository {
   }
 
    /**
-   * @name deleteSermon
+   * @name moveSermonToBin
    * @param id
    * @param deleteData
    * @returns {Promise<IResult>}
@@ -178,7 +180,8 @@ class SermonRepository {
    public async moveSermonToBin(id: string, deleteData: Partial<ISermonDoc>): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const deletedSermon = await this.SermonModel.findByIdAndUpdate(id, deleteData);
+    const objectId = new Types.ObjectId(id);
+    const deletedSermon = await this.SermonModel.findByIdAndUpdate(objectId, deleteData);
     if (!deletedSermon) {
       result.error = true;
       result.code = 404;

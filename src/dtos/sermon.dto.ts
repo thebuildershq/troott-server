@@ -28,7 +28,7 @@ export interface PublishSermonDTO {
 
 
  export interface UpdateSermonDTO {
-    id: ObjectId
+    id: string;
   
     title?: string;
     description?: string;

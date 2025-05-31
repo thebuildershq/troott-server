@@ -194,10 +194,10 @@ export const updateSermon = asyncHandler(
 
 
 /**
- * @name deleteSermon
+ * @name moveSermonToBin
  * @description Soft deletes a sermon by marking its status as DELETED.
- * This does not remove the sermon from the database, but makes it invisible in active listings.* @name updateSermon
- * @route PUT /api/v1/sermon/de;ete/:id
+ * This does not remove the sermon from the database, but makes it invisible in active listings
+ * @route PUT /api/v1/sermon/move-to-bin/:id
  * @access Public
  * @returns {Object} updated sermon
  */
@@ -234,6 +234,39 @@ export const moveSermonToBin = asyncHandler(
   }
 );
 
+
+/**
+ * @name deleteSermon
+ * @description deletes a sermon from the database.
+ * @route PUT /api/v1/sermon/deleete/:id
+ * @access Public
+ * @returns {Object} updated sermon
+ */
+export const deleteSermon = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    
+    const { id } = req.params;
+    const sermonExist = await sermonRepository.findBySermonId(id);
+    if (sermonExist.error) {
+      return next(
+        new ErrorResponse(sermonExist.message, sermonExist.code!, [])
+      );
+    }
+
+    const deleted = await sermonRepository.deleteSermon(id);
+    if (deleted.error) {
+      return next(new ErrorResponse(deleted.message, deleted.code!, []));
+    }
+
+    res.status(200).json({
+      error: false,
+      errors: [],
+      data: deleted.data,
+      message: "Sermon deleted successfully",
+      status: 200,
+    });
+  }
+);
 
 // create sermon metadata
 // get sermon metadata
