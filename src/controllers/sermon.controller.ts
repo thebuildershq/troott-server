@@ -12,10 +12,10 @@ import { EContentState, EContentStatus } from "../utils/enums.util";
  * @description A method to handle sermon file uploads.
  * Processes the multipart form data, validates the upload,
  * and initiates the upload session.
- * @route POST /api/v1/sermon/upload
+ * @route POST /api/v1/sermon/start-upload
  * @access Public
  * @param {File} file
- * @returns {Object} a uplaod sermon details
+ * @returns {Object} uplaod sermon details
  */
 export const uploadSermon = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -107,7 +107,7 @@ export const publishSermon = asyncHandler(
 /**
  * @name updateSermon
  * @description A method to update an existing sermon by ID.
- * @route PUT /api/v1/sermon/:id
+ * @route PUT /api/v1/sermon/update/:id
  * @access Public
  * @returns {Object} updated sermon
  */
@@ -238,7 +238,7 @@ export const moveSermonToBin = asyncHandler(
 /**
  * @name deleteSermon
  * @description deletes a sermon from the database.
- * @route PUT /api/v1/sermon/deleete/:id
+ * @route DELETE /api/v1/sermon/deleete/:id
  * @access Public
  * @returns {Object} updated sermon
  */
