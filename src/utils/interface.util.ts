@@ -18,7 +18,9 @@ import {
   EUploadStatus,
   EUserType,
   EVerificationStatus,
+  FileType,
 } from "./enums.util";
+import { IUploadMetadata, LinkedModel } from "./types.util";
 
 export type Nullable<T> = T | null;
 export interface IRoleDoc extends Document {
@@ -218,7 +220,6 @@ export interface IPreacherDoc extends Document {
     reason?: string;
   }>;
 
-
   // time stamps
   createdAt: string;
   updatedAt: string;
@@ -350,21 +351,33 @@ export interface ISermonDoc extends Document {
 
   isSeries: boolean;
   series: Array<ObjectId>;
-  
+
   totalPlay: ISermonPlayCount;
-  totalLikes: ISermonLike
+  totalLikes: ISermonLike;
   totalShares: ISermonShareCount;
   state: EContentState;
   status: EContentStatus;
 
+  // Uplaod Tracking
+  uploadRef?: ObjectId | any;
+  uploadSummary?: {
+    fileName: string;
+    fileSize: number;
+    mimetype: string;
+    s3Key: string;
+    s3Url: string;
+    metadata: Extract<IUploadMetadata, IAudioMetadata>;
+    uploadedBy: ObjectId;
+  };
+
   //Modifications
   versionId?: ObjectId;
   changesSummary: string;
- 
+
   // relatiionships
   preacher: ObjectId | any;
   playlist: ObjectId | any;
-  createdBy: ObjectId | any;
+  publishedBy: ObjectId | any;
 
   // timestamps
   createdAt: string;
@@ -374,54 +387,43 @@ export interface ISermonDoc extends Document {
   id: ObjectId;
 }
 
-export interface ISermonUpload extends Document {
+export interface IUploadDoc extends Document {
   uploadId: string;
   fileName: string;
   fileSize: number;
   mimetype: string;
+  fileType: FileType;
 
+  s3Key: string;
+  s3Url: string;
+  metadata: IUploadMetadata;
+  status: EUploadStatus;
+  uploadedBy: ObjectId;
+
+  //processing
   chunkSize: number;
   totalChunks: number;
-  uploadedChunks: Array<IUploadChunkInfo>;
-
-  status: EUploadStatus;
-
-  uploadedBy: ObjectId;
-  sermonId?: ObjectId;
-
+  completedChunks: number;
   multipartUploadId?: string;
-  s3Key?: string;
-  streamS3Prefix: string;
-
-  metadata:IAudioMetadata
-
   retryCount: number;
   lastChunkUploadedAt?: Date;
   expiresAt: Date;
   error?: string;
 
+  //relationships
+  targetModel: LinkedModel;
+  targetModelId: ObjectId;
+
+  //timestamps
   createdAt: string;
   updatedAt: string;
   _version: number;
   _id: ObjectId;
   id: ObjectId;
 }
-export interface IUploadChunkInfo {
-  chunkNumber: number;
-  etag: string;
-  size: number;
-  uploadedAt: Date;
-}
-export interface ISermonChunkMeta extends Document {
-  uploadId: string;
-  chunkIndex: number;
-  chunkSize: number;
-  status: EChunkStatus;
-  uploadedAt?: Date;
-  retryCount: number;
-}
 
 export interface IAudioMetadata {
+  metadataType: FileType.AUDIO;
   formatName?: string;
   codec?: string;
   duration?: number;
@@ -429,16 +431,28 @@ export interface IAudioMetadata {
   year?: number;
 }
 
-export interface IAudioTags {
-  title?: string;
-  artist?: string;
-  album?: string;
-  year?: number;
-  genre?: string[];
-  comment?: string[];
-  [key: string]: any; 
+export interface IImageMetadata {
+  metadataType: FileType.IMAGE;
+  width?: number;
+  height?: number;
+  format?: string;
 }
 
+export interface IDocumentMetadata {
+  metadataType: FileType.DOCUMENT;
+  pageCount?: number;
+  author?: string;
+  title?: string;
+  language?: string;
+}
+
+export interface IVideoMetadata {
+  metadataType: FileType.VIDEO;
+  duration?: number;
+  resolution?: string;
+  codec?: string;
+  framerate?: number;
+}
 
 export interface ISermonBiteDoc extends Document {
   title: string;

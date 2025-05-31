@@ -1,48 +1,65 @@
 import mongoose, { Model, Schema, model } from "mongoose";
-import { ISermonUpload } from "../utils/interface.util";
-import { EDbModels, EUploadStatus } from "../utils/enums.util";
+import { IUploadDoc } from "../utils/interface.util";
+import { EDbModels, EUploadStatus, FileType } from "../utils/enums.util";
 
 
-const SermonUploadSchema = new Schema<ISermonUpload>(
+const UploadSchema = new Schema<IUploadDoc>(
   {
     uploadId: { type: String, required: true, unique: true },
     fileName: { type: String },
     fileSize: { type: Number },
     mimetype: { type: String },
+    fileType: { type: String, enum: Object.values(FileType) },
     
-    chunkSize: { type: Number },
-    totalChunks: { type: Number },
-    uploadedChunks: [{
-        chunkNumber: { type: Number },
-        etag: { type: String },
-        size: { type: Number },
-        uploadedAt: { type: Date },
-    }],
-    
-    status: {
-      type: String,
-      enum: Object.values(EUploadStatus),
-      default: EUploadStatus.PENDING,
-    },
-
-    uploadedBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
-    sermonId: { type: Schema.Types.ObjectId, ref: EDbModels.SERMON },
-
-    multipartUploadId: { type: String },
     s3Key: { type: String },
-    streamS3Prefix: { type: String },
+    s3Url: { type: String },    
     metadata: {
+      metadataType: { type: String, enum: Object.values(FileType), required: true },
+      // Audio
       formatName: { type: String },
       codec: { type: String },
       duration: { type: Number },
       bitrate: { type: Number },
       year: { type: Number },
+    
+      // Image
+      width: { type: Number },
+      height: { type: Number },
+      format: { type: String },
+    
+      // Document
+      pageCount: { type: Number },
+      author: { type: String },
+      title: { type: String },
+      language: { type: String },
+    
+      // Video
+      resolution: { type: String },
+      framerate: { type: Number },
     },
-
+    status: {
+      type: String,
+      enum: Object.values(EUploadStatus),
+      default: EUploadStatus.PENDING,
+    },
+    uploadedBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
+    
+    chunkSize: { type: Number },
+    totalChunks: { type: Number },
+    completedChunks: { type: Number },
+    multipartUploadId: { type: String },
     retryCount: { type: Number, default: 0 },
     lastChunkUploadedAt: { type: Date },
     expiresAt: { type: Date },
     error: { type: String },
+
+    // relationships
+    targetModel: {
+      type: String,
+      enum: Object.values(EDbModels), // restrict to known models
+      required: true,
+    },
+    targetModelId: { type: Schema.Types.ObjectId, required: true },
   },
   {
     timestamps: true,
@@ -57,9 +74,9 @@ const SermonUploadSchema = new Schema<ISermonUpload>(
 );
 
 
-const UploadSermon: Model<ISermonUpload> = mongoose.model<ISermonUpload>(
+const Upload: Model<IUploadDoc> = mongoose.model<IUploadDoc>(
   EDbModels.UPLOAD,
-  SermonUploadSchema
+  UploadSchema
 );
 
-export default UploadSermon;
+export default Upload;

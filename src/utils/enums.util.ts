@@ -79,7 +79,7 @@ export enum EDbModels {
   SERMON = "sermon",
   STAFF = "staff",
   TRANSACTION = "transaction",
-  UPLOAD= "sermon-upload"
+  UPLOAD= "upload"
 }
 
 export enum EModel {
@@ -90,6 +90,13 @@ export enum EModel {
 export enum ESermonType {
   SERIES = "series",
   ONEOFF = "one-off",
+}
+
+export enum FileType {
+  AUDIO = "audio",
+  DOCUMENT = "document",
+  IMAGE = "image",
+  VIDEO = "video",
 }
 
 export enum EPartType {

@@ -68,7 +68,7 @@ const SermonSchema = new Schema<ISermonDoc>(
     },
 
     playlist: { type: Schema.Types.ObjectId, ref: EDbModels.PLAYLIST },
-    createdBy: {
+    publishedBy: {
       type: Schema.Types.ObjectId,
       ref: EDbModels.USER,
       index: true,

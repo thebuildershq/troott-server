@@ -90,6 +90,8 @@ export const publishSermon = asyncHandler(
       return next(new ErrorResponse("Failed to initiate publish", 500, []));
     }
 
+    //await delete upload
+
     res.status(200).json({
       error: false,
       errors: [],

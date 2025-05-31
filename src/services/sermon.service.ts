@@ -91,12 +91,16 @@ class SermonService {
         },
       });
 
-      await multipartUpload.done();
+
+      //s3 is supposed to return data here
+      const s3Response = await multipartUpload.done();
+      console.log("S3 Response:", s3Response);
 
       // Save upload session in DB
       const session = await UploadSession.create({
         uploadId,
         fileName: file.info.filename,
+        fileurl: s3Response.Location,
         fileSize: file.size,
         mimeType: file.mimeType,
         status: EUploadStatus.COMPLETED,
