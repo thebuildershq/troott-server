@@ -69,11 +69,11 @@ export interface PublishSermonDTO {
     };
 }
 
-export interface DeletedSermonDTO {
+export interface DeleteSermonDTO {
   id: string;
-  deletedBy: string;
-  deletedAt: Date;
-  reason?: string;
+  state?: EContentState;
+  status?: EContentStatus;
+  publishedBy?: ObjectId;
 }
 
 export interface SermonDTO {

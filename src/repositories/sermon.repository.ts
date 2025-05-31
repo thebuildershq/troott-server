@@ -150,18 +150,41 @@ class SermonRepository {
   /**
    * @name deleteSermon
    * @param id
+   * @param deleteData
    * @returns {Promise<IResult>}
    */
   public async deleteSermon(id: string): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const deletedSermon = await this.SermonModel.findByIdAndDelete(id);
+    const deletedSermon = await this.SermonModel.findByIdAndUpdate(id);
     if (!deletedSermon) {
       result.error = true;
       result.code = 404;
       result.message = "Sermon not found";
     } else {
-      result.message = "Sermon deleted successfully";
+      result.message = "Sermon deleted Successfully";
+      result.data = deletedSermon;
+    }
+
+    return result;
+  }
+
+   /**
+   * @name deleteSermon
+   * @param id
+   * @param deleteData
+   * @returns {Promise<IResult>}
+   */
+   public async moveSermonToBin(id: string, deleteData: Partial<ISermonDoc>): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    const deletedSermon = await this.SermonModel.findByIdAndUpdate(id, deleteData);
+    if (!deletedSermon) {
+      result.error = true;
+      result.code = 404;
+      result.message = "Sermon not found";
+    } else {
+      result.message = "Sermon moved to bin";
       result.data = deletedSermon;
     }
 

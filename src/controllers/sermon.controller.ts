@@ -3,8 +3,9 @@ import asyncHandler from "../middlewares/async.mdw";
 import UploadService from "../services/upload.service";
 import ErrorResponse from "../utils/error.util";
 import sermonRepository from "../repositories/sermon.repository";
-import { PublishSermonDTO, UpdateSermonDTO } from "../dtos/sermon.dto";
+import { DeleteSermonDTO, PublishSermonDTO, UpdateSermonDTO } from "../dtos/sermon.dto";
 import { ISermonDoc } from "../utils/interface.util";
+import { EContentState, EContentStatus } from "../utils/enums.util";
 
 /**
  * @name uploadFile
@@ -190,6 +191,49 @@ export const updateSermon = asyncHandler(
     });
   }
 );
+
+
+/**
+ * @name deleteSermon
+ * @description Soft deletes a sermon by marking its status as DELETED.
+ * This does not remove the sermon from the database, but makes it invisible in active listings.* @name updateSermon
+ * @route PUT /api/v1/sermon/de;ete/:id
+ * @access Public
+ * @returns {Object} updated sermon
+ */
+export const moveSermonToBin = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    const {state, status, publishedBy}: Partial<DeleteSermonDTO> = req.body;
+
+    const sermonExist = await sermonRepository.findBySermonId(id);
+    if (sermonExist.error) {
+      return next(
+        new ErrorResponse(sermonExist.message, sermonExist.code!, [])
+      );
+    }
+
+    const deletePayload = {
+      state: state || EContentState.DELETED,
+      status: status || EContentStatus .DELETED,
+      publishedBy: publishedBy,
+    };
+
+    const deleted = await sermonRepository.moveSermonToBin(id, deletePayload);
+    if (deleted.error) {
+      return next(new ErrorResponse(deleted.message, deleted.code!, []));
+    }
+
+    res.status(200).json({
+      error: false,
+      errors: [],
+      data: deleted.data,
+      message: "Sermon moved to bin successfully",
+      status: 200,
+    });
+  }
+);
+
 
 // create sermon metadata
 // get sermon metadata
