@@ -1,12 +1,37 @@
-import { Model } from "mongoose";
+import { Model, ObjectId } from "mongoose";
 import Library from "../models/Library.model";
-import { IResult, ILibraryDoc } from "../utils/interface.util";
+import { IResult, ILibraryDoc, IQueryOptions } from "../utils/interface.util";
 
 class LibraryRepository {
   private model: Model<ILibraryDoc>;
 
   constructor() {
     this.model = Library;
+  }
+
+  /**
+   * @name createLibrary
+   * @param libraryData
+   * @returns {Promise<IResult>}
+   */
+  public async createLibrary(
+    libraryData: Partial<ILibraryDoc>
+  ): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 201, data: {} };
+
+    const existing = await this.model.findOne({ user: libraryData.user });
+    if (existing) {
+      result.error = true;
+      result.code = 400;
+      result.message = "Library already exists for this user";
+      return result;
+    }
+
+    const newLibrary = await this.model.create(libraryData);
+    result.data = newLibrary;
+    result.message = "Library created successfully";
+
+    return result;
   }
 
   /**
@@ -37,7 +62,12 @@ class LibraryRepository {
   public async findByUser(userId: string): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const library = await this.model.findOne({ user: userId }).lean();
+    const library = await this.model
+      .findOne({ user: userId })
+      .populate(
+        "likedSermons savedBtes playlists favouritePreachers mostPlayed"
+      );
+
     if (!library) {
       result.error = true;
       result.code = 404;
@@ -50,16 +80,33 @@ class LibraryRepository {
   }
 
   /**
-   * @name createLibrary
-   * @param libraryData
+   * @name findAll
+   * @description Fetch all  libraries with optional filters, pagination, and sorting
    * @returns {Promise<IResult>}
    */
-  public async createLibrary(libraryData: Partial<ILibraryDoc>): Promise<IResult> {
-    let result: IResult = { error: false, message: "", code: 201, data: {} };
+  public async findAll(
+    filters = {},
+    options: IQueryOptions = {}
+  ): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const newLibrary = await this.model.create(libraryData);
-    result.data = newLibrary;
-    result.message = "Library created successfully";
+    const libraries = await this.model
+      .find(filters)
+      .sort(options.sort)
+      .skip(options.skip || 0)
+      .limit(options.limit || 25)
+      .populate(
+        options.populate ||
+          "likedSermons savedBtes playlists favouritePreachers mostPlayed"
+      );
+
+    if (!libraries) {
+      result.error = true;
+      result.code = 404;
+      result.message = "Sermon not found";
+    } else {
+      result.data = libraries;
+    }
 
     return result;
   }
@@ -70,10 +117,18 @@ class LibraryRepository {
    * @param updateData
    * @returns {Promise<IResult>}
    */
-  public async updateLibrary(id: string, updateData: Partial<ILibraryDoc>): Promise<IResult> {
+  public async updateLibrary(
+    id: string,
+    updateData: Partial<ILibraryDoc>
+  ): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const updatedLibrary = await this.model.findByIdAndUpdate(id, updateData, { new: true });
+    const updatedLibrary = await this.model
+      .findByIdAndUpdate(id, updateData, {
+        new: true,
+      })
+      .populate("likedSermons playlists favouritePreachers mostPlayed");
+
     if (!updatedLibrary) {
       result.error = true;
       result.code = 404;
@@ -91,7 +146,7 @@ class LibraryRepository {
    * @param id
    * @returns {Promise<IResult>}
    */
-  public async deleteLibrary(id: string): Promise<IResult> {
+  public async deleteLibrary(id: string | ObjectId): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
     const deletedLibrary = await this.model.findByIdAndDelete(id);
@@ -113,12 +168,15 @@ class LibraryRepository {
    * @param sermonId
    * @returns {Promise<IResult>}
    */
-  public async addLikedSermon(userId: string, sermonId: string): Promise<IResult> {
+  public async addLikedSermon(
+    userId: string,
+    sermonId: string
+  ): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
     const updatedLibrary = await this.model.findOneAndUpdate(
       { user: userId },
-      { $addToSet: { likedSermons: sermonId } },
+      { $addToSet: { likedlibraries: sermonId } },
       { new: true }
     );
 
@@ -140,7 +198,10 @@ class LibraryRepository {
    * @param sermonId
    * @returns {Promise<IResult>}
    */
-  public async removeLikedSermon(userId: string, sermonId: string): Promise<IResult> {
+  public async removeLikedSermon(
+    userId: string,
+    sermonId: string
+  ): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
     const updatedLibrary = await this.model.findOneAndUpdate(
@@ -194,7 +255,10 @@ class LibraryRepository {
    * @param biteId
    * @returns {Promise<IResult>}
    */
-  public async removeSavedBite(userId: string, biteId: string): Promise<IResult> {
+  public async removeSavedBite(
+    userId: string,
+    biteId: string
+  ): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
     const updatedLibrary = await this.model.findOneAndUpdate(
@@ -221,7 +285,10 @@ class LibraryRepository {
    * @param preacherId
    * @returns {Promise<IResult>}
    */
-  public async addFavouritePreacher(userId: string, preacherId: string): Promise<IResult> {
+  public async addFavouritePreacher(
+    userId: string,
+    preacherId: string
+  ): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
     const updatedLibrary = await this.model.findOneAndUpdate(
@@ -248,7 +315,10 @@ class LibraryRepository {
    * @param preacherId
    * @returns {Promise<IResult>}
    */
-  public async removeFavouritePreacher(userId: string, preacherId: string): Promise<IResult> {
+  public async removeFavouritePreacher(
+    userId: string,
+    preacherId: string
+  ): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
     const updatedLibrary = await this.model.findOneAndUpdate(
