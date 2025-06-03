@@ -953,6 +953,14 @@ export interface IcreatedAt {
   createdAt: Date;
 }
 
+export interface IQueryOptions {
+  limit?: number;
+  skip?: number;
+  sort?: string;
+  populate?: string;
+}
+
+
 
 // // Extend the Response type
 // interface CustomResponse<T> extends Response {

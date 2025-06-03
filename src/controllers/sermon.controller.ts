@@ -293,6 +293,48 @@ export const getSermonById = asyncHandler(
   }
 );
 
+
+
+/**
+ * @name getSermonsBytopic
+ * @description Get sermons filtered by topic
+ * @route GET /api/v1/sermon/topic/:topic
+ * @access Public
+ * @returns {Object} list of sermons
+ */
+export const getSermonsBytopic = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const { topic } = req.params;
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 25;
+  const skip = (page - 1) * limit;
+
+  const options = {
+    limit,
+    skip,
+    sort: req.query.sort as string,
+    populate: 'preacher series topic',
+  };
+
+  const result = await sermonRepository.findByTopic(topic, options);
+
+  if (result.error) {
+    return next(new ErrorResponse(result.message, result.code || 500, []));
+  }
+
+  res.status(200).json({
+    error: false,
+    errors: [],
+    data: result.data,
+    message: `Sermons for topic "${topic}" retrieved successfully`,
+    status: 200,
+  });
+});
+
+
+
+
+
+
 // create sermon metadata
 // get sermon metadata
 // update sermon metadata

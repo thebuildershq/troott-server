@@ -1,8 +1,12 @@
 import { Model, ObjectId, Types } from "mongoose";
 import Sermon from "../models/Sermon.model";
 import UploadSermon from "../models/Upload.model";
-import { IResult, ISermonDoc, IUploadDoc } from "../utils/interface.util";
-
+import {
+  IQueryOptions,
+  IResult,
+  ISermonDoc,
+  IUploadDoc,
+} from "../utils/interface.util";
 
 class SermonRepository {
   private SermonModel: Model<ISermonDoc>;
@@ -34,37 +38,16 @@ class SermonRepository {
     return result;
   }
 
-    /**
+  /**
    * @name findById
    * @description Find a sermon by ID
    * @param id
    * @returns {Promise<IResult>}
    */
-    public async findBySermonId(id: string | ObjectId): Promise<IResult> {
-      let result: IResult = { error: false, message: "", code: 200, data: {} };
-      
-      const sermon = await this.SermonModel.findById(id);
-      if (!sermon) {
-        result.error = true;
-        result.code = 404;
-        result.message = "Sermon not found";
-      } else {
-        result.data = sermon;
-      }
-  
-      return result;
-    }
-  
-
-  /**
-   * @name findByTitle
-   * @param title
-   * @returns {Promise<IResult>}
-   */
-  public async findByTitle(title: string): Promise<IResult> {
+  public async findBySermonId(id: string | ObjectId): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const sermon = await this.SermonModel.findOne({ title }).lean();
+    const sermon = await this.SermonModel.findById(id);
     if (!sermon) {
       result.error = true;
       result.code = 404;
@@ -76,26 +59,61 @@ class SermonRepository {
     return result;
   }
 
-    /**
-   * @name findBySermonUrl
-   * @param title
+  /**
+   * @name findAll
+   * @description Fetch all sermons with optional filters, pagination, and sorting
    * @returns {Promise<IResult>}
    */
-    public async findBySermonUrl(sermonUrl: string): Promise<IResult> {
-      let result: IResult = { error: false, message: "", code: 200, data: {} };
-  
-      const sermon = await this.SermonModel.findOne({ sermonUrl })
-      if (!sermon) {
-        result.error = true;
-        result.code = 404;
-        result.message = "Sermon not found";
-      } else {
-        result.data = sermon;
-      }
-  
-      return result;
+  public async findAll(
+    filters = {},
+    options: IQueryOptions = {}
+  ): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    const sermons = await this.SermonModel.find(filters)
+      .sort(options.sort || "-createdAt")
+      .skip(options.skip || 0)
+      .limit(options.limit || 25)
+      .populate(options.populate || "");
+
+    if (!sermons) {
+      result.error = true;
+      result.code = 404;
+      result.message = "Sermon not found";
+    } else {
+      result.data = sermons;
     }
-  
+
+    return result;
+  }
+
+  /**
+   * @name findByTopic
+   * @description Fetch all sermons with optional filters, pagination, and sorting
+   * @returns {Promise<IResult>}
+   */
+  public async findByTopic(
+    topic: string,
+    options: IQueryOptions = {}
+  ): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    const sermons = await this.SermonModel.find({ topic })
+      .sort(options.sort || "-createdAt")
+      .skip(options.skip || 0)
+      .limit(options.limit || 25)
+      .populate(options.populate || "");
+
+    if (!sermons) {
+      result.error = true;
+      result.code = 404;
+      result.message = "Sermon not found";
+    } else {
+      result.data = sermons;
+    }
+
+    return result;
+  }
 
   /**
    * @name getSermons
@@ -131,11 +149,18 @@ class SermonRepository {
    * @param updateData
    * @returns {Promise<IResult>}
    */
-  public async updateSermon(id: string, updateData: Partial<ISermonDoc>): Promise<IResult> {
+  public async updateSermon(
+    id: string,
+    updateData: Partial<ISermonDoc>
+  ): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
     const objectId = new Types.ObjectId(id);
-    const updatedSermon = await this.SermonModel.findByIdAndUpdate(objectId, updateData, { new: true });
+    const updatedSermon = await this.SermonModel.findByIdAndUpdate(
+      objectId,
+      updateData,
+      { new: true }
+    );
     if (!updatedSermon) {
       result.error = true;
       result.code = 404;
@@ -171,17 +196,23 @@ class SermonRepository {
     return result;
   }
 
-   /**
+  /**
    * @name moveSermonToBin
    * @param id
    * @param deleteData
    * @returns {Promise<IResult>}
    */
-   public async moveSermonToBin(id: string, deleteData: Partial<ISermonDoc>): Promise<IResult> {
+  public async moveSermonToBin(
+    id: string,
+    deleteData: Partial<ISermonDoc>
+  ): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
     const objectId = new Types.ObjectId(id);
-    const deletedSermon = await this.SermonModel.findByIdAndUpdate(objectId, deleteData);
+    const deletedSermon = await this.SermonModel.findByIdAndUpdate(
+      objectId,
+      deleteData
+    );
     if (!deletedSermon) {
       result.error = true;
       result.code = 404;
@@ -202,7 +233,9 @@ class SermonRepository {
   public async getSermonsByPreacher(preacherId: string): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const sermons = await this.SermonModel.find({ preacher: preacherId }).lean();
+    const sermons = await this.SermonModel.find({
+      preacher: preacherId,
+    }).lean();
     result.data = sermons;
 
     return result;
@@ -249,7 +282,6 @@ class SermonRepository {
     return result;
   }
 
-
   /**
    * @name getTrendingSermons
    * @returns {Promise<IResult>}
@@ -257,7 +289,10 @@ class SermonRepository {
   public async getTrendingSermons(): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const sermons = await this.SermonModel.find({}).sort({ totalPlay: -1 }).limit(10).lean();
+    const sermons = await this.SermonModel.find({})
+      .sort({ totalPlay: -1 })
+      .limit(10)
+      .lean();
     result.data = sermons;
 
     return result;
