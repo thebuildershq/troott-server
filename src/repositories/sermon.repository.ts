@@ -39,111 +39,6 @@ class SermonRepository {
   }
 
   /**
-   * @name findById
-   * @description Find a sermon by ID
-   * @param id
-   * @returns {Promise<IResult>}
-   */
-  public async findBySermonId(id: string | ObjectId): Promise<IResult> {
-    let result: IResult = { error: false, message: "", code: 200, data: {} };
-
-    const sermon = await this.SermonModel.findById(id);
-    if (!sermon) {
-      result.error = true;
-      result.code = 404;
-      result.message = "Sermon not found";
-    } else {
-      result.data = sermon;
-    }
-
-    return result;
-  }
-
-  /**
-   * @name findAll
-   * @description Fetch all sermons with optional filters, pagination, and sorting
-   * @returns {Promise<IResult>}
-   */
-  public async findAll(
-    filters = {},
-    options: IQueryOptions = {}
-  ): Promise<IResult> {
-    let result: IResult = { error: false, message: "", code: 200, data: {} };
-
-    const sermons = await this.SermonModel.find(filters)
-      .sort(options.sort || "-createdAt")
-      .skip(options.skip || 0)
-      .limit(options.limit || 25)
-      .populate(options.populate || "");
-
-    if (!sermons) {
-      result.error = true;
-      result.code = 404;
-      result.message = "Sermon not found";
-    } else {
-      result.data = sermons;
-    }
-
-    return result;
-  }
-
-  /**
-   * @name findByTopic
-   * @description Fetch all sermons with optional filters, pagination, and sorting
-   * @returns {Promise<IResult>}
-   */
-  public async findByTopic(
-    topic: string,
-    options: IQueryOptions = {}
-  ): Promise<IResult> {
-    let result: IResult = { error: false, message: "", code: 200, data: {} };
-
-    const sermons = await this.SermonModel.find({ topic })
-      .sort(options.sort || "-createdAt")
-      .skip(options.skip || 0)
-      .limit(options.limit || 25)
-      .populate(options.populate || "");
-
-    if (!sermons) {
-      result.error = true;
-      result.code = 404;
-      result.message = "Sermon not found";
-    } else {
-      result.data = sermons;
-    }
-
-    return result;
-  }
-
-  /**
-   * @name getSermons
-   * @returns {Promise<IResult>}
-   */
-  public async getSermons(): Promise<IResult> {
-    let result: IResult = { error: false, message: "", code: 200, data: {} };
-
-    const sermons = await this.SermonModel.find({}).lean();
-    result.data = sermons;
-
-    return result;
-  }
-
-  /**
-   * @name createSermon
-   * @param sermonData
-   * @returns {Promise<IResult>}
-   */
-  public async createSermon(sermonData: Partial<ISermonDoc>): Promise<IResult> {
-    let result: IResult = { error: false, message: "", code: 201, data: {} };
-
-    const newSermon = await this.SermonModel.create(sermonData);
-    result.data = newSermon;
-    result.message = "Sermon created successfully";
-
-    return result;
-  }
-
-  /**
    * @name updateSermon
    * @param id
    * @param updateData
@@ -226,17 +121,121 @@ class SermonRepository {
   }
 
   /**
+   * @name findById
+   * @description Find a sermon by ID
+   * @param id
+   * @returns {Promise<IResult>}
+   */
+  public async findBySermonId(id: string | ObjectId): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    const sermon = await this.SermonModel.findById(id);
+    if (!sermon) {
+      result.error = true;
+      result.code = 404;
+      result.message = "Sermon not found";
+    } else {
+      result.data = sermon;
+    }
+
+    return result;
+  }
+
+  /**
+   * @name findAll
+   * @description Fetch all sermons with optional filters, pagination, and sorting
+   * @returns {Promise<IResult>}
+   */
+  public async findAll(
+    filters = {},
+    options: IQueryOptions = {}
+  ): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    const sermons = await this.SermonModel.find(filters)
+      .sort(options.sort || "-createdAt")
+      .skip(options.skip || 0)
+      .limit(options.limit || 25)
+      .populate(options.populate || "");
+
+    if (!sermons) {
+      result.error = true;
+      result.code = 404;
+      result.message = "Sermon not found";
+    } else {
+      result.data = sermons;
+    }
+
+    return result;
+  }
+
+  /**
+   * @name findByTopic
+   * @description Fetch all sermons with optional filters, pagination, and sorting
+   * @returns {Promise<IResult>}
+   */
+  public async findByTopic(
+    topic: string,
+    options: IQueryOptions = {}
+  ): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    const sermons = await this.SermonModel.find({ topic })
+      .sort(options.sort || "-createdAt")
+      .skip(options.skip || 0)
+      .limit(options.limit || 25)
+      .populate(options.populate || "");
+
+    if (!sermons) {
+      result.error = true;
+      result.code = 404;
+      result.message = "Sermon not found";
+    } else {
+      result.data = sermons;
+    }
+
+    return result;
+  }
+
+  /**
    * @name getSermonsByPreacher
    * @param preacherId
    * @returns {Promise<IResult>}
    */
-  public async getSermonsByPreacher(preacherId: string): Promise<IResult> {
+  public async getSermonsByPreacher(
+    preacherId: string,
+    options: IQueryOptions = {}
+  ): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const sermons = await this.SermonModel.find({
-      preacher: preacherId,
-    }).lean();
-    result.data = sermons;
+    const sermons = await this.SermonModel.find({ preacher: preacherId })
+      .sort(options.sort || "-createdAt")
+      .skip(options.skip || 0)
+      .limit(options.limit || 25)
+      .populate(options.populate || "");
+
+    if (!sermons) {
+      result.error = true;
+      result.code = 404;
+      result.message = "Sermon not found";
+    } else {
+      result.data = sermons;
+    }
+
+    return result;
+  }
+
+  /**
+   * @name createSermon
+   * @param sermonData
+   * @returns {Promise<IResult>}
+   */
+  public async createSermon(sermonData: Partial<ISermonDoc>): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 201, data: {} };
+
+    const newSermon = await this.SermonModel.create(sermonData);
+    result.data = newSermon;
+    result.message = "Sermon created successfully";
 
     return result;
   }

@@ -278,11 +278,11 @@ export const deleteSermon = asyncHandler(
 export const getSermonById = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
-    
+
     const sermon = await sermonRepository.findBySermonId(id);
     if (sermon.error)
       return next(new ErrorResponse(sermon.message, sermon.code!, []));
-    
+
     res.status(200).json({
       error: false,
       errors: [],
@@ -293,8 +293,6 @@ export const getSermonById = asyncHandler(
   }
 );
 
-
-
 /**
  * @name getSermonsBytopic
  * @description Get sermons filtered by topic
@@ -302,8 +300,85 @@ export const getSermonById = asyncHandler(
  * @access Public
  * @returns {Object} list of sermons
  */
-export const getSermonsBytopic = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const { topic } = req.params;
+export const getSermonsByTopic = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { topic } = req.params;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 25;
+    const skip = (page - 1) * limit;
+
+    const options = {
+      limit,
+      skip,
+      sort: req.query.sort as string,
+      populate: "preacher series topic",
+    };
+
+    const result = await sermonRepository.findByTopic(topic, options);
+
+    if (result.error) {
+      return next(new ErrorResponse(result.message, result.code || 500, []));
+    }
+
+    res.status(200).json({
+      error: false,
+      errors: [],
+      data: result.data,
+      message: `Sermons for topic "${topic}" retrieved successfully`,
+      status: 200,
+    });
+  }
+);
+
+/**
+ * @name getAllSermons
+ * @description Get all sermons with pagination, filtering, sorting
+ * @route GET /api/v1/sermon
+ * @access Public
+ * @returns {Object} list of sermons
+ */
+export const getAllSermons = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 25;
+    const skip = (page - 1) * limit;
+
+    const filters = {};
+    const options = {
+      limit,
+      skip,
+      sort: req.query.sort as string,
+      populate: "preacher series category",
+    };
+
+    const result = await sermonRepository.findAll(filters, options);
+
+    if (result.error) {
+      return next(new ErrorResponse(result.message, result.code || 500, []));
+    }
+
+    res.status(200).json({
+      error: false,
+      errors: [],
+      data: result.data,
+      message: "Sermons retrieved successfully",
+      status: 200,
+    });
+  }
+);
+
+
+
+/**
+ * @name getSermonsByPreacher
+ * @description Get sermons by preacher
+ * @route GET /api/v1/sermon/preacher/:preacherId
+ * @access Public
+ * @returns {Object} list of sermons
+ */
+export const getSermonsByPreacher = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const { preacherId } = req.params;
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 25;
   const skip = (page - 1) * limit;
@@ -312,10 +387,10 @@ export const getSermonsBytopic = asyncHandler(async (req: Request, res: Response
     limit,
     skip,
     sort: req.query.sort as string,
-    populate: 'preacher series topic',
+    populate: 'preacher series category',
   };
 
-  const result = await sermonRepository.findByTopic(topic, options);
+  const result = await sermonRepository.getSermonsByPreacher(preacherId, options);
 
   if (result.error) {
     return next(new ErrorResponse(result.message, result.code || 500, []));
@@ -325,13 +400,10 @@ export const getSermonsBytopic = asyncHandler(async (req: Request, res: Response
     error: false,
     errors: [],
     data: result.data,
-    message: `Sermons for topic "${topic}" retrieved successfully`,
+    message: `Sermons by preacher retrieved successfully`,
     status: 200,
   });
 });
-
-
-
 
 
 
