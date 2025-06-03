@@ -3,7 +3,11 @@ import asyncHandler from "../middlewares/async.mdw";
 import UploadService from "../services/upload.service";
 import ErrorResponse from "../utils/error.util";
 import sermonRepository from "../repositories/sermon.repository";
-import { DeleteSermonDTO, PublishSermonDTO, UpdateSermonDTO } from "../dtos/sermon.dto";
+import {
+  DeleteSermonDTO,
+  PublishSermonDTO,
+  UpdateSermonDTO,
+} from "../dtos/sermon.dto";
 import { ISermonDoc } from "../utils/interface.util";
 import { EContentState, EContentStatus } from "../utils/enums.util";
 
@@ -192,7 +196,6 @@ export const updateSermon = asyncHandler(
   }
 );
 
-
 /**
  * @name moveSermonToBin
  * @description Soft deletes a sermon by marking its status as DELETED.
@@ -204,7 +207,7 @@ export const updateSermon = asyncHandler(
 export const moveSermonToBin = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
-    const {state, status, publishedBy}: Partial<DeleteSermonDTO> = req.body;
+    const { state, status, publishedBy }: Partial<DeleteSermonDTO> = req.body;
 
     const sermonExist = await sermonRepository.findBySermonId(id);
     if (sermonExist.error) {
@@ -215,7 +218,7 @@ export const moveSermonToBin = asyncHandler(
 
     const deletePayload = {
       state: state || EContentState.DELETED,
-      status: status || EContentStatus .DELETED,
+      status: status || EContentStatus.DELETED,
       publishedBy: publishedBy,
     };
 
@@ -234,7 +237,6 @@ export const moveSermonToBin = asyncHandler(
   }
 );
 
-
 /**
  * @name deleteSermon
  * @description deletes a sermon from the database.
@@ -244,7 +246,6 @@ export const moveSermonToBin = asyncHandler(
  */
 export const deleteSermon = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    
     const { id } = req.params;
     const sermonExist = await sermonRepository.findBySermonId(id);
     if (sermonExist.error) {
@@ -268,6 +269,30 @@ export const deleteSermon = asyncHandler(
   }
 );
 
+/**
+ * @name getSermonById
+ * @description Get a sermon and its metadata by ID
+ * @route GET /api/v1/sermon/:id
+ * @access Public
+ */
+export const getSermonById = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    
+    const sermon = await sermonRepository.findBySermonId(id);
+    if (sermon.error)
+      return next(new ErrorResponse(sermon.message, sermon.code!, []));
+    
+    res.status(200).json({
+      error: false,
+      errors: [],
+      data: sermon.data,
+      message: "Sermon fetched successfully",
+      status: 200,
+    });
+  }
+);
+
 // create sermon metadata
 // get sermon metadata
 // update sermon metadata
@@ -275,7 +300,6 @@ export const deleteSermon = asyncHandler(
 // publish sermon
 // edit sermon
 // delete sermon
-
 
 // get all sermon list
 // get a sermon + metadata
@@ -298,6 +322,5 @@ export const deleteSermon = asyncHandler(
 // get most played sermon list
 // get most liked sermon list
 // get most shared sermon list
-
 
 // share a sermon

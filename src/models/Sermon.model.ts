@@ -13,7 +13,7 @@ const SermonSchema = new Schema<ISermonDoc>(
     imageUrl: { type: String },
     size: { type: Number },
 
-    category: { type: String },
+    topic: { type: String },
     tags: [{ type: String }],
     isPublic: { type: Boolean, default: true, index: true },
     shareableUrl: { type: String },
