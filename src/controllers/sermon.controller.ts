@@ -62,7 +62,7 @@ export const publishSermon = asyncHandler(
       releaseYear,
       sermonUrl,
       imageUrl,
-      category,
+      topic,
       tags,
       isPublic,
       isSeries,
@@ -85,7 +85,7 @@ export const publishSermon = asyncHandler(
       releaseYear,
       sermonUrl,
       imageUrl,
-      category,
+      topic,
       tags,
       isPublic,
       isSeries,
@@ -134,7 +134,7 @@ export const updateSermon = asyncHandler(
       sermonUrl,
       imageUrl,
       size,
-      category,
+      topic,
       tags,
       isPublic,
       shareableUrl,
@@ -160,7 +160,7 @@ export const updateSermon = asyncHandler(
       sermonUrl,
       imageUrl,
       size,
-      category,
+      topic,
       tags,
       isPublic,
       shareableUrl,
@@ -426,7 +426,7 @@ const getSermonsByPreacherSorted = (
     const options = {
       limit,
       skip,
-      populate: "preacher series category",
+      populate: "preacher series topic",
       recentOnly: sortField === "releaseDate", // for recent filter
     };
 
@@ -496,6 +496,11 @@ export const getSermonsByPreacherMostShared =
 export const getSermonsByPreacherRecentlyPublished =
   getSermonsByPreacherSorted("releaseDate");
 
+
+
+
+
+
 // create sermon metadata
 // get sermon metadata
 // update sermon metadata
@@ -513,15 +518,12 @@ export const getSermonsByPreacherRecentlyPublished =
 // get sermon by preacher: most shared
 // get sermon by preacher: recently published (new release)
 
-// get sermon list by preacher: most played
-// get sermon list by preacher: most liked
-// get sermon list by preacher: most shared
-// get sermon list by preacher: recently published (new release)
+
 
 // get sermon list by series
 // get sermon list by date
 // get sermon list by search
-// get sermon list by category
+// get sermon list by topic
 // get most played sermon list
 // get most liked sermon list
 // get most shared sermon list

@@ -289,7 +289,7 @@ class SermonRepository {
       sermons = await this.SermonModel.populate(sermons, [
         { path: "preacher" },
         { path: "series" },
-        { path: "category" },
+        { path: "topic" },
       ]);
     }
 
@@ -306,6 +306,10 @@ class SermonRepository {
 
     return result;
   }
+
+
+
+  
 
     //   const sortOption =
     //   sortField === "releaseDate" ? "-releaseDate" : `-${sortField}`;

@@ -17,7 +17,7 @@ export interface PublishSermonDTO {
   releaseYear: number;
   sermonUrl: string;
   imageUrl: string;
-  category: Array<string>;
+  topic: Array<string>;
   tags: Array<string>;
   isPublic: boolean;
   isSeries: boolean;
@@ -39,7 +39,7 @@ export interface PublishSermonDTO {
     imageUrl?: string;
     size?: number;
   
-    category?: string;
+    topic?: string;
     tags?: Array<string>;
     isPublic?: boolean;
     shareableUrl?: string;
