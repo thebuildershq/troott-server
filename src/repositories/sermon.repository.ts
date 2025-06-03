@@ -226,6 +226,99 @@ class SermonRepository {
   }
 
   /**
+   * @name findByPreacherSorted
+   * @description Get sermons by preacher sorted by given field (plays, likes, shares, or release date)
+   * @param preacherId
+   * @param sortField - e.g. "playCount", "likeCount", "shareCount", "releaseDate"
+   * @param options
+   * @returns {Promise<IResult>}
+   */
+  public async findByPreacherSorted(
+    preacherId: string | ObjectId,
+    sortField: "playCount" | "likeCount" | "shareCount" | "releaseDate",
+    options: IQueryOptions = {}
+  ): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    const matchStage: any = {
+      preacher: preacherId,
+      state: { $ne: "DELETED" }, // Adjust based on your enums
+      status: { $ne: "DELETED" },
+      isPublic: true,
+    };
+
+    // If recently published: only last week
+    if (sortField === "releaseDate" && options.recentOnly) {
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      matchStage.releaseDate = { $gte: oneWeekAgo };
+    }
+
+    // Map for sorting based on computed fields or releaseDate
+    const sortMap: Record<string, any> = {
+      playCount: { playCount: -1 },
+      likeCount: { likeCount: -1 },
+      shareCount: { shareCount: -1 },
+      releaseDate: { releaseDate: -1 },
+    };
+
+    const pipeline: any[] = [
+      { $match: matchStage },
+      // Add computed count fields dynamically from arrays
+      {
+        $addFields: {
+          playCount: { $size: { $ifNull: ["$totalPlay", []] } },
+          likeCount: { $size: { $ifNull: ["$totalLikes", []] } },
+          shareCount: { $size: { $ifNull: ["$totalShares", []] } },
+        },
+      },
+
+      { $sort: sortMap[sortField] },
+
+      { $skip: options.skip || 0 },
+      { $limit: options.limit || 25 },
+    ];
+
+    let sermons = await this.SermonModel.aggregate(pipeline).exec();
+
+    // Populate after aggregation (if populate is set)
+    if (options.populate) {
+      sermons = await this.SermonModel.populate(sermons, options.populate);
+    } else {
+      // default populate like your old function
+      sermons = await this.SermonModel.populate(sermons, [
+        { path: "preacher" },
+        { path: "series" },
+        { path: "category" },
+      ]);
+    }
+
+    if (!sermons || sermons.length === 0) {
+      result = {
+        error: true,
+        message: "No sermons found",
+        code: 404,
+        data: [],
+      };
+    } else {
+      result.data = sermons;
+    }
+
+    return result;
+  }
+
+    //   const sortOption =
+    //   sortField === "releaseDate" ? "-releaseDate" : `-${sortField}`;
+    // const filters = { preacher: preacherId };
+
+    //   const sermons = await this.SermonModel.find(filters)
+    //     .sort(sortOption)
+    //     .skip(options.skip || 0)
+    //     .limit(options.limit || 25)
+    //     .populate(options.populate || "preacher series category");
+
+
+  /**
    * @name createSermon
    * @param sermonData
    * @returns {Promise<IResult>}

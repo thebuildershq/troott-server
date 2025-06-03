@@ -339,7 +339,6 @@ export const getSermonsByTopic = asyncHandler(
  */
 export const getAllSermons = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 25;
     const skip = (page - 1) * limit;
@@ -368,8 +367,6 @@ export const getAllSermons = asyncHandler(
   }
 );
 
-
-
 /**
  * @name getSermonsByPreacher
  * @description Get sermons by preacher
@@ -377,35 +374,127 @@ export const getAllSermons = asyncHandler(
  * @access Public
  * @returns {Object} list of sermons
  */
-export const getSermonsByPreacher = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const { preacherId } = req.params;
-  const page = Number(req.query.page) || 1;
-  const limit = Number(req.query.limit) || 25;
-  const skip = (page - 1) * limit;
+export const getSermonsByPreacher = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { preacherId } = req.params;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 25;
+    const skip = (page - 1) * limit;
 
-  const options = {
-    limit,
-    skip,
-    sort: req.query.sort as string,
-    populate: 'preacher series category',
-  };
+    const options = {
+      limit,
+      skip,
+      sort: req.query.sort as string,
+      populate: "preacher series category",
+    };
 
-  const result = await sermonRepository.getSermonsByPreacher(preacherId, options);
+    const result = await sermonRepository.getSermonsByPreacher(
+      preacherId,
+      options
+    );
 
-  if (result.error) {
-    return next(new ErrorResponse(result.message, result.code || 500, []));
+    if (result.error) {
+      return next(new ErrorResponse(result.message, result.code || 500, []));
+    }
+
+    res.status(200).json({
+      error: false,
+      errors: [],
+      data: result.data,
+      message: `Sermons by preacher retrieved successfully`,
+      status: 200,
+    });
   }
+);
 
-  res.status(200).json({
-    error: false,
-    errors: [],
-    data: result.data,
-    message: `Sermons by preacher retrieved successfully`,
-    status: 200,
+/**
+ * @name getSermonsByPreacherSorted
+ * @description Internal helper to fetch sermons by preacher with dynamic sort field.
+ * Helper to get sermons by preacher sorted by various criteria
+ * @param {"playCount" | "likeCount" | "shareCount" | "releaseDate"} sortField
+ * @returns {Function} Express handler function
+ */
+const getSermonsByPreacherSorted = (
+  sortField: "playCount" | "likeCount" | "shareCount" | "releaseDate"
+) =>
+  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { preacherId } = req.params;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 25;
+    const skip = (page - 1) * limit;
+
+    const options = {
+      limit,
+      skip,
+      populate: "preacher series category",
+      recentOnly: sortField === "releaseDate", // for recent filter
+    };
+
+    const result = await sermonRepository.findByPreacherSorted(
+      preacherId,
+      sortField,
+      options
+    );
+
+    if (result.error) {
+      return next(new ErrorResponse(result.message, result.code || 500, []));
+    }
+
+    const messagesMap: Record<string, string> = {
+      playCount: "Most played sermons retrieved successfully",
+      likeCount: "Most liked sermons retrieved successfully",
+      shareCount: "Most shared sermons retrieved successfully",
+      releaseDate: "Recently published sermons retrieved successfully",
+    };
+
+    res.status(200).json({
+      error: false,
+      errors: [],
+      data: result.data,
+      message: messagesMap[sortField],
+      status: 200,
+    });
   });
-});
 
+/**
+ * @name getSermonsByPreacherMostPlayed
+ * @description Get most played sermons by preacher
+ * @route GET /api/v1/sermon/preacher/:preacherId/most-played
+ * @access Public
+ * @returns {Object} list of sermons sorted by most played
+ */
+export const getSermonsByPreacherMostPlayed =
+  getSermonsByPreacherSorted("playCount");
 
+/**
+ * @name getSermonsByPreacherMostLiked
+ * @description Get most liked sermons by preacher
+ * @route GET /api/v1/sermon/preacher/:preacherId/most-liked
+ * @access Public
+ * @returns {Object} list of sermons sorted by most liked
+ */
+export const getSermonsByPreacherMostLiked =
+  getSermonsByPreacherSorted("likeCount");
+
+/**
+ * @name getSermonsByPreacherMostShared
+ * @description Get most shared sermons by preacher
+ * @route GET /api/v1/sermon/preacher/:preacherId/most-shared
+ * @access Public
+ * @returns {Object} list of sermons sorted by most shared
+ */
+export const getSermonsByPreacherMostShared =
+  getSermonsByPreacherSorted("shareCount");
+
+/**
+ * @name getSermonsByPreacherRecentlyPublished
+ * @description Get recently published sermons by preacher (within the last 7 days)
+ * @route GET /api/v1/sermon/preacher/:preacherId/recently-published
+ * @access Public
+ * @returns {Object} list of recently published sermons
+ */
+export const getSermonsByPreacherRecentlyPublished =
+  getSermonsByPreacherSorted("releaseDate");
 
 // create sermon metadata
 // get sermon metadata

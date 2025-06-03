@@ -958,6 +958,7 @@ export interface IQueryOptions {
   skip?: number;
   sort?: string;
   populate?: string;
+  recentOnly?: boolean;
 }
 
 
