@@ -7,6 +7,7 @@ import {
   ISermonDoc,
   IUploadDoc,
 } from "../utils/interface.util";
+import { PipelineStage } from "mongoose";
 
 class SermonRepository {
   private SermonModel: Model<ISermonDoc>;
@@ -307,20 +308,427 @@ class SermonRepository {
     return result;
   }
 
+  /**
+   * @name findAllSorted
+   * @description Fetch sermons across all preachers sorted by a specific field
+   * @param {"playCount" | "likeCount" | "shareCount" | "releaseDate"} sortField - Field to sort by
+   * @param {IQueryOptions} options - Optional query options (pagination, populate, recentOnly)
+   * @returns {Promise<IResult>} - Result object with sermons or error message
+   */
+  public async findAllSorted(
+    sortField: "playCount" | "likeCount" | "shareCount" | "releaseDate",
+    options: IQueryOptions = {}
+  ): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
 
+    const matchStage: any = {
+      state: { $ne: "DELETED" },
+      status: { $ne: "DELETED" },
+      isPublic: true,
+    };
 
-  
+    if (sortField === "releaseDate" && options.recentOnly) {
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      matchStage.releaseDate = { $gte: oneWeekAgo };
+    }
 
-    //   const sortOption =
-    //   sortField === "releaseDate" ? "-releaseDate" : `-${sortField}`;
-    // const filters = { preacher: preacherId };
+    const sortMap: Record<string, any> = {
+      playCount: { playCount: -1 },
+      likeCount: { likeCount: -1 },
+      shareCount: { shareCount: -1 },
+      releaseDate: { releaseDate: -1 },
+    };
 
-    //   const sermons = await this.SermonModel.find(filters)
-    //     .sort(sortOption)
-    //     .skip(options.skip || 0)
-    //     .limit(options.limit || 25)
-    //     .populate(options.populate || "preacher series category");
+    const pipeline: any[] = [
+      { $match: matchStage },
+      {
+        $addFields: {
+          playCount: { $size: { $ifNull: ["$totalPlay", []] } },
+          likeCount: { $size: { $ifNull: ["$totalLikes", []] } },
+          shareCount: { $size: { $ifNull: ["$totalShares", []] } },
+        },
+      },
+      { $sort: sortMap[sortField] },
+      { $skip: options.skip || 0 },
+      { $limit: options.limit || 25 },
+    ];
 
+    let sermons = await this.SermonModel.aggregate(pipeline).exec();
+
+    sermons = await this.SermonModel.populate(
+      sermons,
+      options.populate || [
+        { path: "preacher" },
+        { path: "series" },
+        { path: "topic" },
+      ]
+    );
+
+    if (!sermons.length) {
+      result = {
+        error: true,
+        message: "No sermons found",
+        code: 404,
+        data: [],
+      };
+    } else {
+      result.data = sermons;
+      result.message = "Sermons retrieved successfully";
+    }
+
+    return result;
+  }
+
+  /**
+   * @name findRecentlyAddedMonthly
+   * @description Fetch recently added sermons within the last 30 days
+   * @param {IQueryOptions} options - Optional query options (pagination, populate)
+   * @returns {Promise<IResult>} - Result object with sermons or error message
+   */
+  public async findRecentlyAddedMonthly(
+    options: IQueryOptions = {}
+  ): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const filters = {
+      releaseDate: { $gte: thirtyDaysAgo },
+      state: { $ne: "DELETED" },
+      status: { $ne: "DELETED" },
+      isPublic: true,
+    };
+
+    let query = this.SermonModel.find(filters)
+      .sort("-releaseDate")
+      .skip(options.skip || 0)
+      .limit(options.limit || 25);
+
+    if (options.populate) {
+      query = query.populate(options.populate);
+    }
+
+    const sermons = await query.exec();
+
+    if (!sermons || sermons.length === 0) {
+      result = {
+        error: true,
+        message: "No sermons found",
+        code: 404,
+        data: [],
+      };
+    } else {
+      result.data = sermons;
+      result.message = "Recently added sermons retrieved successfully";
+    }
+    return result;
+  }
+
+  /**
+   * Get sermons recently played by a specific user
+   */
+  public async findRecentlyPlayedByUser(
+    userId: string | ObjectId,
+    options: IQueryOptions = {}
+  ): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    const filters = {
+      "totalPlay.userId": userId,
+      state: { $ne: "DELETED" },
+      status: { $ne: "DELETED" },
+      isPublic: true,
+    };
+
+    // Sort by most recent play (using totalPlay.playedAt)
+    // We do aggregation because totalPlay is an array
+    const pipeline: PipelineStage[] = [];
+
+    pipeline.push({
+      $match: {
+        "totalPlay.userId": userId,
+        state: { $ne: "deleted" },
+        status: { $ne: "draft" },
+        isPublic: true,
+      },
+    });
+
+    pipeline.push({ $unwind: "$totalPlay" });
+
+    pipeline.push({
+      $sort: {
+        "totalPlay.playedAt": -1,
+      },
+    });
+
+    pipeline.push({
+      $group: {
+        _id: "$_id",
+        sermon: { $first: "$$ROOT" },
+        lastPlayedAt: { $max: "$totalPlay.playedAt" },
+      },
+    });
+
+    pipeline.push({
+      $sort: {
+        lastPlayedAt: -1,
+      },
+    });
+
+    pipeline.push({ $skip: options.skip || 0 });
+    pipeline.push({ $limit: options.limit || 25 });
+
+    let sermons = await this.SermonModel.aggregate(pipeline).exec();
+
+    if (options.populate) {
+      sermons = await this.SermonModel.populate(
+        sermons.map((s) => s.doc),
+        options.populate
+      );
+    } else {
+      sermons = await this.SermonModel.populate(
+        sermons.map((s) => s.doc),
+        [{ path: "preacher" }, { path: "series" }, { path: "category" }]
+      );
+    }
+
+    if (!sermons || sermons.length === 0) {
+      result = {
+        error: true,
+        message: "No sermons found",
+        code: 404,
+        data: [],
+      };
+    } else {
+      result.data = sermons;
+      result.message = "Recently played sermons retrieved successfully";
+    }
+
+    return result;
+  }
+
+  /**
+   * Get sermons most recently played by any user - popular/recommended
+   */
+  public async findMostRecentlyPlayed(
+    options: IQueryOptions = {}
+  ): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    const pipeline: PipelineStage[] = [];
+
+    pipeline.push({
+      $match: {
+        state: { $ne: "deleted" },
+        status: { $ne: "deleted" },
+        isPublic: true,
+      },
+    });
+
+    pipeline.push({ $unwind: "$totalPlay" });
+
+    pipeline.push({
+      $sort: {
+        "totalPlay.playedAt": -1,
+      },
+    });
+
+    pipeline.push({
+      $group: {
+        _id: "$_id",
+        doc: { $first: "$$ROOT" },
+        lastPlayedAt: { $max: "$totalPlay.playedAt" },
+      },
+    });
+
+    pipeline.push({
+      $sort: {
+        lastPlayedAt: -1,
+      },
+    });
+
+    pipeline.push({ $skip: options.skip || 0 });
+    pipeline.push({ $limit: options.limit || 25 });
+
+    let sermons = await this.SermonModel.aggregate(pipeline).exec();
+
+    if (options.populate) {
+      sermons = await this.SermonModel.populate(
+        sermons.map((s) => s.doc),
+        options.populate
+      );
+    } else {
+      sermons = await this.SermonModel.populate(
+        sermons.map((s) => s.doc),
+        [{ path: "preacher" }, { path: "series" }, { path: "category" }]
+      );
+    }
+
+    if (!sermons || sermons.length === 0) {
+      result = {
+        error: true,
+        message: "No sermons found",
+        code: 404,
+        data: [],
+      };
+    } else {
+      result.data = sermons;
+      result.message = "Most recently played sermons retrieved successfully";
+    }
+
+    return result;
+  }
+
+  /**
+   * Get sermons from a user's favorite preachers (random list)
+   */
+  public async findFavoritePreachersSermonsRandom(
+    favoritePreacherIds: Array<string | ObjectId>,
+    options: IQueryOptions = {}
+  ): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    try {
+      if (!favoritePreacherIds || favoritePreacherIds.length === 0) {
+        return {
+          error: true,
+          message: "No favorite preachers provided",
+          code: 400,
+          data: [],
+        };
+      }
+
+      const filters = {
+        preacher: { $in: favoritePreacherIds.map((id) => id) },
+        state: { $ne: "DELETED" },
+        status: { $ne: "DELETED" },
+        isPublic: true,
+      };
+
+      const count = await this.SermonModel.countDocuments(filters);
+
+      if (count === 0) {
+        return {
+          error: true,
+          message: "No sermons found for favorite preachers",
+          code: 404,
+          data: [],
+        };
+      }
+
+      const randomSkip = Math.floor(
+        Math.random() * Math.max(0, count - (options.limit || 25))
+      );
+
+      let query = this.SermonModel.find(filters)
+        .skip(randomSkip)
+        .limit(options.limit || 25);
+
+      if (options.populate) {
+        query = query.populate(options.populate);
+      } else {
+        query = query.populate(["preacher", "series", "topic"]);
+      }
+
+      const sermons = await query.exec();
+
+      if (!sermons || sermons.length === 0) {
+        result = {
+          error: true,
+          message: "No sermons found",
+          code: 404,
+          data: [],
+        };
+      } else {
+        result.data = sermons;
+        result.message = "Favorite preachers sermons retrieved successfully";
+      }
+    } catch (error: any) {
+      result = {
+        error: true,
+        message: error.message || "Server error",
+        code: 500,
+        data: [],
+      };
+    }
+
+    return result;
+  }
+
+  /**
+   * Get sermons based on user interests (e.g. tags or topics)
+   */
+  public async findByUserInterests(
+    interests: string[], // array of tags/topics
+    options: IQueryOptions = {}
+  ): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    try {
+      if (!interests || interests.length === 0) {
+        return {
+          error: true,
+          message: "No interests provided",
+          code: 400,
+          data: [],
+        };
+      }
+
+      const filters = {
+        $or: [{ tags: { $in: interests } }, { topic: { $in: interests } }],
+        state: { $ne: "DELETED" },
+        status: { $ne: "DELETED" },
+        isPublic: true,
+      };
+
+      let query = this.SermonModel.find(filters)
+        .sort("-releaseDate")
+        .skip(options.skip || 0)
+        .limit(options.limit || 25);
+
+      if (options.populate) {
+        query = query.populate(options.populate);
+      } else {
+        query = query.populate(["preacher", "series", "topic"]);
+      }
+
+      const sermons = await query.exec();
+
+      if (!sermons || sermons.length === 0) {
+        result = {
+          error: true,
+          message: "No sermons found",
+          code: 404,
+          data: [],
+        };
+      } else {
+        result.data = sermons;
+        result.message =
+          "Sermons based on user interests retrieved successfully";
+      }
+    } catch (error: any) {
+      result = {
+        error: true,
+        message: error.message || "Server error",
+        code: 500,
+        data: [],
+      };
+    }
+
+    return result;
+  }
+
+  //   const sortOption =
+  //   sortField === "releaseDate" ? "-releaseDate" : `-${sortField}`;
+  // const filters = { preacher: preacherId };
+
+  //   const sermons = await this.SermonModel.find(filters)
+  //     .sort(sortOption)
+  //     .skip(options.skip || 0)
+  //     .limit(options.limit || 25)
+  //     .populate(options.populate || "preacher series category");
 
   /**
    * @name createSermon
@@ -396,3 +804,25 @@ class SermonRepository {
 }
 
 export default new SermonRepository();
+
+// Use this safely with mongoose aggregate
+// const pipeline = [
+//   { $match: filters },
+//   { $unwind: "$totalPlay" },
+//   { $match: { "totalPlay.userId": userId } },
+//   {
+//     $sort: {
+//       "totalPlay.playedAt": -1,
+//     },
+//   },
+//   {
+//     $group: {
+//       _id: "$_id",
+//       doc: { $first: "$$ROOT" },
+//       lastPlayedAt: { $max: "$totalPlay.playedAt" },
+//     },
+//   },
+//   { $sort: { lastPlayedAt: -1 } },
+//   { $skip: options.skip || 0 },
+//   { $limit: options.limit || 25 },
+// ];

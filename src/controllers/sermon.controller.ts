@@ -317,7 +317,7 @@ export const getSermonsByTopic = asyncHandler(
     const result = await sermonRepository.findByTopic(topic, options);
 
     if (result.error) {
-      return next(new ErrorResponse(result.message, result.code || 500, []));
+      return next(new ErrorResponse(result.message, result.code, []));
     }
 
     res.status(200).json({
@@ -348,7 +348,7 @@ export const getAllSermons = asyncHandler(
       limit,
       skip,
       sort: req.query.sort as string,
-      populate: "preacher series category",
+      populate: "preacher series topic",
     };
 
     const result = await sermonRepository.findAll(filters, options);
@@ -385,7 +385,7 @@ export const getSermonsByPreacher = asyncHandler(
       limit,
       skip,
       sort: req.query.sort as string,
-      populate: "preacher series category",
+      populate: "preacher series topic",
     };
 
     const result = await sermonRepository.getSermonsByPreacher(
@@ -496,10 +496,252 @@ export const getSermonsByPreacherMostShared =
 export const getSermonsByPreacherRecentlyPublished =
   getSermonsByPreacherSorted("releaseDate");
 
+/**
+ * @name getSermonsAllSorted
+ * @description Internal helper to fetch sermons across all preachers with dynamic sort field
+ * @param {"playCount" | "likeCount" | "shareCount" | "releaseDate"} sortField
+ * @returns {Function} Express route handler function
+ */
+const getSermonsAllSorted = (
+  sortField: "playCount" | "likeCount" | "shareCount" | "releaseDate"
+) =>
+  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 25;
+    const skip = (page - 1) * limit;
 
+    const options = {
+      limit,
+      skip,
+      populate: "preacher series topic",
+      recentOnly: sortField === "releaseDate",
+    };
 
+    const result = await sermonRepository.findAllSorted(sortField, options);
 
+    if (result.error) {
+      return next(new ErrorResponse(result.message, result.code || 500, []));
+    }
 
+    const messagesMap: Record<string, string> = {
+      playCount: "Most played sermons retrieved successfully",
+      likeCount: "Most liked sermons retrieved successfully",
+      shareCount: "Most shared sermons retrieved successfully",
+      releaseDate: "Recently published sermons retrieved successfully",
+    };
+
+    res.status(200).json({
+      error: false,
+      errors: [],
+      data: result.data,
+      message: messagesMap[sortField],
+      status: 200,
+    });
+  });
+
+/**
+ * @name getSermonsMostPlayed
+ * @description Get most played sermons across all preachers
+ * @route GET /api/v1/sermon/most-played
+ * @access Public
+ * @returns {Object} List of most played sermons
+ */
+export const getSermonsMostPlayed = getSermonsAllSorted("playCount");
+
+/**
+ * @name getSermonsMostLiked
+ * @description Get most liked sermons across all preachers
+ * @route GET /api/v1/sermon/most-liked
+ * @access Public
+ * @returns {Object} List of most liked sermons
+ */
+export const getSermonsMostLiked = getSermonsAllSorted("likeCount");
+
+/**
+ * @name getSermonsMostShared
+ * @description Get most shared sermons across all preachers
+ * @route GET /api/v1/sermon/most-shared
+ * @access Public
+ * @returns {Object} List of most shared sermons
+ */
+export const getSermonsMostShared = getSermonsAllSorted("shareCount");
+
+/**
+ * @name getSermonsRecentlyPublished
+ * @description Get recently published sermons across all preachers (last 7 days)
+ * @route GET /api/v1/sermon/recently-published
+ * @access Public
+ * @returns {Object} List of recent sermons
+ */
+export const getSermonsRecentlyPublished = getSermonsAllSorted("releaseDate");
+
+/**
+ * @name getRecentlyAddedSermons
+ * @description Get sermons released in the last 30 days
+ * @returns {Function} Express route handler function
+ */
+export const getRecentlyAddedSermons = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 25;
+    const skip = (page - 1) * limit;
+
+    const options = { limit, skip, populate: "preacher series category" };
+    const result = await sermonRepository.findRecentlyAddedMonthly(options);
+
+    if (result.error) {
+      return next(new ErrorResponse(result.message, result.code, []));
+    }
+
+    res.status(200).json({
+      error: false,
+      errors: [],
+      data: result.data,
+      message: "Recently added sermons retrieved successfully",
+      status: 200,
+    });
+  }
+);
+
+/**
+ * @name getUserRecentlyPlayedSermons
+ * @description Get sermons the user recently played
+ * @returns {Function} Express route handler function
+ */
+export const getUserRecentlyPlayedSermons = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    
+    const userId = req.user?._id;
+    if (!userId) return next(new ErrorResponse("Unauthorized", 401, []));
+
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 25;
+    const skip = (page - 1) * limit;
+
+    const options = { limit, skip, populate: "preacher series category" };
+    const result = await sermonRepository.findRecentlyPlayedByUser(
+      userId,
+      options
+    );
+
+    if (result.error) {
+      return next(new ErrorResponse(result.message, result.code, []));
+    }
+
+    res.status(200).json({
+      error: false,
+      errors: [],
+      data: result.data,
+      message: "Recently played sermons retrieved successfully",
+      status: 200,
+    });
+  }
+);
+
+/**
+ * @name getPopularSermonsRecentlyPlayed
+ * @description Get sermons most recently played by users across the app
+ * @returns {Function} Express route handler function
+ */
+export const getPopularSermonsRecentlyPlayed = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 25;
+    const skip = (page - 1) * limit;
+
+    const options = { limit, skip, populate: "preacher series topic" };
+    const result = await sermonRepository.findMostRecentlyPlayed(options);
+
+    if (result.error) {
+      return next(new ErrorResponse(result.message, result.code, []));
+    }
+
+    res.status(200).json({
+      error: false,
+      errors: [],
+      data: result.data,
+      message: "Popular sermons retrieved successfully",
+      status: 200,
+    });
+  }
+);
+
+/**
+ * @name getFavoritePreacherSermons
+ * @description Get a random list of sermons from a user's favorite preachers
+ * @returns {Function} Express route handler function
+ */
+export const getFavoritePreacherSermons = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    
+    const favoritePreacherIds = req.user?.favoritePreachers || [];
+    if (
+      !Array.isArray(favoritePreacherIds) ||
+      favoritePreacherIds.length === 0
+    ) {
+      return next(new ErrorResponse("No favorite preachers found", 400, []));
+    }
+
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 25;
+    const skip = (page - 1) * limit;
+
+    const options = { limit, skip, populate: "preacher series topic" };
+    const result = await sermonRepository.findFavoritePreachersSermonsRandom(
+      favoritePreacherIds,
+      options
+    );
+
+    if (result.error) {
+      return next(new ErrorResponse(result.message, result.code, []));
+    }
+
+    res.status(200).json({
+      error: false,
+      errors: [],
+      data: result.data,
+      message: "Sermons from favorite preachers retrieved successfully",
+      status: 200,
+    });
+  }
+);
+
+/**
+ * @name getSermonsByUserInterests
+ * @description Get sermons based on user interest tags or topics
+ * @returns {Function} Express route handler function
+ */
+export const getSermonsByUserInterests = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const interests = req.user?.interests || [];
+    if (!Array.isArray(interests) || interests.length === 0) {
+      return next(new ErrorResponse("No interests provided", 400, []));
+    }
+
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 25;
+    const skip = (page - 1) * limit;
+
+    const options = { limit, skip, populate: "preacher series topic" };
+    const result = await sermonRepository.findByUserInterests(
+      interests,
+      options
+    );
+
+    if (result.error) {
+      return next(new ErrorResponse(result.message, result.code, []));
+    }
+
+    res.status(200).json({
+      error: false,
+      errors: [],
+      data: result.data,
+      message: "Sermons based on interests retrieved successfully",
+      status: 200,
+    });
+  }
+);
 
 // create sermon metadata
 // get sermon metadata
@@ -518,8 +760,6 @@ export const getSermonsByPreacherRecentlyPublished =
 // get sermon by preacher: most shared
 // get sermon by preacher: recently published (new release)
 
-
-
 // get sermon list by series
 // get sermon list by date
 // get sermon list by search
@@ -529,3 +769,26 @@ export const getSermonsByPreacherRecentlyPublished =
 // get most shared sermon list
 
 // share a sermon
+
+// get catalog for new user
+// get trending sermons (week)
+// get popuar sermons (quarterly)
+// get new release (weekly)
+// get recently added (monthly)
+// get most recently played (by users) - popular/recommended
+// get favourite preachers sermons (randomly) - the lsit
+// get sermon based on user interests
+
+// get catalog for returning user
+// get trending sermons
+// get new release (weekly)
+// get recently added (monthly)
+// get recently played (by user)
+// get most recently played (by users) - popular/recommended
+// get favourite preachers sermons (randomly) - the lsit
+// get sermon based on user interests
+
+// Recommendations
+// get user's listening history (completed, skipped, liked, disliked).
+// get user’s interactions (comments, shares, saves).
+// get user’s following list (creators, preachers).
