@@ -561,16 +561,17 @@ export interface ILibraryDoc extends Document {
 export interface IPlaylistDoc extends Document {
   title: string;
   description: string;
-  imageURL: string;
+  playlistCover: string;
   totalDuration: string;
-  isDefault: boolean;
+  isCollaborative: boolean;
   isPublic: boolean;
   likes: number;
+  playlistType: EPlaylistType;
+  items: Array<{ itemId: ObjectId | any }>;
 
   // relationships
   user: ObjectId | any;
   createdBy: ObjectId | any;
-  items: Array<{ itemId: ObjectId | any; type: EPlaylistType }>;
 
   // timestamps
   createdAt: string;

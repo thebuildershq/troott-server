@@ -6,11 +6,26 @@ const PlaylistSchema = new Schema<IPlaylistDoc>(
   {
     title: { type: String, required: true, index: true },
     description: { type: String, maxLength: 1000 },
-    imageURL: { type: String },
+    playlistCover: { type: String },
     totalDuration: { type: String, required: true },
-    isDefault: { type: Boolean, default: false, index: true },
+    isCollaborative: { type: Boolean, default: false, index: true },
     isPublic: { type: Boolean, default: true, index: true },
     likes: { type: Number, default: 0, index: true },
+
+    playlistType: {
+      type: String,
+      enum: Object.values(EPlaylistType),
+      required: true,
+      index: true,
+    },
+    items: [
+      {
+        itemId: {
+          type: Schema.Types.ObjectId,
+          required: true,
+        },
+      },
+    ],
 
     // Relationships
     user: {
@@ -25,20 +40,6 @@ const PlaylistSchema = new Schema<IPlaylistDoc>(
       required: true,
       index: true,
     },
-    items: [
-      {
-        itemId: {
-          type: Schema.Types.ObjectId,
-          required: true,
-          refPath: "items.type",
-        },
-        type: {
-          type: String,
-          enum: Object.values(EPlaylistType),
-          required: true,
-        },
-      },
-    ],
   },
   {
     timestamps: true,
