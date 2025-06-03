@@ -344,7 +344,7 @@ export interface ISermonDoc extends Document {
   imageUrl: string;
   size: number;
 
-  category: string;
+  topic: string;
   tags: Array<string>;
   isPublic: boolean;
   shareableUrl: string;
@@ -506,7 +506,7 @@ export interface ISeriesDoc extends Document {
   sermons: Array<ObjectId | any>;
   imageUrl?: string;
   part: string;
-  toatlDuration: string;
+  totalDuration: string;
   tags: Array<string>;
 
   isPublic: boolean;
@@ -939,6 +939,20 @@ export interface ICustomResponse<T> extends Response {
   };
   status: any;
 }
+
+export interface ICursorResponse<T> extends Response {
+  customResults: {
+    success: boolean;
+    count: number;
+    nextCursor: string | null;
+    data: T[];
+  };
+}
+
+export interface IcreatedAt {
+  createdAt: Date;
+}
+
 
 // // Extend the Response type
 // interface CustomResponse<T> extends Response {

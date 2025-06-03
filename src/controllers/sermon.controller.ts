@@ -275,14 +275,29 @@ export const deleteSermon = asyncHandler(
 // publish sermon
 // edit sermon
 // delete sermon
+
+
 // get all sermon list
 // get a sermon + metadata
+// get sermon by topic
+// get sermon by preacher
+// get sermon by preacher: most played
+// get sermon by preacher: most liked
+// get sermon by preacher: most shared
+// get sermon by preacher: recently published (new release)
+
+// get sermon list by preacher: most played
+// get sermon list by preacher: most liked
+// get sermon list by preacher: most shared
+// get sermon list by preacher: recently published (new release)
+
+// get sermon list by series
+// get sermon list by date
+// get sermon list by search
+// get sermon list by category
+// get most played sermon list
+// get most liked sermon list
+// get most shared sermon list
+
+
 // share a sermon
-
-// like a sermon
-// add to default library playlit
-// add to count
-
-// unlike a sermon
-// remove to default library playlit
-// remove to count

@@ -1,14 +1,15 @@
-// catalog controller
 
-    // get feed for new user
-        // get trending sermons
+
+    // get catalog for new user
+        // get trending sermons (week)
+        // get popuar sermons (quarterly)
         // get new release (weekly)
         // get recently added (monthly)
         // get most recently played (by users) - popular/recommended 
         // get favourite preachers sermons (randomly) - the lsit
         // get sermon based on user interests
 
-    // get feed for returning user
+    // get catalog for returning user
         // get trending sermons
         // get new release (weekly)
         // get recently added (monthly)

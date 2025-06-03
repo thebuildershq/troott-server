@@ -3,6 +3,7 @@
     // create playlist
         // add to library
         // toogle private or public
+    // get all user library items
     // get all user playlist
     // get a user playlist
     // get a playlist (with items in in)
