@@ -201,15 +201,38 @@ class PlaylistRepository {
    */
   public async addItemToPlaylist(
     playlistId: string,
-    item: { itemId: string }
+    item: { itemId: string, type: string }
   ): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const updatedPlaylist = await this.model.findByIdAndUpdate(
-      playlistId,
-      { $push: { items: item } },
-      { new: true }
+    const playlist = await this.model.findById(playlistId);
+    if (!playlist) {
+      result.error = true;
+      result.message = "Playlist not found";
+      result.code = 404;
+      return result;
+    }
+
+    if (playlist.playlistType !== item.type) {
+      result.error = true;
+      result.message = `Invalid item type. This is a ${playlist.playlistType.toLowerCase()} playlist`;
+      result.code = 400;
+      return result;
+    }
+
+    const exists = playlist.items.some(
+      (existingItem) => existingItem.itemId.toString() === item.itemId
     );
+
+    if (exists) {
+      result.error = true;
+      result.message = "Item already in playlist";
+      result.code = 400;
+      return result;
+    }
+    const updatedPlaylist = await this.model
+      .findByIdAndUpdate(playlistId, { $push: { items: item } }, { new: true })
+      .populate("user items.itemId");
 
     if (!updatedPlaylist) {
       result.error = true;
@@ -235,11 +258,13 @@ class PlaylistRepository {
   ): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    const updatedPlaylist = await this.model.findByIdAndUpdate(
-      playlistId,
-      { $pull: { items: { itemId } } },
-      { new: true }
-    );
+    const updatedPlaylist = await this.model
+      .findByIdAndUpdate(
+        playlistId,
+        { $pull: { items: { itemId } } },
+        { new: true }
+      )
+      .populate("user items.itemId");
 
     if (!updatedPlaylist) {
       result.error = true;

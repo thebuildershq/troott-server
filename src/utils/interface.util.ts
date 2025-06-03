@@ -567,11 +567,12 @@ export interface IPlaylistDoc extends Document {
   isPublic: boolean;
   likes: number;
   playlistType: EPlaylistType;
-  items: Array<{ itemId: ObjectId | any }>;
+  items: Array<{ itemId: ObjectId | any; type: EPlaylistType }>;
 
   // relationships
   user: ObjectId | any;
   createdBy: ObjectId | any;
+  
 
   // timestamps
   createdAt: string;

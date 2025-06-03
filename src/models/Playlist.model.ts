@@ -14,9 +14,9 @@ const PlaylistSchema = new Schema<IPlaylistDoc>(
 
     playlistType: {
       type: String,
-      enum: Object.values(EPlaylistType),
+      enum: Object.values(EPlaylistType), 
       required: true,
-      index: true,
+      index: true
     },
     items: [
       {
@@ -24,8 +24,14 @@ const PlaylistSchema = new Schema<IPlaylistDoc>(
           type: Schema.Types.ObjectId,
           required: true,
         },
+        type: {
+          type: String,
+          enum: Object.values(EPlaylistType),
+          required: true,
+        },
       },
     ],
+    
 
     // Relationships
     user: {
@@ -40,6 +46,7 @@ const PlaylistSchema = new Schema<IPlaylistDoc>(
       required: true,
       index: true,
     },
+  
   },
   {
     timestamps: true,
