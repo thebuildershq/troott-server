@@ -10,7 +10,6 @@ import ErrorResponse from "../utils/error.util";
  */
 export const createPlaylist = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-
     const data = req.body;
 
     const result = await playlistRepository.createPlaylist(data);
@@ -34,13 +33,12 @@ export const createPlaylist = asyncHandler(
  */
 export const getPlaylistById = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    
     const { id } = req.params;
 
     const result = await playlistRepository.findById(id);
     if (result.error)
       return next(new ErrorResponse(result.message, result.code, []));
-  
+
     res.status(result.code).json({
       error: false,
       errors: [],
@@ -58,13 +56,12 @@ export const getPlaylistById = asyncHandler(
  */
 export const getPlaylistsByUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    
     const { userId } = req.params;
 
     const result = await playlistRepository.findByUser(userId);
     if (result.error)
       return next(new ErrorResponse(result.message, result.code, []));
-    
+
     res.status(result.code).json({
       error: false,
       errors: [],
@@ -82,9 +79,8 @@ export const getPlaylistsByUser = asyncHandler(
  */
 export const getAllPlaylists = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    
     const filters = req.query.filters || {};
-    
+
     const options = {
       sort: req.query.sort as string,
       skip: Number(req.query.skip) || 0,
@@ -113,7 +109,6 @@ export const getAllPlaylists = asyncHandler(
  */
 export const updatePlaylist = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    
     const { id } = req.params;
     const updates = req.body;
 
@@ -150,6 +145,63 @@ export const deletePlaylist = asyncHandler(
       message: result.message,
       status: result.code,
       data: {},
+    });
+  }
+);
+
+/**
+ * @name addItemToPlaylist
+ * @route PATCH /api/v1/playlists/:playlistId/add
+ * @access Private
+ */
+export const addItemToPlaylist = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { playlistId } = req.params;
+    const { itemId, type } = req.body;
+
+    const result = await playlistRepository.addItemToPlaylist(playlistId, {
+      itemId, type
+    });
+
+    if (result.error) {
+      return next(new ErrorResponse(result.message, result.code, []));
+    }
+
+    res.status(200).json({
+      error: false,
+      errors: [],
+      message: result.message,
+      status: result.code,
+      data: result.data,
+    });
+  }
+);
+
+/**
+ * @name removeItemFromPlaylist
+ * @route PATCH /api/v1/playlists/:playlistId/remove
+ * @access Private
+ */
+export const removeItemFromPlaylist = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { playlistId } = req.params;
+    const { itemId } = req.body;
+
+    const result = await playlistRepository.removeItemFromPlaylist(
+      playlistId,
+      itemId
+    );
+
+    if (result.error) {
+      return next(new ErrorResponse(result.message, result.code, []));
+    }
+
+    res.status(200).json({
+      error: false,
+      errors: [],
+      message: result.message,
+      status: result.code,
+      data: result.data,
     });
   }
 );
