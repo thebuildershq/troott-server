@@ -28,6 +28,8 @@ export const createLibrary = asyncHandler(
   }
 );
 
+
+
 /**
  * @name getLibraryByUser
  * @description Get a user's library document
@@ -53,6 +55,35 @@ export const getLibraryByUser = asyncHandler(
     });
   }
 );
+
+/**
+ * @name getLibraryById
+ * @description Get a user's library document by ID
+ * @route GET /api/v1/library/:userId/:libraryId
+ * @access Private
+ */
+export const getLibraryById = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { userId, libraryId } = req.params;
+
+    if (userId !== req.user.id) {
+      return next(new ErrorResponse("You are not authorized to access this resource", 403, []));
+    }
+
+    const library = await libraryRepository.findById(libraryId);
+    if (library.error) {
+        return next(new ErrorResponse(library.message, library.code, []));
+    }
+
+    res.status(200).json({
+      error: false,
+      errors: [], 
+      message: "Library fetched successfully",
+      status: 200,
+      data: library,
+    })
+  }
+)
 
 /**
  * @name getAllLibraries
