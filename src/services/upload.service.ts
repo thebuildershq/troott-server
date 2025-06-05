@@ -127,7 +127,7 @@ class UploadService {
       releaseYear,
       sermonUrl,
       imageUrl,
-      category,
+      topic,
       tags,
       isPublic,
       isSeries,
@@ -148,7 +148,7 @@ class UploadService {
       releaseYear,
       sermonUrl,
       imageUrl,
-      category,
+      topic,
       tags,
       isPublic,
       isSeries,
@@ -295,9 +295,9 @@ class UploadService {
     } else if (!data.imageUrl) {
       result.error = true;
       result.message = "Image URL is required";
-    } else if (!data.category) {
+    } else if (!data.topic) {
       result.error = true;
-      result.message = "Category is required";
+      result.message = "topic is required";
     } else if (!data.tags) {
       result.error = true;
       result.message = "Tags are required";

@@ -69,7 +69,11 @@ class PreferencesRepository {
   }
 
   /**
-   * @name updatePreferences
+   * @method updatePreferences
+   * @description Updates one or both fields of user preferences (topics or preachers).
+   * @param {string} userId - ID of the user to update preferences for
+   * @param {Partial<{ topics: string[]; preacher: ObjectId[] }>} preferences - Preferences to update
+   * @returns {Promise<IResult>} Result object with the updated preferences
    */
   public async updatePreferences(
     userId: string,
@@ -79,12 +83,12 @@ class PreferencesRepository {
 
     const userDoc = await this.model.findById(userId);
     if (!userDoc) {
-      return { 
-        error: true, 
-        message: "User not found", 
-        code: 404, 
-        data: {} 
-    };
+      return {
+        error: true,
+        message: "User not found",
+        code: 404,
+        data: {},
+      };
     }
 
     if (preferences.topics) {
@@ -110,12 +114,12 @@ class PreferencesRepository {
 
     const userDoc = await this.model.findById(userId);
     if (!userDoc) {
-      return { 
-        error: true, 
-        message: "User not found", 
-        code: 404, 
-        data: {} 
-    };
+      return {
+        error: true,
+        message: "User not found",
+        code: 404,
+        data: {},
+      };
     }
 
     userDoc.preferences = { topics: [], preacher: [] };
