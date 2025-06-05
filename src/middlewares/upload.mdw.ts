@@ -45,6 +45,7 @@ const uploadFile = asyncHandler(
         uploadStream.write(chunk);
         metadataStream.write(chunk);
         fileSize += chunk.length;
+        console.log('file chunks', chunk.length)
       });
 
       file.on("end", () => {
