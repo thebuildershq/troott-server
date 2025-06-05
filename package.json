@@ -5,7 +5,8 @@
   "scripts": {
     "prod": "NODE_ENV=production ts-node --transpile-only src/server.ts",
     "start": "NODE_ENV=production ts-node --transpile-only src/server.ts",
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "scrape-sermons": "ts-node src/migration/sermon-scraper.ts"
   },
   "keywords": [
     "troott",
