@@ -432,34 +432,34 @@ class UserService {
     return result;
   }
 
-
   /**
    * @name updateUserType
    * @param user
    * @param userType
    */
-  public async updateUserType(user: IUserDoc, userType: EUserType): Promise<void> {
-    
+  public async updateUserType(
+    user: IUserDoc,
+    userType: EUserType
+  ): Promise<void> {
     user.isListener = false;
     user.isCreator = false;
     user.isPreacher = false;
     user.isStaff = false;
-    
-  if (userType === EUserType.LISTENER) {
-    user.isListener = true;
-  } else if (userType === EUserType.CREATOR) {
-    user.isCreator = true;
-  } else if (userType === EUserType.PREACHER) {
-    user.isPreacher = true;
-  }  else if (userType === EUserType.STAFF) {
-    user.isStaff = true;
-  }
 
-  user.userType = userType;
+    if (userType === EUserType.LISTENER) {
+      user.isListener = true;
+    } else if (userType === EUserType.CREATOR) {
+      user.isCreator = true;
+    } else if (userType === EUserType.PREACHER) {
+      user.isPreacher = true;
+    } else if (userType === EUserType.STAFF) {
+      user.isStaff = true;
+    }
+
+    user.userType = userType;
 
     await user.save();
   }
-
 
   /**
    * @name updateLastLogin
@@ -786,6 +786,41 @@ class UserService {
   }
 
   /**
+   * @name updatePreferences
+   * @param user
+   * @param preferences
+   */
+  public async updatePreferences(
+    user: IUserDoc,
+    preferences: Partial<Pick<IUserDoc["preferences"], "topics" | "preacher">>
+  ): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    if (!preferences.topics && !preferences.preacher) {
+      result.error = true;
+      result.code = 400;
+      result.message = "Invalid preferences: must provide topics or preacher";
+      return result;
+    }
+
+    if (preferences.topics) {
+      user.preferences.topics = preferences.topics;
+    }
+
+    if (preferences.preacher) {
+      user.preferences.preacher = preferences.preacher;
+    }
+
+    result.message = "Preferences updated successfully";
+    result.data = preferences.topics && !preferences.preacher;
+
+    await user.save();
+    result.data = user.preferences;
+
+    return result;
+  }
+
+  /**
    * Gets user notification preferences
    * @param userId - The ID of the user
    * @returns Object containing notification preference settings
@@ -813,25 +848,40 @@ class UserService {
    * @param preferences - Object containing notification preferences to update
    */
   public async updateNotificationPreferences(
-    userId: string,
-    preferences: {
-      email?: boolean;
-      push?: boolean;
-      sms?: boolean;
-    }
-  ): Promise<void> {
-    const user = await User.findById(userId);
+    user: IUserDoc,
+    notificationPreferences: Partial<IUserDoc["notificationPreferences"]>
+  ): Promise<IResult> {
+    let result: IResult = { error: false, message: "", code: 200, data: {} };
 
-    if (!user) {
-      throw new Error("User not found");
+    const hasAnyPreference =
+      notificationPreferences.email !== undefined ||
+      notificationPreferences.push !== undefined ||
+      notificationPreferences.sms !== undefined;
+
+    if (!hasAnyPreference) {
+      result.error = true;
+      result.code = 400;
+      result.message =
+        "Invalid notification preferences: must provide at least one setting";
+      return result;
     }
 
-    user.notificationPreferences = {
-      ...user.notificationPreferences,
-      ...preferences,
-    };
+    if (notificationPreferences.email !== undefined) {
+      user.notificationPreferences.email = notificationPreferences.email;
+    }
+    if (notificationPreferences.push !== undefined) {
+      user.notificationPreferences.push = notificationPreferences.push;
+    }
+    if (notificationPreferences.sms !== undefined) {
+      user.notificationPreferences.sms = notificationPreferences.sms;
+    }
 
     await user.save();
+
+    result.message = "Notification preferences updated successfully";
+    result.data = user.notificationPreferences;
+
+    return result;
   }
 }
 

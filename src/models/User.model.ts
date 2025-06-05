@@ -84,10 +84,15 @@ const UserSchema = new Schema<IUserDoc>(
     },
     lastLogin: { type: String },
     isActive: { type: Boolean, default: false },
-    
+
     loginLimit: { type: Number, default: 5 },
     lockedUntil: { type: Date },
     twoFactorEnabled: { type: Boolean, default: false },
+
+    preferences: {
+      topics: [{ type: String }],
+      preachers: [{ type: Schema.Types.ObjectId, ref: EDbModels.PREACHER }],
+    },
 
     // Notification Preferences
     notificationPreferences: {
@@ -95,8 +100,6 @@ const UserSchema = new Schema<IUserDoc>(
       push: { type: Boolean, default: true },
       sms: { type: Boolean, default: false },
     },
-
-    
 
     // Relationships
     role: { type: Schema.Types.ObjectId, ref: EDbModels.ROLE, index: true },
@@ -112,7 +115,6 @@ const UserSchema = new Schema<IUserDoc>(
     },
   }
 );
-
 
 UserSchema.set("toJSON", { virtuals: true, getters: true });
 

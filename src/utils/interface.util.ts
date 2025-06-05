@@ -96,6 +96,11 @@ export interface IUserDoc extends Document {
   lockedUntil: Nullable<Date>;
   twoFactorEnabled: boolean;
 
+  preferences: {
+    topics: Array<string>;
+    preacher: Array<ObjectId>;
+  };
+
   // Notification Preferences
   notificationPreferences: {
     email: boolean;
