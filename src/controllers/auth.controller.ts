@@ -184,6 +184,7 @@ export const activateUserAccount = asyncHandler(
           lastName: user.lastName,
           userType: user.userType,
           isActive: user.isActive,
+          isActivated: user.isActivated,
         },
         token: token.data.token,
       },

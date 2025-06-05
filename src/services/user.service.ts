@@ -490,6 +490,7 @@ class UserService {
    */
   public async deactivateAccount(user: IUserDoc): Promise<void> {
     user.isActive = false;
+    user.isActivated = false;
     user.isLocked = true;
     user.isDeactivated = true;
     await user.save();
