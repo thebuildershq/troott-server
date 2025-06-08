@@ -115,7 +115,7 @@ export const registerUser = asyncHandler(
   }
 );
 
-// activate user using OTP
+
 /**
  * @name activateUserAccount
  * @description Activates a user account using OTP
@@ -131,6 +131,8 @@ export const activateUserAccount = asyncHandler(
         new ErrorResponse("Error", 400, ["Email and OTP are required"])
       );
     }
+
+    // use OTP to find the user
 
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {

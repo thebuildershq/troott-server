@@ -185,6 +185,9 @@ export interface IPreacherDoc extends Document {
   // Ministry & Content
   description: string;
   ministry: string;
+  ministryHq: string;
+  
+  ministryWebsite: string;
   sermons: Array<ObjectId | any>;
   featuredSermons: Array<ObjectId | any>;
   bites: Array<ObjectId | any>;
@@ -550,10 +553,10 @@ export interface ISeriesDoc extends Document {
 
 export interface ILibraryDoc extends Document {
   user: ObjectId | any;
-  likedSermons: Array<ObjectId | any>;
-  savedBtes: Array<ObjectId | any>;
+  likedSermons: Array<ObjectId | any>; //default
+  savedBtes: Array<ObjectId | any>; // default
   playlists: Array<ObjectId | any>;
-  favouritePreachers: Array<ObjectId | any>;
+  favouritePreachers: Array<ObjectId | any>; // default (capture 5 preachers from onboarding)
   mostPlayed: Array<ObjectId | any>;
 
   createdAt: string;
