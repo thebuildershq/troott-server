@@ -7,7 +7,7 @@ import {
 } from "../utils/interface.util";
 import UploadSession from "../models/Upload.model";
 import StorageService from "./storage.service";
-import * as mm from "music-metadata";
+import mm from "music-metadata";
 import { v4 as uuidv4 } from "uuid";
 import { ContentType, EUploadStatus, FileType } from "../utils/enums.util";
 import { PublishSermonDTO, UploadSermonDTO } from "../dtos/sermon.dto";
