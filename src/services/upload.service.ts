@@ -165,13 +165,13 @@ class UploadService {
 
   //utily functions
   public async validateFile(
-    file: Express.Multer.File,
+    mimeType: string,
     type: ContentType
   ): Promise<boolean> {
     // Check file type
     if (
       type === "sermon" &&
-      !this.ALLOWED_AUDIO_TYPES.includes(file.mimetype)
+      !this.ALLOWED_AUDIO_TYPES.includes(mimeType)
     ) {
       return false;
     }
