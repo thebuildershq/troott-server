@@ -1,6 +1,6 @@
 import mongoose, { Schema, Model } from "mongoose";
 import { IPlanDoc } from "../utils/interface.util";
-import { EDbModels } from "../utils/enums.util";
+import { DbModels } from "../utils/enums.util";
 
 const PlanSchema = new Schema<IPlanDoc>(
   {
@@ -20,7 +20,7 @@ const PlanSchema = new Schema<IPlanDoc>(
     // Relationships
     user: { 
         type: Schema.Types.ObjectId, 
-        ref: EDbModels.USER, 
+        ref: DbModels.USER, 
         required: true, 
         index: true
     },
@@ -41,7 +41,7 @@ PlanSchema.index({ name: "text", description: "text" });
 PlanSchema.index({ isEnabled: 1, currency: 1 });
 
 const Plan: Model<IPlanDoc> = mongoose.model<IPlanDoc>(
-  EDbModels.PLAN,
+  DbModels.PLAN,
   PlanSchema
 );
 

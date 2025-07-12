@@ -7,7 +7,7 @@ import User from "../models/User.model";
 import { createUserDTO, inviteUserDTO } from "../dtos/user.dto";
 import userService from "../services/user.service";
 import { generatePassword } from "../utils/helper.util";
-import { EEmailDriver, EEmailTemplate, EPasswordType, EUserType } from "../utils/enums.util";
+import { EmailService, EmailTemplate, PasswordType,UserType } from "../utils/enums.util";
 import emailService from "../services/email.service";
 
 
@@ -55,8 +55,8 @@ export const In = asyncHandler(
       lastName,
       email,
       password: temporaryPassword,
-      passwordType: EPasswordType.SYSTEMGENERATED,
-      userType: userType as EUserType,
+      passwordType: PasswordType.SYSTEMGENERATED,
+      userType: userType as UserType,
       createdBy: invitedBy._id
     });
 
@@ -65,10 +65,10 @@ export const In = asyncHandler(
     }
 
         // Send invitation email with temporary password
-        const sendInvite = await emailService.sendUserInviteEmail({
-          driver: EEmailDriver.SENDGRID,
+        const sendInvite = await emailService.sendUserWelcomeEmail({
+          driver: EmailService.SENDGRID,
           user: user,
-          template: EEmailTemplate.USER_INVITE,
+          template: EmailTemplate.USER_INVITE,
           options: {
             temporaryPassword,
             invitedBy: `${invitedBy.firstName} ${invitedBy.lastName}`,

@@ -1,6 +1,6 @@
 import mongoose, { Schema, Model } from "mongoose";
 import { IPlaylistDoc } from "../utils/interface.util";
-import { EDbModels, EPlaylistType } from "../utils/enums.util";
+import { DbModels, PlaylistType } from "../utils/enums.util";
 
 const PlaylistSchema = new Schema<IPlaylistDoc>(
   {
@@ -14,7 +14,7 @@ const PlaylistSchema = new Schema<IPlaylistDoc>(
 
     playlistType: {
       type: String,
-      enum: Object.values(EPlaylistType), 
+      enum: Object.values(PlaylistType), 
       required: true,
       index: true
     },
@@ -26,7 +26,7 @@ const PlaylistSchema = new Schema<IPlaylistDoc>(
         },
         type: {
           type: String,
-          enum: Object.values(EPlaylistType),
+          enum: Object.values(PlaylistType),
           required: true,
         },
       },
@@ -36,13 +36,13 @@ const PlaylistSchema = new Schema<IPlaylistDoc>(
     // Relationships
     user: {
       type: Schema.Types.ObjectId,
-      ref: EDbModels.USER,
+      ref: DbModels.USER,
       required: true,
       index: true,
     },
     createdBy: {
       type: Schema.Types.ObjectId,
-      ref: EDbModels.USER,
+      ref: DbModels.USER,
       required: true,
       index: true,
     },
@@ -61,7 +61,7 @@ const PlaylistSchema = new Schema<IPlaylistDoc>(
 );
 
 const Playlist: Model<IPlaylistDoc> = mongoose.model<IPlaylistDoc>(
-  EDbModels.PLAYLIST,
+  DbModels.PLAYLIST,
   PlaylistSchema
 );
 

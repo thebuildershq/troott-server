@@ -9,7 +9,7 @@ import {
   UpdateSermonDTO,
 } from "../dtos/sermon.dto";
 import { ISermonDoc } from "../utils/interface.util";
-import { EContentState, EContentStatus } from "../utils/enums.util";
+import { ContentState, ContentStatus } from "../utils/enums.util";
 
 /**
  * @name uploadFile
@@ -217,8 +217,8 @@ export const moveSermonToBin = asyncHandler(
     }
 
     const deletePayload = {
-      state: state || EContentState.DELETED,
-      status: status || EContentStatus.DELETED,
+      state: state || ContentState.DELETED,
+      status: status || ContentStatus.DELETED,
       publishedBy: publishedBy,
     };
 

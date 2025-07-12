@@ -1,10 +1,10 @@
 import mongoose, { Schema, Model } from "mongoose";
 import { IStaffDoc } from "../utils/interface.util";
 import {
-  EDbModels,
-  EVerificationStatus,
-  EStaffUnit,
-  EStaffRole,
+  DbModels,
+  VerificationStatus,
+  StaffUnit,
+  StaffRole,
 } from "../utils/enums.util";
 import { decrypt, encrypt } from "../utils/encryption.util";
 
@@ -26,12 +26,12 @@ const StaffSchema = new Schema<IStaffDoc>(
     // Staff Role & Access
     unit: {
       type: String,
-      enum: Object.values(EStaffUnit),
+      enum: Object.values(StaffUnit),
       index: true,
     },
     role: {
       type: String,
-      enum: Object.values(EStaffRole),
+      enum: Object.values(StaffRole),
       index: true,
     },
     accessLevel: { type: Number, required: true },
@@ -56,24 +56,24 @@ const StaffSchema = new Schema<IStaffDoc>(
     ],
     
     // Uploads & Publications
-    uploads: [{ type: Schema.Types.ObjectId, ref: EDbModels.SERMON }],
-    uploadHistory: [{ type: Schema.Types.ObjectId, ref: EDbModels.SERMON }],
+    uploads: [{ type: Schema.Types.ObjectId, ref: DbModels.SERMON }],
+    uploadHistory: [{ type: Schema.Types.ObjectId, ref: DbModels.SERMON }],
     publishedCount: { type: Number, default: 0 },
 
     // Security & Verification
     identification: [{ type: String }],
     verificationStatus: {
       type: String,
-      enum: Object.values(EVerificationStatus),
-      default: EVerificationStatus.PENDING,
+      enum: Object.values(VerificationStatus),
+      default: VerificationStatus.PENDING,
     },
     isVerified: { type: Boolean, default: false },
     verifiedAt: { type: Date },
     
     // Relationships
-    user: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
-    createdBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
-    settings: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
+    user: { type: Schema.Types.ObjectId, ref: DbModels.USER },
+    createdBy: { type: Schema.Types.ObjectId, ref: DbModels.USER },
+    settings: { type: Schema.Types.ObjectId, ref: DbModels.USER },
   },
   {
     timestamps: true,
@@ -111,7 +111,7 @@ StaffSchema.methods.decryptApiKeys = function () {
 };
 
 const Staff: Model<IStaffDoc> = mongoose.model<IStaffDoc>(
-  EDbModels.STAFF,
+  DbModels.STAFF,
   StaffSchema
 );
 

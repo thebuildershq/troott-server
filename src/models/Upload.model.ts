@@ -1,6 +1,6 @@
 import mongoose, { Model, Schema, model } from "mongoose";
 import { IUploadDoc } from "../utils/interface.util";
-import { EDbModels, EUploadStatus, FileType } from "../utils/enums.util";
+import { DbModels, UploadStatus, FileType } from "../utils/enums.util";
 
 
 const UploadSchema = new Schema<IUploadDoc>(
@@ -39,10 +39,10 @@ const UploadSchema = new Schema<IUploadDoc>(
     },
     status: {
       type: String,
-      enum: Object.values(EUploadStatus),
-      default: EUploadStatus.PENDING,
+      enum: Object.values(UploadStatus),
+      default: UploadStatus.PENDING,
     },
-    uploadedBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
+    uploadedBy: { type: Schema.Types.ObjectId, ref: DbModels.USER },
     
     chunkSize: { type: Number },
     totalChunks: { type: Number },
@@ -67,7 +67,7 @@ const UploadSchema = new Schema<IUploadDoc>(
 
 
 const Upload: Model<IUploadDoc> = mongoose.model<IUploadDoc>(
-  EDbModels.UPLOAD,
+  DbModels.UPLOAD,
   UploadSchema
 );
 

@@ -12,12 +12,12 @@ import {
 } from "../dtos/auth.dto";
 import userService from "../services/user.service";
 import {
-  EEmailDriver,
-  EEmailTemplate,
-  EOtpType,
-  EPasswordType,
-  EUserType,
-  EVerifyOTP,
+  EmailService,
+  EmailTemplate,
+  OtpType,
+  PasswordType,
+  UserType,
+  VerifyOTP,
 } from "../utils/enums.util";
 import emailService from "../services/email.service";
 import tokenService from "../services/token.service";
@@ -48,7 +48,7 @@ export const registerUser = asyncHandler(
 
     const userExist = await User.findOne({ email: email.toLowerCase() });
     if (userExist) {
-      if (userExist.userType === EUserType.SUPERADMIN) {
+      if (userExist.userType === UserType.SUPERADMIN) {
         return next(
           new ErrorResponse("forbidden!, user already exist", 400, [])
         );
@@ -75,25 +75,25 @@ export const registerUser = asyncHandler(
       lastName,
       email,
       password,
-      passwordType: EPasswordType.USERGENERATED,
-      userType: userType as EUserType,
+      passwordType: PasswordType.USERGENERATED,
+      userType: userType as UserType,
     });
     if (!user) {
       return next(new ErrorResponse("user not created", 404, []));
     }
 
-    await userService.updateUserType(user, userType as EUserType);
+    await userService.updateUserType(user, userType as UserType);
 
-    const OTP = await userService.generateOTPCode(user, EOtpType.REGISTER);
+    const OTP = await userService.generateOTPCode(user, OtpType.REGISTER);
 
     if (OTP) {
       const sendOTP = await otpService.sendOTPEmail({
-        driver: EEmailDriver.SENDGRID,
+        driver: EmailService.SENDGRID,
         user: user,
-        template: EEmailTemplate.VERIFY_EMAIL,
+        template: EmailTemplate.VERIFY_EMAIL,
         code: OTP,
         options: {
-          otpType: EVerifyOTP.REGISTER,
+          otpType: VerifyOTP.REGISTER,
           salute: `${user.firstName}`,
           bodyOne:
             "Verify your troott account using the One-Time Password code below",
@@ -166,10 +166,10 @@ export const activateUserAccount = asyncHandler(
     }
 
     // // Send welcome email after activation
-    // const welcomeEmail = await emailService.sendUserWelcomeEmail(user);
-    // if (welcomeEmail.error) {
+    // const welcomEmail = await emailService.sendUserWelcomEmail(user);
+    // if (welcomEmail.error) {
     //   return next(
-    //     new ErrorResponse("Error", welcomeEmail.code, [welcomeEmail.message])
+    //     new ErrorResponse("Error", welcomEmail.code, [welcomEmail.message])
     //   );
     // }
 
@@ -389,17 +389,17 @@ export const forgotPassword = asyncHandler(
 
     const OTP = await userService.generateOTPCode(
       user,
-      EOtpType.FORGOTPASSWORD
+      OtpType.FORGOTPASSWORD
     );
 
     if (OTP) {
       const sendOTP = await otpService.sendOTPEmail({
-        driver: EEmailDriver.SENDGRID,
+        driver: EmailService.SENDGRID,
         user: user,
-        template: EEmailTemplate.VERIFY_EMAIL,
+        template: EmailTemplate.VERIFY_EMAIL,
         code: OTP,
         options: {
-          otpType: EVerifyOTP.PASSWORD_RESET,
+          otpType: VerifyOTP.PASSWORD_RESET,
           salute: `${user.firstName}`,
           bodyOne:
             "You are receiving this email because you requested a password reset. Your OTP code will expire in 10 minutes.",
@@ -599,16 +599,16 @@ export const resendOTP = asyncHandler(
       return next(new ErrorResponse("Error", 400, ["user doesn't exist"]));
     }
 
-    const OTP = await userService.generateOTPCode(user, EOtpType.GENERIC);
+    const OTP = await userService.generateOTPCode(user, OtpType.GENERIC);
 
     if (OTP) {
       const sendOTP = await otpService.sendOTPEmail({
-        driver: EEmailDriver.SENDGRID,
+        driver: EmailService.SENDGRID,
         user: user,
-        template: EEmailTemplate.VERIFY_EMAIL,
+        template: EmailTemplate.VERIFY_EMAIL,
         code: OTP,
         options: {
-          otpType: EVerifyOTP.REGISTER,
+          otpType: VerifyOTP.REGISTER,
           salute: `${user.firstName}`,
           bodyOne:
             "Verify your troott account using the One-Time Password code below",

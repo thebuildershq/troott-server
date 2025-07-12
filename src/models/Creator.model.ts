@@ -1,9 +1,9 @@
 import mongoose, { Schema, Model } from "mongoose";
 import { ICreatorDoc } from "../utils/interface.util";
 import {
-  EDbModels,
-  EVerificationStatus,
-  EAccountManagerRole,
+  DbModels,
+  VerificationStatus,
+  AccountManagerRole,
 } from "../utils/enums.util";
 
 const CreatorSchema = new Schema<ICreatorDoc>(
@@ -23,28 +23,28 @@ const CreatorSchema = new Schema<ICreatorDoc>(
 
     // Content
     description: { type: String, maxLength: 500 },
-    bites: [{ type: Schema.Types.ObjectId, ref: EDbModels.BITE }],
+    bites: [{ type: Schema.Types.ObjectId, ref: DbModels.BITE }],
     topBites: [
-      { type: Schema.Types.ObjectId, ref: EDbModels.BITE},
+      { type: Schema.Types.ObjectId, ref: DbModels.BITE},
     ],
 
     // Followers & Listeners
-    followers: [{ type: Schema.Types.ObjectId, ref: EDbModels.USER }],
+    followers: [{ type: Schema.Types.ObjectId, ref: DbModels.USER }],
     monthlyListeners: { type: Number, default: 0 },
     likes: { type: Number, default: 0 },
     shares: { type: Number, default: 0 },
 
     // Uploads & Publications
-    uploads: [{ type: Schema.Types.ObjectId, ref: EDbModels.BITE }],
-    uploadHistory: [{ type: Schema.Types.ObjectId, ref: EDbModels.BITE }],
+    uploads: [{ type: Schema.Types.ObjectId, ref: DbModels.BITE }],
+    uploadHistory: [{ type: Schema.Types.ObjectId, ref: DbModels.BITE }],
   
 
     // Security & Verification
     identification: [{ type: String }],
     verificationStatus: {
       type: String,
-      enum: Object.values(EVerificationStatus),
-      default: EVerificationStatus.PENDING,
+      enum: Object.values(VerificationStatus),
+      default: VerificationStatus.PENDING,
   
     },
     isVerified: { type: Boolean, default: false },
@@ -53,19 +53,19 @@ const CreatorSchema = new Schema<ICreatorDoc>(
     // Account Managers
     accountManagers: [
       {
-        userId: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
+        userId: { type: Schema.Types.ObjectId, ref: DbModels.USER },
         role: {
           type: String,
-          enum: Object.values(EAccountManagerRole),
+          enum: Object.values(AccountManagerRole),
           required: true,
         },
       },
     ],
 
     // Relationships
-    user: { type: Schema.Types.ObjectId, ref: EDbModels.USER  },
-    transactions: [{ type: Schema.Types.ObjectId, ref: EDbModels.TRANSACTION  }],
-    createdBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER  },
+    user: { type: Schema.Types.ObjectId, ref: DbModels.USER  },
+    transactions: [{ type: Schema.Types.ObjectId, ref: DbModels.TRANSACTION  }],
+    createdBy: { type: Schema.Types.ObjectId, ref: DbModels.USER  },
     
   },
   {
@@ -84,6 +84,6 @@ const CreatorSchema = new Schema<ICreatorDoc>(
 CreatorSchema.set("toJSON", { virtuals: true, getters: true });
 
 const Creator: Model<ICreatorDoc> =
-  mongoose.model<ICreatorDoc>(EDbModels.CREATOR, CreatorSchema);
+  mongoose.model<ICreatorDoc>(DbModels.CREATOR, CreatorSchema);
 
 export default Creator;

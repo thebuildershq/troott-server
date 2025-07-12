@@ -1,6 +1,6 @@
 import mongoose, { Schema, Model } from "mongoose";
 import { ISubscriptionDoc } from "../utils/interface.util";
-import { EDbModels } from "../utils/enums.util";
+import { DbModels } from "../utils/enums.util";
 
 const SubscriptionSchema = new Schema<ISubscriptionDoc>(
   {
@@ -13,17 +13,17 @@ const SubscriptionSchema = new Schema<ISubscriptionDoc>(
     // Relationships
     user: {
       type: Schema.Types.ObjectId,
-      ref: EDbModels.USER,
+      ref: DbModels.USER,
       required: true,
       index: true,
     },
     transactions: [{
        type: Schema.Types.ObjectId, 
-       ref: EDbModels.TRANSACTION
+       ref: DbModels.TRANSACTION
        }],
     plan: {
       type: Schema.Types.ObjectId,
-      ref: EDbModels.PLAN,
+      ref: DbModels.PLAN,
       required: true,
       index: true,
     },
@@ -43,7 +43,7 @@ const SubscriptionSchema = new Schema<ISubscriptionDoc>(
 SubscriptionSchema.index({ code: "text", slug: "text" });
 
 const Subscription: Model<ISubscriptionDoc> = mongoose.model<ISubscriptionDoc>(
-  EDbModels.SUBSCRIPTION,
+  DbModels.SUBSCRIPTION,
   SubscriptionSchema
 );
 

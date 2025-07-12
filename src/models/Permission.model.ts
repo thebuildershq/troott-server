@@ -1,6 +1,6 @@
 import mongoose, { Model, Schema } from "mongoose";
 import { IPermissionDoc } from "../utils/interface.util";
-import { EDbModels } from "../utils/enums.util";
+import { DbModels } from "../utils/enums.util";
 
 const PermissionSchema = new Schema<IPermissionDoc>(
   {
@@ -42,7 +42,7 @@ PermissionSchema.pre<IPermissionDoc>("insertMany", async function (next) {
 });
 
 const Permission: Model<IPermissionDoc> = mongoose.model<IPermissionDoc>(
-  EDbModels.PERMISSION,
+  DbModels.PERMISSION,
   PermissionSchema
 );
   

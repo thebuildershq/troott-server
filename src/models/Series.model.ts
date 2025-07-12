@@ -1,6 +1,6 @@
 import mongoose, { Schema, Model } from "mongoose";
 import { ISeriesDoc } from "../utils/interface.util";
-import { EDbModels, EContentState, EContentStatus } from "../utils/enums.util";
+import { DbModels, ContentState, ContentStatus } from "../utils/enums.util";
 
 const SeriesSchema = new Schema<ISeriesDoc>(
   {
@@ -11,23 +11,23 @@ const SeriesSchema = new Schema<ISeriesDoc>(
 
     preacher: {
       type: Schema.Types.ObjectId,
-      ref: EDbModels.PREACHER,
+      ref: DbModels.PREACHER,
       required: true,
       index: true,
     },
-    sermons: [{ type: Schema.Types.ObjectId, ref: EDbModels.SERMON }],
+    sermons: [{ type: Schema.Types.ObjectId, ref: DbModels.SERMON }],
 
     // State & Visibility
     isPublic: { type: Boolean, default: true, index: true },
     state: {
       type: String,
-      enum: Object.values(EContentState),
+      enum: Object.values(ContentState),
       required: true,
       index: true,
     },
     status: {
       type: String,
-      enum: Object.values(EContentStatus),
+      enum: Object.values(ContentStatus),
       required: true,
       index: true,
     },
@@ -40,26 +40,26 @@ const SeriesSchema = new Schema<ISeriesDoc>(
     // Modifications
     versionId: {
       type: Schema.Types.ObjectId,
-      ref: EDbModels.SERIES,
+      ref: DbModels.SERIES,
       default: null,
     },
     modifiedAt: { type: Date, default: Date.now },
-    modifiedBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
+    modifiedBy: { type: Schema.Types.ObjectId, ref: DbModels.USER },
     changesSummary: { type: String, default: "" },
     deletedSeries: [
       {
-        id: { type: Schema.Types.ObjectId, ref: EDbModels.SERIES },
-        deletedBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
+        id: { type: Schema.Types.ObjectId, ref: DbModels.SERIES },
+        deletedBy: { type: Schema.Types.ObjectId, ref: DbModels.USER },
         deletedAt: { type: Date, default: Date.now },
         reason: { type: String },
       },
     ],
 
     // Relationships
-    staff: { type: Schema.Types.ObjectId, ref: EDbModels.STAFF },
+    staff: { type: Schema.Types.ObjectId, ref: DbModels.STAFF },
     createdBy: {
       type: Schema.Types.ObjectId,
-      ref: EDbModels.USER,
+      ref: DbModels.USER,
       required: true,
       index: true
     },
@@ -79,7 +79,7 @@ const SeriesSchema = new Schema<ISeriesDoc>(
 SeriesSchema.index({ title: "text", description: "text" });
 
 const Series: Model<ISeriesDoc> = mongoose.model<ISeriesDoc>(
-  EDbModels.SERIES,
+  DbModels.SERIES,
   SeriesSchema
 );
 

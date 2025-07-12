@@ -11,7 +11,7 @@ import {
 } from "@btffamily/pacitude";
 import SystemService from "./system.service";
 import userRepository from "../repositories/user.repository";
-import { EOtpType, EUserType } from "../utils/enums.util";
+import { OtpType, UserType } from "../utils/enums.util";
 import {
   LoginDTO,
   MatchEncryptedPasswordDTO,
@@ -46,9 +46,9 @@ class UserService {
    */
   public async validateRegister(data: RegisterUserDTO): Promise<IResult> {
     const allowedUsers = [
-      EUserType.LISTENER,
-      EUserType.CREATOR,
-      EUserType.PREACHER,
+      UserType.LISTENER,
+      UserType.CREATOR,
+      UserType.PREACHER,
     ];
 
     let result: IResult = { error: false, message: "", code: 200, data: {} };
@@ -190,10 +190,10 @@ class UserService {
       user = permissionUpdate.data as IUserDoc;
     }
 
-    if (user.userType === EUserType.LISTENER) {
+    if (user.userType === UserType.LISTENER) {
       const listenerProfile = await listenerService.createListener({
         user: user,
-        type: EUserType.LISTENER,
+        type: UserType.LISTENER,
         email: user.email,
       });
       if (listenerProfile.error) {
@@ -202,10 +202,10 @@ class UserService {
       user = listenerProfile.data.user as IUserDoc;
     }
 
-    if (user.userType === EUserType.CREATOR) {
+    if (user.userType === UserType.CREATOR) {
       const creatorProfile = await creatorService.createCreatorProfile({
         user: user,
-        type: EUserType.CREATOR,
+        type: UserType.CREATOR,
         email: user.email,
       });
       if (creatorProfile.error) {
@@ -214,10 +214,10 @@ class UserService {
       user = creatorProfile.data.user as IUserDoc;
     }
 
-    if (user.userType === EUserType.PREACHER) {
+    if (user.userType === UserType.PREACHER) {
       const preacherProfile = await preacherService.createPreacherProfile({
         user: user,
-        type: EUserType.PREACHER,
+        type: UserType.PREACHER,
         email: user.email,
       });
       if (preacherProfile.error) {
@@ -226,7 +226,7 @@ class UserService {
       user = preacherProfile.data.user as IUserDoc;
     }
 
-    if (user.userType === EUserType.STAFF) {
+    if (user.userType === UserType.STAFF) {
       const staffProfile = await staffService.createStaff({
         user: user,
         email: user.email,
@@ -305,18 +305,18 @@ class UserService {
   }
 
   /**
-   * @name validateUserType
+   * @name validatUserType
    * @param type
    * @returns
    */
-  public async validateUserType(type: string): Promise<boolean> {
+  public async validatUserType(type: string): Promise<boolean> {
     let flag = false;
     const list = [
-      EUserType.USER,
-      EUserType.LISTENER,
-      EUserType.CREATOR,
-      EUserType.PREACHER,
-      EUserType.STAFF,
+      UserType.USER,
+      UserType.LISTENER,
+      UserType.CREATOR,
+      UserType.PREACHER,
+      UserType.STAFF,
     ];
 
     if (arrayIncludes(list, type)) {
@@ -433,26 +433,26 @@ class UserService {
   }
 
   /**
-   * @name updateUserType
+   * @name updatUserType
    * @param user
    * @param userType
    */
   public async updateUserType(
     user: IUserDoc,
-    userType: EUserType
+    userType: UserType
   ): Promise<void> {
     user.isListener = false;
     user.isCreator = false;
     user.isPreacher = false;
     user.isStaff = false;
 
-    if (userType === EUserType.LISTENER) {
+    if (userType === UserType.LISTENER) {
       user.isListener = true;
-    } else if (userType === EUserType.CREATOR) {
+    } else if (userType === UserType.CREATOR) {
       user.isCreator = true;
-    } else if (userType === EUserType.PREACHER) {
+    } else if (userType === UserType.PREACHER) {
       user.isPreacher = true;
-    } else if (userType === EUserType.STAFF) {
+    } else if (userType === UserType.STAFF) {
       user.isStaff = true;
     }
 
@@ -581,7 +581,7 @@ class UserService {
    */
   public async generateOTPCode(
     user: IUserDoc,
-    type: EOtpType
+    type: OtpType
   ): Promise<string> {
     const gencode = Random.randomNum(6);
     user.Otp = gencode.toString();
@@ -751,8 +751,8 @@ class UserService {
     } else if (
       user &&
       isAdmin === false &&
-      (user.userType === EUserType.STAFF ||
-        user.userType === EUserType.SUPERADMIN)
+      (user.userType === UserType.STAFF ||
+        user.userType === UserType.SUPERADMIN)
     ) {
       result.error = true;
       result.message = `user is not authorized to access this route`;

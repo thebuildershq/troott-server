@@ -1,15 +1,15 @@
 import mongoose, { Schema, Types, Model, ObjectId } from "mongoose";
 import { IRoleDoc } from "../utils/interface.util";
 import slugify from "slugify";
-import { EDbModels, EUserType } from "../utils/enums.util";
+import { DbModels, UserType } from "../utils/enums.util";
 
 const RoleSchema = new mongoose.Schema<IRoleDoc>(
   {
     name: {
       type: String,
       required: [true, "please add a role name"],
-      default: EUserType.USER,
-      enum: Object.values(EUserType),
+      default: UserType.USER,
+      enum: Object.values(UserType),
       unique: true,
     },
     description: {
@@ -19,11 +19,11 @@ const RoleSchema = new mongoose.Schema<IRoleDoc>(
     },
     slug: { type: String, default: "" },
 
-    permissions: [{ type: String, ref: EDbModels.PERMISSION }],
+    permissions: [{ type: String, ref: DbModels.PERMISSION }],
     users: [
       {
         type: Schema.Types.Mixed,
-        ref: EDbModels.USER,
+        ref: DbModels.USER,
       },
     ],
   },
@@ -63,7 +63,7 @@ RoleSchema.methods.findByName = async (name: string) => {
 };
 
 const Role: Model<IRoleDoc> = mongoose.model<IRoleDoc>(
-  EDbModels.ROLE,
+  DbModels.ROLE,
   RoleSchema
 );
 export default Role;

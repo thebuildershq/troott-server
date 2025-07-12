@@ -1,15 +1,15 @@
 import mongoose, { Schema, Model } from "mongoose";
 import { ILibraryDoc } from "../utils/interface.util";
-import { EDbModels } from "../utils/enums.util";
+import { DbModels } from "../utils/enums.util";
 
 const LibrarySchema = new Schema<ILibraryDoc>(
   {
-    user: { type: Schema.Types.ObjectId, ref: EDbModels.USER, required: true, index: true },
-    likedSermons: [{ type: Schema.Types.ObjectId, ref: EDbModels.SERMON, default: [], index: true }],
-    savedBtes: [{ type: Schema.Types.ObjectId, ref: EDbModels.BITE,  default: [], index: true }],
-    playlists: [{ type: Schema.Types.ObjectId, ref: EDbModels.PLAYLIST, index: true }],
-    favouritePreachers: [{ type: Schema.Types.ObjectId, ref: EDbModels.PREACHER, index: true }],
-    mostPlayed: [{ type: Schema.Types.ObjectId, ref: EDbModels.SERMON }], 
+    user: { type: Schema.Types.ObjectId, ref: DbModels.USER, required: true, index: true },
+    likedSermons: [{ type: Schema.Types.ObjectId, ref: DbModels.SERMON, default: [], index: true }],
+    savedBtes: [{ type: Schema.Types.ObjectId, ref: DbModels.BITE,  default: [], index: true }],
+    playlists: [{ type: Schema.Types.ObjectId, ref: DbModels.PLAYLIST, index: true }],
+    favouritePreachers: [{ type: Schema.Types.ObjectId, ref: DbModels.PREACHER, index: true }],
+    mostPlayed: [{ type: Schema.Types.ObjectId, ref: DbModels.SERMON }], 
   },
   {
     timestamps: true,
@@ -24,7 +24,7 @@ const LibrarySchema = new Schema<ILibraryDoc>(
 );
 
 const Library: Model<ILibraryDoc> = mongoose.model<ILibraryDoc>(
-  EDbModels.LIBRARY,
+  DbModels.LIBRARY,
   LibrarySchema
 );
 

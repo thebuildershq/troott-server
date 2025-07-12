@@ -1,12 +1,12 @@
 import mongoose, { Schema, Model } from "mongoose";
 import { ISermonDoc } from "../utils/interface.util";
-import { EDbModels, EContentState, EContentStatus } from "../utils/enums.util";
+import { DbModels, ContentState, ContentStatus } from "../utils/enums.util";
 
 const SermonSchema = new Schema<ISermonDoc>(
   {
     title: { type: String, required: true },
     description: { type: String, required: true, maxLength: 1000 },
-    duration: { type: Number, required: true }, // In seconds
+    duration: { type: Number, required: true }, // In sConds
     releaseDate: { type: Date, required: true },
     releaseYear: { type: Number, required: true },
     sermonUrl: { type: String, required: true },
@@ -21,38 +21,38 @@ const SermonSchema = new Schema<ISermonDoc>(
     isSeries: { type: Boolean, default: false },
     series: [{
       type: Schema.Types.ObjectId,
-      ref: EDbModels.SERIES,
+      ref: DbModels.SERIES,
       default: null,
       index: true,
     }],
 
     totalPlay: [{
-      userId: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
+      userId: { type: Schema.Types.ObjectId, ref: DbModels.USER },
       playedAt: { type: Date },
     }],
     totalLikes: [{
-      userId: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
+      userId: { type: Schema.Types.ObjectId, ref: DbModels.USER },
       likedAt: { type: Date },
     }],
     totalShares: [{
-      UserId: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
+      UserId: { type: Schema.Types.ObjectId, ref: DbModels.USER },
       shareAt: { type: Date },
     }],
     state: {
       type: String,
-      enum: Object.values(EContentState),
+      enum: Object.values(ContentState),
       index: true,
     },
     status: {
       type: String,
-      enum: Object.values(EContentStatus),
+      enum: Object.values(ContentStatus),
       index: true,
     },
 
     // Modifications
     versionId: {
       type: Schema.Types.ObjectId,
-      ref: EDbModels.SERMON,
+      ref: DbModels.SERMON,
       default: null,
     },
 
@@ -62,15 +62,15 @@ const SermonSchema = new Schema<ISermonDoc>(
     // Relationships
     preacher: {
       type: Schema.Types.ObjectId,
-      ref: EDbModels.PREACHER,
+      ref: DbModels.PREACHER,
       required: true,
       index: true,
     },
 
-    playlist: { type: Schema.Types.ObjectId, ref: EDbModels.PLAYLIST },
+    playlist: { type: Schema.Types.ObjectId, ref: DbModels.PLAYLIST },
     publishedBy: {
       type: Schema.Types.ObjectId,
-      ref: EDbModels.USER,
+      ref: DbModels.USER,
       index: true,
     },
   },
@@ -89,7 +89,7 @@ const SermonSchema = new Schema<ISermonDoc>(
 SermonSchema.index({ title: "text", description: "text" });
 
 const Sermon: Model<ISermonDoc> = mongoose.model<ISermonDoc>(
-  EDbModels.SERMON,
+  DbModels.SERMON,
   SermonSchema
 );
 

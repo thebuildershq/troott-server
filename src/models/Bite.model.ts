@@ -1,9 +1,9 @@
 import mongoose, { Schema, Model } from "mongoose";
 import { ISermonBiteDoc } from "../utils/interface.util";
 import {
-  EDbModels,
-  EContentState,
-  EContentStatus,
+  DbModels,
+  ContentState,
+  ContentStatus,
 } from "../utils/enums.util";
 
 const SermonBiteSchema = new Schema<ISermonBiteDoc>(
@@ -25,18 +25,18 @@ const SermonBiteSchema = new Schema<ISermonBiteDoc>(
 
     // State Management
     isPublic: { type: Boolean, default: true },
-    state: { type: String, enum: Object.values(EContentState), required: true },
-    status: { type: String, enum: Object.values(EContentStatus), required: true },
+    state: { type: String, enum: Object.values(ContentState), required: true },
+    status: { type: String, enum: Object.values(ContentStatus), required: true },
 
     // Modifications
-    versionId: { type: Schema.Types.ObjectId, ref: EDbModels.BITE, default: null },
+    versionId: { type: Schema.Types.ObjectId, ref: DbModels.BITE, default: null },
     modifiedAt: { type: String },
-    modifiedBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
+    modifiedBy: { type: Schema.Types.ObjectId, ref: DbModels.USER },
     changesSummary: { type: String, default: "" },
     deletedBites: [
       {
-        id: { type: Schema.Types.ObjectId, ref: EDbModels.BITE },
-        deletedBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
+        id: { type: Schema.Types.ObjectId, ref: DbModels.BITE },
+        deletedBy: { type: Schema.Types.ObjectId, ref: DbModels.USER },
         deletedAt: { type: Date, default: Date.now },
         reason: { type: String },
     
@@ -44,12 +44,12 @@ const SermonBiteSchema = new Schema<ISermonBiteDoc>(
     ],
 
     // Relationships
-    preacher: { type: Schema.Types.ObjectId, ref: EDbModels.PREACHER },
-    creator: { type: Schema.Types.ObjectId, ref: EDbModels.CREATOR },
-    staff: { type: Schema.Types.ObjectId, ref: EDbModels.STAFF },
-    playlist: [{ type: Schema.Types.ObjectId, ref: EDbModels.PLAYLIST }],
-    library: [{ type: Schema.Types.ObjectId, ref: EDbModels.LIBRARY }],
-    createdBy: { type: Schema.Types.ObjectId, ref: EDbModels.USER },
+    preacher: { type: Schema.Types.ObjectId, ref: DbModels.PREACHER },
+    creator: { type: Schema.Types.ObjectId, ref: DbModels.CREATOR },
+    staff: { type: Schema.Types.ObjectId, ref: DbModels.STAFF },
+    playlist: [{ type: Schema.Types.ObjectId, ref: DbModels.PLAYLIST }],
+    library: [{ type: Schema.Types.ObjectId, ref: DbModels.LIBRARY }],
+    createdBy: { type: Schema.Types.ObjectId, ref: DbModels.USER },
   },
   {
     timestamps: true,
@@ -66,7 +66,7 @@ const SermonBiteSchema = new Schema<ISermonBiteDoc>(
 SermonBiteSchema.index({ title: "text", description: "text" });
 
 const SermonBite: Model<ISermonBiteDoc> = mongoose.model<ISermonBiteDoc>(
-  EDbModels.BITE,
+  DbModels.BITE,
   SermonBiteSchema
 );
 

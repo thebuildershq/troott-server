@@ -1,13 +1,13 @@
 import mongoose, { Schema, Model } from "mongoose";
 import { ITransactionDoc } from "../utils/interface.util";
-import { EDbModels, ETransactionsType } from "../utils/enums.util";
+import { DbModels, TransactionsType } from "../utils/enums.util";
 import { decrypt, encrypt } from "../utils/encryption.util";
 
 const TransactionSchema = new Schema<ITransactionDoc>(
   {
     type: {
       type: String,
-      enum: Object.values(ETransactionsType),
+      enum: Object.values(TransactionsType),
       required: true,
       index: true,
     },
@@ -45,7 +45,7 @@ const TransactionSchema = new Schema<ITransactionDoc>(
     // Relationships
     user: {
       type: Schema.Types.ObjectId,
-      ref: EDbModels.USER,
+      ref: DbModels.USER,
       required: true,
       index: true,
     },
@@ -94,7 +94,7 @@ TransactionSchema.methods.decryptCardDetails = function () {
 
 
 const Transaction: Model<ITransactionDoc> = mongoose.model<ITransactionDoc>(
-  EDbModels.TRANSACTION,
+  DbModels.TRANSACTION,
   TransactionSchema
 );
 

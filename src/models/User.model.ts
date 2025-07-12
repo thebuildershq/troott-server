@@ -1,10 +1,10 @@
 import mongoose, { Schema, Model } from "mongoose";
 import { IUserDoc } from "../utils/interface.util";
 import {
-  EDbModels,
-  EOtpType,
-  EPasswordType,
-  EUserType,
+  DbModels,
+  OtpType,
+  PasswordType,
+  UserType,
 } from "../utils/enums.util";
 import userService from "../services/user.service";
 
@@ -22,12 +22,12 @@ const UserSchema = new Schema<IUserDoc>(
     password: { type: String, required: true, default: "", select: false },
     passwordType: {
       type: String,
-      enum: Object.values(EPasswordType),
-      default: EPasswordType.USERGENERATED,
+      enum: Object.values(PasswordType),
+      default: PasswordType.USERGENERATED,
     },
     userType: {
       type: String,
-      enum: Object.values(EUserType),
+      enum: Object.values(UserType),
     },
     phoneNumber: { type: String },
     phoneCode: { type: String, default: "+234" },
@@ -47,9 +47,10 @@ const UserSchema = new Schema<IUserDoc>(
     OtpExpiry: {
       type: Number,
     },
-    otpType: { type: String, enum: Object.values(EOtpType) },
+    otpType: { type: String, enum: Object.values(OtpType) },
     accessToken: { type: String },
     accessTokenExpiry: { type: Date },
+    tokenVersion: { type: Number, default: 0 },
 
     isSuper: { type: Boolean, default: false },
     isStaff: { type: Boolean, default: false },
@@ -91,7 +92,7 @@ const UserSchema = new Schema<IUserDoc>(
 
     preferences: {
       topics: [{ type: String }],
-      preachers: [{ type: Schema.Types.ObjectId, ref: EDbModels.PREACHER }],
+      preachers: [{ type: Schema.Types.ObjectId, ref: DbModels.PREACHER }],
     },
 
     // Notification Preferences
@@ -102,7 +103,7 @@ const UserSchema = new Schema<IUserDoc>(
     },
 
     // Relationships
-    role: { type: Schema.Types.ObjectId, ref: EDbModels.ROLE, index: true },
+    role: { type: Schema.Types.ObjectId, ref: DbModels.ROLE, index: true },
   },
   {
     timestamps: true,
@@ -129,7 +130,7 @@ UserSchema.pre<IUserDoc>("insertMany", async function (next) {
 });
 
 const User: Model<IUserDoc> = mongoose.model<IUserDoc>(
-  EDbModels.USER,
+  DbModels.USER,
   UserSchema
 );
 

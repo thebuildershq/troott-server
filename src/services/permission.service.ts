@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import { IResult, IUserDoc } from "../utils/interface.util";
 import Role from "../models/Role.model";
-import { EUserType } from "../utils/enums.util";
+import { UserType } from "../utils/enums.util";
 import { IPermissionDTO } from "../dtos/system.dto";
 
 class PermissionService {
@@ -14,7 +14,7 @@ class PermissionService {
   static async initiatePermissionData(user: IUserDoc): Promise<any> {
     let actions: string[] = [];
 
-    if (user.userType === EUserType.SUPERADMIN) {
+    if (user.userType === UserType.SUPERADMIN) {
       actions = [
         // System Management
         "system:read",
@@ -93,7 +93,7 @@ class PermissionService {
         "ads:update",
         "ads:delete",
       ];
-    } else if (user.userType === EUserType.STAFF) {
+    } else if (user.userType === UserType.STAFF) {
       actions = [
         // User Management
         "user:create",
@@ -166,7 +166,7 @@ class PermissionService {
         "ads:update",
         "ads:delete",
       ];
-    } else if (user.userType === EUserType.PREACHER) {
+    } else if (user.userType === UserType.PREACHER) {
       actions = [
         // Content Management
         "sermon:create",
@@ -199,7 +199,7 @@ class PermissionService {
         // Basic Access
         "sermon:read",
       ];
-    } else if (user.userType === EUserType.CREATOR) {
+    } else if (user.userType === UserType.CREATOR) {
       actions = [
         // Content Management
         "sermonbite:create",
@@ -224,7 +224,7 @@ class PermissionService {
         "sermon:read",
         "sermonbite:read",
       ];
-    } else if (user.userType === EUserType.LISTENER) {
+    } else if (user.userType === UserType.LISTENER) {
       actions = [
         "user:read",
         "user:update",
@@ -258,7 +258,7 @@ class PermissionService {
 
   
   static rolePermissionMap: Record<string, string[]> ={
-    [EUserType.SUPERADMIN]: [
+    [UserType.SUPERADMIN]: [
       // System Management
       "system:read", "system:update", "system:configure", "system:restart",
 
@@ -289,7 +289,7 @@ class PermissionService {
       // Advertisement Management
       "ads:create", "ads:read", "ads:update", "ads:delete"
     ],
-    [EUserType.STAFF]: [
+    [UserType.STAFF]: [
       "user:create", "user:read", "user:update", "user:delete", "user:disable",
       "role:create", "role:read", "role:update", "role:delete", "role:disable",
       "permission:create", "permission:read", "permission:update", "permission:delete", "permission:disable",
@@ -304,26 +304,26 @@ class PermissionService {
       "revenue:read", "revenue:update",
       "ads:create", "ads:read", "ads:update", "ads:delete"
     ],
-    [EUserType.PREACHER]: [
+    [UserType.PREACHER]: [
       "sermon:create", "sermon:read", "sermon:update", "sermon:delete", "sermon:destroy",
       "sermonbite:create", "sermonbite:read", "sermonbite:update", "sermonbite:delete", "sermonbite:destroy",
       "playlist:create", "playlist:read", "playlist:update", "playlist:delete", "playlist:destroy", "playlist:disable",
       "analytics:read", "analytics:export",
       "user:read", "user:update"
     ],
-    [EUserType.CREATOR]: [
+    [UserType.CREATOR]: [
       "sermonbite:create", "sermonbite:read", "sermonbite:update", "sermonbite:delete",
       "playlist:create", "playlist:read", "playlist:update", "playlist:delete", "playlist:destroy",
       "analytics:read", "analytics:export",
       "user:read", "user:update",
       "sermon:read", "sermonbite:read"
     ],
-    [EUserType.LISTENER]: [
+    [UserType.LISTENER]: [
       "user:read", "user:update",
       "sermon:read", "sermonbite:read",
       "playlist:create", "playlist:read", "playlist:update", "playlist:delete"
     ],
-    [EUserType.USER]: [
+    [UserType.USER]: [
       "user:read",
       "sermon:read",
       "sermonbite:read"
@@ -410,7 +410,7 @@ class PermissionService {
    * @param permissions Permissions to validate
    */
   static async validateProfilePermissions(
-    userType: EUserType,
+    userType: UserType,
     permissions: string[]
   ): Promise<IResult> {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
@@ -448,7 +448,7 @@ class PermissionService {
    */
   static async updateProfilePermissions(
     userId: Types.ObjectId,
-    userType: EUserType,
+    userType: UserType,
     permissions: string[]
   ): Promise<IResult> {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
@@ -468,25 +468,25 @@ class PermissionService {
       const updateData = { permissions };
 
       switch (userType) {
-        case EUserType.LISTENER:
+        case UserType.LISTENER:
           // Update listener profile permissions
           result.data = await Role.findOneAndUpdate(updateQuery, updateData, {
             new: true,
           });
           break;
-        case EUserType.PREACHER:
+        case UserType.PREACHER:
           // Update preacher profile permissions
           result.data = await Role.findOneAndUpdate(updateQuery, updateData, {
             new: true,
           });
           break;
-        case EUserType.CREATOR:
+        case UserType.CREATOR:
           // Update creator profile permissions
           result.data = await Role.findOneAndUpdate(updateQuery, updateData, {
             new: true,
           });
           break;
-        case EUserType.STAFF:
+        case UserType.STAFF:
           // Update staff profile permissions
           result.data = await Role.findOneAndUpdate(updateQuery, updateData, {
             new: true,
