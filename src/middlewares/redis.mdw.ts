@@ -1,48 +1,43 @@
-import { createClient, RedisClientType } from 'redis';
-import colors from 'colors';
-import { IData, IOptions } from '../utils/interface.util';
-
-
+import { createClient, RedisClientType } from "redis";
+import colors from "colors";
+import { IData, IOptions } from "../utils/interface.util";
 
 class redisWrapper {
+  public client: RedisClientType | null = null;
 
-    public client: RedisClientType | any;
+  public async connect(options: IOptions) {
+    if (this.client?.isOpen) return;
 
-    public async connect(options: IOptions) {
+    this.client = createClient({
+      url: `rediss://${options.user}:${options.password}@${options.host}:${options.port}`,
+    });
 
-        this.client = createClient({ 
-            url: `rediss://${options.user}:${options.password}@${options.host}:${options.port}`
-        });
+    this.client.on("error", (err: any) => {
+      console.error(colors.red.bold("Redis Error:"), err);
+    });
 
-        this.client.on('error', (err: any) => {
-            // console.log(`Redis Auth: ${err}`);
-        })
+    await this.client.connect();
+    console.log(colors.yellow.inverse("Connected to REDIS"));
+  }
 
-        await this.client.connect();
-        console.log(colors.yellow.inverse('Connected to REDIS'));
+  public async keepData(data: IData, exp: number) {
+    const value = JSON.stringify(data.value);
+    return await this.client!.set(data.key, value, { EX: exp });
+  }
 
-    }
+  public async fetchData<T = any>(key: string): Promise<T | null> {
+    const data = await this.client!.get(key);
+    return data ? JSON.parse(data) : null;
+  }
 
-    public async keepData(data: IData, exp: number) {
+  public async deleteData(key: string) {
+    await this.client!.del(key);
+  }
 
-        const parsed = JSON.stringify(data.value);
-
-        this.client.set(data.key, parsed, {
-            EX: exp,
-            NX: false
-        });
-    }
-
-    public async fetchData(key: string) {
-        const data = await this.client.get(key);
-        return data === null ? null : JSON.parse(data);
-    }
-
-    public async deleteData(key: string) {
-        await this.client.del(key);
-
-    }
-
+  public async exists(key: string): Promise<boolean> {
+    const exists = await this.client!.exists(key);
+    return exists === 1;
+  }
 }
 
 export default new redisWrapper();

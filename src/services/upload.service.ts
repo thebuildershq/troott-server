@@ -1,115 +1,92 @@
-import { S3Client } from "@aws-sdk/client-s3";
 import {
   IResult,
   ISermonDoc,
   IUploadDoc,
+  IUploadFile,
   IUserDoc,
 } from "../utils/interface.util";
 import UploadSession from "../models/Upload.model";
 import StorageService from "./storage.service";
 import mm from "music-metadata";
 import { v4 as uuidv4 } from "uuid";
-import { ContentType, EUploadStatus, FileType } from "../utils/enums.util";
-import { PublishSermonDTO, UploadSermonDTO } from "../dtos/sermon.dto";
+import { UploadStatus, FileType } from "../utils/enums.util";
+import { PublishSermonDTO } from "../dtos/sermon.dto";
 import { PassThrough } from "stream";
 import { Upload } from "@aws-sdk/lib-storage";
 import sermonRepository from "../repositories/sermon.repository";
 import Sermon from "../models/Sermon.model";
-import { determineFileType } from "../utils/helper.util";
 import sharp from "sharp";
+import ErrorResponse from "../utils/error.util";
+import { AWS_BUCKET_NAME, s3 } from "../config/aws.config";
+
 
 class UploadService {
-  private s3Client: S3Client;
-  private storageService: typeof StorageService;
-  private readonly UPLOAD_EXPIRY = 6 * 60 * 60 * 1000;
-  private readonly ALLOWED_AUDIO_TYPES = [
-    "audio/mpeg",
-    "audio/aac",
-    "audio/wav",
-    "audio/x-m4a",
-  ];
-
-  constructor() {
-    this.s3Client = new S3Client({
-      region: process.env.AWS_REGION as string,
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
-      },
-    });
-    this.storageService = StorageService;
-  }
+  private s3Client = s3;
+  private readonly bucket = AWS_BUCKET_NAME;
+  private readonly UPLOAD_EXPIRY = 1000 * 60 * 60 * 24;
+  private readonly storageService = StorageService;
 
   //validate da
   // Upload and publish logic
   // update sermon and published
 
-  public async handleUpload(file: {
-    stream: PassThrough;
-    streamForMetadata: PassThrough;
-    info: { filename: string; mimeType: string };
-    mimeType: string;
-    fileName: string;
-    size: number;
-  }): Promise<IUploadDoc> {
-    const fileType = determineFileType(file.mimeType as string);
-    
-    const uploadId = uuidv4();
-    const s3Key = `uploads/${fileType.toLowerCase()}/${uploadId}/${
-      file.info.filename
-    }`;
+  public async handleUpload(data: IUploadFile): Promise<IUploadDoc> {
+    const { stream, metadataStream, info, mimeType, size, fileType, uploadId } = data;
+
+    if (!stream || !metadataStream || !info || !mimeType || !fileType) {
+      throw new ErrorResponse("Missing required upload fields.", 400, []);
+    }
+
+    const s3Key = `uploads/${fileType.toLowerCase()}/${uploadId}/${info.filename}`;
 
     try {
-      // Upload to S3
+      
       const s3Upload = new Upload({
         client: this.s3Client,
         params: {
-          Bucket: process.env.AWS_BUCKET_NAME!,
+          Bucket: this.bucket,
           Key: s3Key,
-          Body: file.stream,
-          ContentType: file.mimeType,
+          Body: stream,
+          ContentType: mimeType,
         },
       });
 
-      //s3 is supposed to return data here
       const s3Response = await s3Upload.done();
-      
 
       let metadata: any = {};
 
       if (fileType === FileType.AUDIO) {
-        metadata = await this.extractAudioMetadata(
-          file.streamForMetadata,
-          file.mimeType
-        );
+        metadata = await this.extractAudioMetadata(metadataStream, mimeType);
       } else if (fileType === FileType.IMAGE) {
-        metadata = await this.extractImageMetadata(file.streamForMetadata);
+        metadata = await this.extractImageMetadata(metadataStream);
       } else if (fileType === FileType.VIDEO) {
-        metadata = await this.extractVideoMetadata(file.streamForMetadata);
+        metadata = await this.extractVideoMetadata(metadataStream);
       } else if (fileType === FileType.DOCUMENT) {
-        metadata = await this.extractDocumentMetadata(file.streamForMetadata);
+        metadata = await this.extractDocumentMetadata(metadataStream);
       }
 
       // Save upload session in DB
       const uploadResult = await UploadSession.create({
         uploadId,
-        fileName: file.info.filename,
-        fileSize: file.size,
-        mimeType: file.mimeType,
+        fileName: info.filename,
+        fileSize: size,
+        mimeType: mimeType,
         fileType,
         s3Key,
         s3Url: s3Response.Location,
         metadata: { metadataType: fileType, ...metadata },
-        status: EUploadStatus.COMPLETED,
+        status: UploadStatus.COMPLETED,
         retryCount: 0,
         expiresAt: new Date(Date.now() + this.UPLOAD_EXPIRY),
       });
 
-      // status: EUploadStatus.COMPLETED,
+      
       return uploadResult;
     } catch (err) {
-      file.stream.destroy();
-      file.streamForMetadata.destroy();
+      stream.destroy();
+      metadataStream.destroy();
+
+      await this.storageService.deleteFile(s3Key);
       throw err;
     }
   }
@@ -161,55 +138,6 @@ class UploadService {
     await sermon.save();
 
     return sermon;
-  }
-
-  //utily functions
-  public async validateFile(
-    mimeType: string,
-    type: ContentType
-  ): Promise<boolean> {
-    // Check file type
-    if (
-      type === "sermon" &&
-      !this.ALLOWED_AUDIO_TYPES.includes(mimeType)
-    ) {
-      return false;
-    }
-
-    // if (type === 'sermonBite' && !this.ALLOWED_VIDEO_TYPES.includes(file.mimetype)) {
-    //   return false;
-    // }
-
-    return true;
-  }
-
-  public async validateSermonUpload(data: UploadSermonDTO): Promise<IResult> {
-    const allowedAudios = [
-      "audio/mpeg",
-      "audio/aac",
-      "audio/wav",
-      "audio/x-m4a",
-    ];
-
-    let result: IResult = { error: false, message: "", code: 200, data: {} };
-
-    if (!data.file) {
-      result.error = true;
-      result.message = "Sermon file is required";
-    } else if (!data.user) {
-      result.error = true;
-      result.message = "Authentication is required";
-    } else if (!data.type || !allowedAudios.includes(data.file.mimetype)) {
-      result.error = true;
-      result.message = `Invalid content type. Choose from ${allowedAudios.join(
-        ", "
-      )}`;
-    } else {
-      result.error = false;
-      result.message = "";
-    }
-
-    return result;
   }
 
   private async extractAudioMetadata(

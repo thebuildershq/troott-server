@@ -22,7 +22,9 @@ import {
   PaymentProviders,
   OAuthProvider,
 } from "./enums.util";
-import { IUploadMetadata, LinkedModel } from "./types.util";
+import { IUploadMetadata } from "./types.util";
+import { PassThrough } from "stream";
+import { FileInfo } from "busboy";
 
 export type Nullable<T> = T | null;
 export interface IRoleDoc extends Document {
@@ -1027,4 +1029,15 @@ export interface RedisConfig {
   port: number;
   password?: string;
   db: number;
+}
+export interface IUploadFile {
+  stream?: PassThrough;
+  metadataStream?: PassThrough;
+  info?: FileInfo;
+  mimeType?: string;
+  fileName?: string;
+  fieldname?: string;
+  size?: number;
+  fileType?:FileType;
+  uploadId?: string;
 }
