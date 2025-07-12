@@ -20,6 +20,7 @@ import {
   FileType,
   EmailService,
   PaymentProviders,
+  OAuthProvider,
 } from "./enums.util";
 import { IUploadMetadata, LinkedModel } from "./types.util";
 
@@ -79,6 +80,7 @@ export interface IUserDoc extends Document {
   otpType: OtpType;
   accessToken: string;
   accessTokenExpiry: Date;
+  tokenVersion: number;
 
   isSuper: boolean;
   isStaff: boolean;
@@ -1006,4 +1008,23 @@ export interface FrontendURLConfig {
   apiUrl?: string;
   paymentRedirectUrl?: string;
   dashboardUrl?: string;
-};
+}
+
+export interface OAuthConfig {
+  provider: OAuthProvider;
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+}
+
+export interface OAuthProvidersConfig {
+  google: OAuthConfig;
+  github: OAuthConfig;
+}
+
+export interface RedisConfig {
+  host: string;
+  port: number;
+  password?: string;
+  db: number;
+}

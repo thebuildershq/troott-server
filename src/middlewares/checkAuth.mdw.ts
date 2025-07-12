@@ -23,43 +23,49 @@ declare global {
  *  - 404 if user role not found
  *  - 403 if user lacks required permissions
  */
-const checkAuthentication = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  
+const Protect = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    
     const token = req.header("authorization")?.split(" ")[1];
     if (!token) {
-      return next(new ErrorResponse("Error", 401, ["No token provided"]));
+      return next(new ErrorResponse("No token provided", 401, [""]));
     }
-  
+
+     let decoded: jwt.JwtPayload;
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as jwt.JwtPayload;
-
-        // Verify token exists in user record
-        const user = await User.findById(decoded.id);
-        if (!user || user.accessToken !== token) {
-        return next(new ErrorResponse("Invalid or expired token", 401, []));
-        }
-
-        // Check if token needs refresh
-        if (!tokenService.checkTokenValidity(token)) {
-        const refreshResult = await tokenService.refreshToken(token);
-        if (refreshResult.error) {
-            return next(new ErrorResponse(refreshResult.message, refreshResult.code, []));
-        }
-        // Set new token in response header
-        res.setHeader('X-New-Token', refreshResult.data.token);
-        }
-        req.user = decoded;
-        next();
-
-    } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) {
-        return next(new ErrorResponse("Erro", 403, ["Token has expired."]));
-      } else if (error instanceof jwt.JsonWebTokenError) {
-        return next(new ErrorResponse("Error", 401, ["Invalid token"]));
+      decoded = jwt.verify(token, process.env.JWT_SECRET!) as jwt.JwtPayload;
+    } catch (err) {
+      if (err instanceof jwt.TokenExpiredError) {
+        return next(new ErrorResponse("Token has expired", 403, [""]));
       }
-  
-      return next(new ErrorResponse("Error", 500, ["Something went wrong."]));
+      return next(new ErrorResponse("Invalid token", 401, [""]));
     }
-  })
 
-export default checkAuthentication;
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return next(new ErrorResponse("Invalid or expired token", 401, []));
+    }
+
+    if (user.tokenVersion !== decoded.tokenVersion) {
+      return next(new ErrorResponse("Token revoked", 401, []));
+    }
+
+    // Check if token needs refresh
+    if (!tokenService.checkTokenValidity(token)) {
+      const refreshResult = await tokenService.refreshToken(token);
+      if (refreshResult.error) {
+        return next(
+          new ErrorResponse(refreshResult.message, refreshResult.code, [])
+        );
+      }
+      // Set new token in response header
+      res.setHeader("X-New-Token", refreshResult.data.token);
+    }
+    
+    req.user = { id: decoded.id, email: decoded.email, role: decoded.role };
+    next();
+
+  }
+);
+
+export default Protect;

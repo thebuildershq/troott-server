@@ -14,7 +14,7 @@ const checkPermissions = (requiredPermissions: Array<string>) => {
     const user = req.user;
 
     if (!user) {
-      return next(new ErrorResponse("Unauthorized", 401, ["User not authenticated."]));
+      return next(new ErrorResponse("User not authenticated.", 401, []));
     }
 
     if (user.isSuperAdmin === true) {
@@ -23,7 +23,7 @@ const checkPermissions = (requiredPermissions: Array<string>) => {
 
     const userRole = await Role.findById(user?.role);
     if (!userRole) {
-      return next(new ErrorResponse("Error", 404, ["Role not found."]));
+      return next(new ErrorResponse("Role not found.", 404, []));
     }
 
     const hasPermission = requiredPermissions.every((perm) =>
@@ -31,7 +31,7 @@ const checkPermissions = (requiredPermissions: Array<string>) => {
     );
     if (!hasPermission) {
       return next(
-        new ErrorResponse("Error", 403, ["Access Denied: Insufficient permissions."])
+        new ErrorResponse("Access Denied: Insufficient permissions.", 403, [])
       );
     }
     next();

@@ -351,3 +351,8 @@ export enum EmailPriority {
   MEDIUM = "medium",
   LOW = "low",
 }
+
+export enum OAuthProvider {
+  GOOGLE = "google",
+  GITHUB = "github",
+}

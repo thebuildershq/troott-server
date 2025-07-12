@@ -15,10 +15,10 @@ class TokenService {
     this.expire = process.env.JWT_EXPIRY as string;
 
     if (!this.secret) {
-      throw new ErrorResponse("Error with JWT SECRET", 500, ["JWT secrets are not defined."]);
+      throw new ErrorResponse("JWT secrets are not defined.", 500, []);
     }
     if (!this.expire) {
-      throw new ErrorResponse("Error ", 500, ["JWT_EXPIRY is not defined."]);
+      throw new ErrorResponse("JWT_EXPIRY is not defined.", 500, []);
     }
   }
 
@@ -36,9 +36,10 @@ class TokenService {
           id: user._id,
           email: user.email,
           role: user.role,
+          tokenVersion: user.tokenVersion,
         },
         this.secret,
-        { algorithm: "HS512", expiresIn: this.expire }
+        { algorithm: "HS512", expiresIn: this.expire } as jwt.SignOptions
       );
 
       await User.findByIdAndUpdate(user.id, { accessToken: token });
@@ -68,9 +69,7 @@ class TokenService {
 
       const user = await User.findById(decoded.id);
       if (!user || user.accessToken !== accessToken) {
-        throw new ErrorResponse("Unauthorized", 401, [
-          "Please provide a token",
-        ]);
+        throw new ErrorResponse("Please provide a token", 401, []);
       }
 
       if (!this.checkTokenValidity(accessToken)) {
@@ -79,9 +78,10 @@ class TokenService {
             id: user._id,
             email: user.email,
             role: user.role,
+            tokenVersion: user.tokenVersion,
           },
           this.secret,
-          { algorithm: "HS512", expiresIn: this.expire }
+          { algorithm: "HS512", expiresIn: this.expire } as jwt.SignOptions
         );
 
         result.data = { token: newToken };
