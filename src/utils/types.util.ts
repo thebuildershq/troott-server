@@ -1,4 +1,4 @@
-import { EDbModels } from "./enums.util";
+import { DbModels } from "./enums.util";
 import {
   IAudioMetadata,
   IDocumentMetadata,
@@ -6,12 +6,6 @@ import {
   IVideoMetadata,
 } from "./interface.util";
 
-export type EmailDriver =
-  | "sendgrid"
-  | "aws"
-  | "mailtrap"
-  | "mailgun"
-  | "mailSend";
 
 export type VerifyOTPType =
   | "register"
@@ -27,6 +21,6 @@ export type IUploadMetadata =
   | IDocumentMetadata;
 
 export type LinkedModel =
-  | EDbModels.SERMON
-  | EDbModels.USER
-  | EDbModels.PLAYLIST;
+  | DbModels.SERMON
+  | DbModels.USER
+  | DbModels.PLAYLIST;

@@ -1,10 +1,10 @@
-export enum EENVType {
+export enum ENVType {
   PRODUCTION = "production",
   STAGING = "staging",
   DEVELOPMENT = "development",
 }
 
-export enum EAppChannel {
+export enum AppChannel {
   WEB = "web",
   MOBILE = "mobile",
   DESKTOP = "desktop",
@@ -13,14 +13,14 @@ export enum EAppChannel {
 
 // create passwordType: EPasswordType;
 
-export enum EPasswordType {
+export enum PasswordType {
   USERGENERATED = "user-generated",
   SYSTEMGENERATED = "system-generated",
   TEMPORARY = "temporary",
   RESET = "reset",
 }
 
-export enum EUserType {
+export enum UserType {
   SUPERADMIN = "superadmin",
   STAFF = "staff",
   PREACHER = "preacher",
@@ -29,7 +29,7 @@ export enum EUserType {
   USER = "user",
 }
 
-export enum EStaffUnit {
+export enum StaffUnit {
   ENGINEERING = "engineering",
   PRODUCT = "product",
   DESIGN = "design",
@@ -37,7 +37,7 @@ export enum EStaffUnit {
   FINANCE = "finance",
 }
 
-export enum EStaffRole {
+export enum StaffRole {
   HEAD = "head",
   MANAGER = "manager",
   LEAD = "lead",
@@ -45,14 +45,14 @@ export enum EStaffRole {
   JUNIOR = "junior",
 }
 
-export enum EAccountManagerRole {
+export enum AccountManagerRole {
   OWNER = "owner",
   MANAGER = "manager",
   EDITOR = "editor",
   ANALYST = "analyst",
 }
 
-export enum EVerificationStatus {
+export enum VerificationStatus {
   PENDING = "pending",
   APPROVED = "approved",
   REJECTED = "rejected",
@@ -61,7 +61,7 @@ export enum EVerificationStatus {
   SUSPENDED = "suspended",
 }
 
-export enum EDbModels {
+export enum DbModels {
   USER = "user",
   ROLE = "role",
   PERMISSION = "permission",
@@ -79,15 +79,10 @@ export enum EDbModels {
   SERMON = "sermon",
   STAFF = "staff",
   TRANSACTION = "transaction",
-  UPLOAD= "upload"
+  UPLOAD = "upload",
 }
 
-export enum EModel {
-  USER = "User",
-  ROLE = "Role",
-}
-
-export enum ESermonType {
+export enum SermonType {
   SERIES = "series",
   ONEOFF = "one-off",
 }
@@ -99,7 +94,7 @@ export enum FileType {
   VIDEO = "video",
 }
 
-export enum EPartType {
+export enum PartType {
   ONE = "one",
   TW0 = "two",
   THREE = "three",
@@ -109,7 +104,7 @@ export enum EPartType {
   SEVEN = "seven",
 }
 
-export enum EPlaylistType {
+export enum PlaylistType {
   DEFAULT = "default",
   SERIES = "series",
   PREACHER = "preacher",
@@ -118,7 +113,7 @@ export enum EPlaylistType {
   SERMONBITE = "sermonbite",
 }
 
-export enum ECurrency {
+export enum Currency {
   NGN = "NGN",
   USD = "USD",
   EUR = "EUR",
@@ -132,7 +127,7 @@ export enum ECurrency {
   ZAR = "ZAR",
 }
 
-export enum EProviders {
+export enum PaymentProviders {
   PAYSTACK = "Paystack",
   FLUTTERWAVE = "Flutterwave",
   STRIPE = "Stripe",
@@ -142,7 +137,7 @@ export enum EProviders {
   WECHAT_PAY = "WeChat Pay",
 }
 
-export enum ESubcriptionPlan {
+export enum SubcriptionPlan {
   FREE = "free",
   TRIAL = "trial",
   PREMIUM = "premium",
@@ -150,46 +145,45 @@ export enum ESubcriptionPlan {
   STUDENT = "student",
 }
 
-export enum ESubscriptionStatus {
+export enum SubscriptionStatus {
   ACTIVE = "active",
   INACTIVE = "inactive",
   PENDING = "pending",
   CANCELLED = "cancelled",
   EXPIRED = "expired",
-  TRIAL = "trial"
-} 
-
-export enum EBillingFrequency {
-  MONTHLY = "monthly",
-  YEARLY = "yearly"
+  TRIAL = "trial",
 }
 
+export enum BillingFrequency {
+  MONTHLY = "monthly",
+  YEARLY = "yearly",
+}
 
-export enum ETransactionsType {
+export enum TransactionsType {
   SUBSCRIPTION = "subscription",
   REFUND = "refund",
   ONETIME = "onetime",
   UPGRADE = "upgrade",
-  PAYMENT_METHOD_UPDATE = "payment-method-update"
+  PAYMENT_METHOD_UPDATE = "payment-method-update",
 }
 
-export enum ETransactionType {
+export enum TransactionType {
   CREDIT = "credit",
   DEBIT = "debit",
   DEFAULT = "default",
 }
 
-export enum ETransactionStatus {
+export enum TransactionStatus {
   PENDING = "pending",
   PROCESSING = "processing",
   FAILED = "failed",
   SUCCESSFUL = "successful",
   REFUNDED = "refunded",
   DEFAULT = "default",
-  EXPIRED = "expired"
+  EXPIRED = "expired",
 }
 
-export enum ETransactionReason {
+export enum TransactionReason {
   PENDING = "pending",
   ABANDONED = "abandoned",
   FRAUDULENT = "fraudulent",
@@ -201,12 +195,12 @@ export enum ETransactionReason {
   DEFAULT = "default",
 }
 
-export enum EdeviceType {
+export enum DeviceType {
   ANDROID = "android",
   IOS = "ios",
 }
 
-export enum EOtpType {
+export enum OtpType {
   REGISTER = "register",
   LOGIN = "login",
   GENERIC = "generic",
@@ -215,26 +209,26 @@ export enum EOtpType {
   FORGOTPASSWORD = "forgot-password",
 }
 
-export enum EUploadStatus {
-  PENDING = 'pending',
-  UPLOADING = 'uploading',
-  PROCESSING = 'processing',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
-  EXPIRED = 'expired',
+export enum UploadStatus {
+  PENDING = "pending",
+  UPLOADING = "uploading",
+  PROCESSING = "processing",
+  COMPLETED = "completed",
+  FAILED = "failed",
+  EXPIRED = "expired",
 }
 
-export enum EChunkStatus {
-  PENDING = 'pending',
-  UPLOADED = 'uploaded',
-  FAILED = 'failed',
+export enum ChunkStatus {
+  PENDING = "pending",
+  UPLOADED = "uploaded",
+  FAILED = "failed",
 }
 
-export enum EProcessingStatus {
-  QUEUED = 'queued',
-  PROCESSING = 'processing',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
+export enum ProcessingStatus {
+  QUEUED = "queued",
+  PROCESSING = "processing",
+  COMPLETED = "completed",
+  FAILED = "failed",
 }
 
 export enum ContentType {
@@ -242,14 +236,14 @@ export enum ContentType {
   BITE = "bite",
 }
 
-export enum EContentState {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  DELETED = 'deleted',
-  BROKEN = 'broken',
+export enum ContentState {
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+  DELETED = "deleted",
+  BROKEN = "broken",
 }
 
-export enum EContentStatus {
+export enum ContentStatus {
   PUBLISHED = "published",
   DRAFT = "draft",
   FLAGGED = "flagged",
@@ -257,13 +251,13 @@ export enum EContentStatus {
   ARCHIVED = "archived",
 }
 
-export enum EcatalogueType {
+export enum CatalogueType {
   RECENTLYPLAYED = "sermon",
   BITE = "bite",
   P = "Preacher",
 }
 
-export enum EStaffPermissions {
+export enum StaffPermissions {
   Moderate = "moderate",
   Create = "create",
   ManageUsers = "manageUsers",
@@ -272,12 +266,15 @@ export enum EStaffPermissions {
   FullAccess = "fullAccess",
 }
 
-export enum EEmailDriver {
+export enum EmailService {
   SENDGRID = "sendgrid",
-  AWS = "aws",
+  AWS_SES = "ses",
   MAILTRAP = "mailtrap",
+  MAILGUN = "mailgun",
+  MAILSEND = "mailsend",
+  SMTP = "smtp"
 }
-export enum EEmailTemplate {
+export enum EmailTemplate {
   WELCOME = "welcome",
   USER_INVITE = "user-invite",
   PASSWORD_RESET = "password-reset",
@@ -287,7 +284,7 @@ export enum EEmailTemplate {
   OTP = "otp",
   VERIFY_EMAIL = "verify-email",
 }
-export enum EEmailStatus {
+export enum EmailStatus {
   SENT = "sent",
   DELIVERED = "delivered",
   OPENED = "opened",
@@ -316,7 +313,7 @@ export enum EEmailStatus {
   FAILURE = "failure",
 }
 
-export enum EVerifyOTP {
+export enum VerifyOTP {
   REGISTER = "register",
   PASSWORD_RESET = "password-reset",
   CHANGE_PASSWORD = "change-password",
@@ -324,41 +321,33 @@ export enum EVerifyOTP {
   VERIFY = "verify",
 }
 
-export enum EAPIKeyEnvironment {
+export enum APIKeyEnvironment {
   LIVE = "live",
   TEST = "test",
 }
 
-export enum EAPIKeyStatus {
+export enum APIKeyStatus {
   ACTIVE = "active",
   REVOKED = "revoked",
   EXPIRED = "expired",
   SUSPENDED = "suspended",
 }
 
-export enum EAPIKeyType {
+export enum APIKeyType {
   FULL = "full",
   READ = "read",
   WRITE = "write",
 }
 
 export enum EmailType {
-  TRANSACTIONAL = 'transactional',
-  MARKETING = 'marketing',
-  PRODUCT_UPDATE = 'product_update',
-  FEATURE_ANNOUNCEMENT = 'feature_announcement'
+  TRANSACTIONAL = "transactional",
+  MARKETING = "marketing",
+  PRODUCT_UPDATE = "product_update",
+  FEATURE_ANNOUNCEMENT = "feature_announcement",
 }
 
 export enum EmailPriority {
-  HIGH = 'high',
-  MEDIUM = 'medium',
-  LOW = 'low'
-}
-
-export enum EmailStatus {
-  DELIVERED = 'delivered',
-  FAILED = 'failed',
-  BOUNCED = 'bounced',
-  OPENED = 'opened',
-  CLICKED = 'clicked'
+  HIGH = "high",
+  MEDIUM = "medium",
+  LOW = "low",
 }

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>eLab Website API Health Check</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f9fafb;
+      color: #141414;
+    }
+
+    .container {
+      background: #ffffff;
+      padding: 2rem 3rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .title {
+      font-size: 1.75rem;
+      font-weight: bold;
+      color: #141414;
+      margin-bottom: 0.5rem;
+    }
+
+    .version {
+      font-size: 1.25rem;
+      color: #6b7280;
+      margin-bottom: 1rem;
+    }
+
+    .status {
+      background: #FFCC03;
+      color: #141414;
+      padding: 0.5rem 1rem;
+      border-radius:  0.5rem;
+      display: inline-block;
+      font-weight: 600;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #111827;
+        color: #f9fafb;
+      }
+
+      .container {
+        background: #141414;
+        box-shadow: 0 10px 15px rgba(255, 255, 255, 0.1);
+      }
+
+      .title {
+        color: #f9fafb;
+      }
+
+      .version {
+        color: #9ca3af;
+      }
+
+      .status {
+        background:#FFCC03;
+        color: #141414;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="title"><%= data.name %></div>
+    <div class="version">Version: <%= data.version %></div>
+    <div class="status"><%= message %></div>
+  </div>
+</body>
+</html>

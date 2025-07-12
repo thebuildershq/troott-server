@@ -1,24 +1,25 @@
 import { Model, Document, ObjectId } from "mongoose";
 import {
-  EAccountManagerRole,
-  EAPIKeyEnvironment,
-  EAPIKeyStatus,
-  EAPIKeyType,
-  EChunkStatus,
-  EContentState,
-  EContentStatus,
+  AccountManagerRole,
+  APIKeyEnvironment,
+  APIKeyStatus,
+  APIKeyType,
+  ContentState,
+  ContentStatus,
   EmailType,
-  EOtpType,
-  EPasswordType,
-  EPlaylistType,
-  EStaffPermissions,
-  EStaffRole,
-  EStaffUnit,
-  ETransactionsType,
-  EUploadStatus,
-  EUserType,
-  EVerificationStatus,
+  OtpType,
+  PasswordType,
+  PlaylistType,
+  StaffPermissions,
+  StaffRole,
+  StaffUnit,
+  TransactionsType,
+  UploadStatus,
+  UserType,
+  VerificationStatus,
   FileType,
+  EmailService,
+  PaymentProviders,
 } from "./enums.util";
 import { IUploadMetadata, LinkedModel } from "./types.util";
 
@@ -59,8 +60,8 @@ export interface IUserDoc extends Document {
   lastName: string;
   email: string;
   password: string;
-  passwordType: EPasswordType; // encrypt this data
-  userType: EUserType;
+  passwordType: PasswordType; // encrypt this data
+  userType: UserType;
 
   //user: string;
   phoneNumber: string;
@@ -75,7 +76,7 @@ export interface IUserDoc extends Document {
 
   Otp: string;
   OtpExpiry: number;
-  otpType: EOtpType;
+  otpType: OtpType;
   accessToken: string;
   accessTokenExpiry: Date;
 
@@ -186,7 +187,7 @@ export interface IPreacherDoc extends Document {
   description: string;
   ministry: string;
   ministryHq: string;
-  
+
   ministryWebsite: string;
   sermons: Array<ObjectId | any>;
   featuredSermons: Array<ObjectId | any>;
@@ -210,12 +211,12 @@ export interface IPreacherDoc extends Document {
 
   // Security & Verification
   identification: Array<string>;
-  verificationStatus: EVerificationStatus;
+  verificationStatus: VerificationStatus;
   isVerified: boolean;
   verifiedAt: Date;
 
   // Account Managers
-  accountManagers: Array<{ userId: ObjectId; role: EAccountManagerRole }>;
+  accountManagers: Array<{ userId: ObjectId; role: AccountManagerRole }>;
 
   //relationships
   user: ObjectId | any;
@@ -268,12 +269,12 @@ export interface ICreatorDoc extends Document {
 
   // Security & Verification
   identification: Array<string>;
-  verificationStatus: EVerificationStatus;
+  verificationStatus: VerificationStatus;
   isVerified: boolean;
   verifiedAt: Date | null;
 
   // Account Managers
-  accountManagers: Array<{ userId: ObjectId; role: EAccountManagerRole }>;
+  accountManagers: Array<{ userId: ObjectId; role: AccountManagerRole }>;
 
   //relationships
   user: ObjectId | any;
@@ -305,10 +306,10 @@ export interface IStaffDoc extends Document {
   slug: string;
 
   // Staff Role & Access
-  unit: EStaffUnit;
-  role: EStaffRole;
+  unit: StaffUnit;
+  role: StaffRole;
   accessLevel: number;
-  permissions: Array<EStaffPermissions>;
+  permissions: Array<StaffPermissions>;
 
   // API & Security
   apiKeys: Array<{ key: string; createdAt: Date; lastUsed: Date }>; // encrypt this data
@@ -325,7 +326,7 @@ export interface IStaffDoc extends Document {
 
   // Security & Verification
   identification: Array<string>;
-  verificationStatus: EVerificationStatus;
+  verificationStatus: VerificationStatus;
   isVerified: boolean;
   verifiedAt: Date | null;
 
@@ -363,8 +364,8 @@ export interface ISermonDoc extends Document {
   totalPlay: ISermonPlayCount;
   totalLikes: ISermonLike;
   totalShares: ISermonShareCount;
-  state: EContentState;
-  status: EContentStatus;
+  state: ContentState;
+  status: ContentStatus;
 
   // Uplaod Tracking
   uploadRef?: ObjectId | any;
@@ -405,7 +406,7 @@ export interface IUploadDoc extends Document {
   s3Key: string;
   s3Url: string;
   metadata: IUploadMetadata;
-  status: EUploadStatus;
+  status: UploadStatus;
   uploadedBy: ObjectId;
 
   //processing
@@ -476,8 +477,8 @@ export interface ISermonBiteDoc extends Document {
 
   // State Management
   isPublic: boolean;
-  state: EContentState;
-  status: EContentStatus;
+  state: ContentState;
+  status: ContentStatus;
 
   // Modifications
   versionId?: ObjectId;
@@ -518,8 +519,8 @@ export interface ISeriesDoc extends Document {
   tags: Array<string>;
 
   isPublic: boolean;
-  state: EContentState;
-  status: EContentStatus;
+  state: ContentState;
+  status: ContentStatus;
 
   // Engagement & Analytics
   totalPlay: number;
@@ -574,13 +575,12 @@ export interface IPlaylistDoc extends Document {
   isCollaborative: boolean;
   isPublic: boolean;
   likes: number;
-  playlistType: EPlaylistType;
-  items: Array<{ itemId: ObjectId | any; type: EPlaylistType }>;
+  playlistType: PlaylistType;
+  items: Array<{ itemId: ObjectId | any; type: PlaylistType }>;
 
   // relationships
   user: ObjectId | any;
   createdBy: ObjectId | any;
-  
 
   // timestamps
   createdAt: string;
@@ -591,7 +591,7 @@ export interface IPlaylistDoc extends Document {
 }
 
 export interface ITransactionDoc extends Document {
-  type: ETransactionsType;
+  type: TransactionsType;
   medium: string;
   resource: string;
   entity: string;
@@ -686,9 +686,9 @@ export interface IPlanDoc extends Document {
 }
 export interface IAPIKeyDoc extends Document {
   keyHash: string;
-  environment: EAPIKeyEnvironment;
-  type: EAPIKeyType;
-  status: EAPIKeyStatus;
+  environment: APIKeyEnvironment;
+  type: APIKeyType;
+  status: APIKeyStatus;
   permissions: Array<string>;
   expiresAt: string;
   revokedAt?: string;
@@ -971,18 +971,39 @@ export interface IQueryOptions {
   recentOnly?: boolean;
 }
 
+export interface AWSConfig {
+  region: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  bucketName: string;
+}
 
+export interface EmailConfig {
+  fromEmail: string;
+  fromName: string;
+  replyTo?: string;
+  service: EmailService;
+  apiKey?: string;
+  smtpHost?: string;
+  smtpPort?: number;
+  smtpUser?: string;
+  smtpPass?: string;
+  templateId?: string;
+  isTestMode?: boolean;
+  sendingDomain?: string;
+}
 
-// // Extend the Response type
-// interface CustomResponse<T> extends Response {
-//   customResults?: {
-//     success: boolean;
-//     count: number;
-//     total: number
-//     pagination: {
-//       next?: { page: number; limit: number };
-//       prev?: { page: number; limit: number };
-//     };
-//     data: T[];
-//   };
-// }
+export interface PaymentConfig {
+  provider: PaymentProviders;
+  secretKey: string;
+  publicKey: string;
+  webhookSecret?: string;
+  isTestMode: boolean;
+}
+
+export interface FrontendURLConfig {
+  baseUrl: string;
+  apiUrl?: string;
+  paymentRedirectUrl?: string;
+  dashboardUrl?: string;
+};
