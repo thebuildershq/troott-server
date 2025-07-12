@@ -1,0 +1,15 @@
+[
+  {
+    "firstName": "Super",
+    "lastName": "Administrator",
+    "email": "thedamolaoladipo@gmail.com",
+    "password": "p6vjBzsQH^51$B@;",
+    "userType": "superadmin",
+    "gender": "male",
+    "role": "superadmin",
+    "isSuper": "true",
+    "isActivated": "true",
+    "isAdmin": "false",
+    "isActive": "true"
+  }
+]

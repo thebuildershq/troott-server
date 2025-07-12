@@ -25,7 +25,3 @@ build
 /.txt
 *.txt
 */.txt
-
-
-# system settings
-src/_data/users.json
