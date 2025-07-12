@@ -8,7 +8,6 @@ import {
 import UploadSession from "../models/Upload.model";
 import StorageService from "./storage.service";
 import mm from "music-metadata";
-import { v4 as uuidv4 } from "uuid";
 import { UploadStatus, FileType } from "../utils/enums.util";
 import { PublishSermonDTO } from "../dtos/sermon.dto";
 import { PassThrough } from "stream";
@@ -141,12 +140,16 @@ class UploadService {
   }
 
   private async extractAudioMetadata(
-    streamForMetadata: PassThrough,
-    mimeType: string
-  ) {
-    const metadata = await mm.parseStream(streamForMetadata, mimeType, {
+  streamForMetadata: PassThrough,
+  mimeType: string
+) {
+  try {
+    const { parseStream } = await import("music-metadata");
+
+    const metadata = await parseStream(streamForMetadata, mimeType, {
       duration: true,
     });
+
     return {
       metadataType: FileType.AUDIO,
       formatName: metadata.format.container,
@@ -155,7 +158,27 @@ class UploadService {
       bitrate: metadata.format.bitrate,
       year: metadata.common.year,
     };
+  } catch (error: any) {
+    throw new Error(`Failed to extract audio metadata: ${error.message}`);
   }
+}
+
+  // private async extractAudioMetadata(
+  //   streamForMetadata: PassThrough,
+  //   mimeType: string
+  // ) {
+  //   const metadata = await mm.parseStream(streamForMetadata, mimeType, {
+  //     duration: true,
+  //   });
+  //   return {
+  //     metadataType: FileType.AUDIO,
+  //     formatName: metadata.format.container,
+  //     codec: metadata.format.codec,
+  //     duration: metadata.format.duration,
+  //     bitrate: metadata.format.bitrate,
+  //     year: metadata.common.year,
+  //   };
+  // }
 
   private async extractImageMetadata(streamForMetadata: PassThrough) {
     const image = sharp();
