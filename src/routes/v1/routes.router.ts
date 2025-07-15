@@ -5,9 +5,11 @@ import libraryRoutes from "./routers/library.router";
 import playlistRoutes from "./routers/playlist.router";
 import preferenceRoutes from "./routers/preference.router";
 import userRoutes from "./routers/user.router";
+import webhookRoutes from "./routers/webhook.router";
 
 const router = express.Router();
 
+router.use("/webhook", webhookRoutes);
 router.use("/auth", authRoutes);
 router.use("/library", libraryRoutes);
 router.use("/playlist", playlistRoutes);

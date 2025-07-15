@@ -995,6 +995,7 @@ export interface EmailConfig {
   templateId?: string;
   isTestMode?: boolean;
   sendingDomain?: string;
+  clientUrl?: string;
 }
 
 export interface PaymentConfig {
@@ -1030,6 +1031,30 @@ export interface RedisConfig {
   password?: string;
   db: number;
 }
+
+export interface IEmailJob {
+  user: IUserDoc;
+  subject: string;
+  payload: Record<string, any>;
+  driver: EmailService;
+  template?: string;
+  code?: string;
+  metadata?: any;
+  options?: {
+    subject?: string;
+    salute?: string;
+    buttonUrl?: string;
+    buttonText?: string;
+    emailBody?: string;
+    emailBodies?: Array<string>;
+    bodyOne?: string;
+    bodyTwo?: string;
+    bodyThree?: string;
+    otpType?: OtpType;
+    status?: string;
+  };
+}
+
 export interface IUploadFile {
   stream?: PassThrough;
   metadataStream?: PassThrough;
@@ -1038,6 +1063,6 @@ export interface IUploadFile {
   fileName?: string;
   fieldname?: string;
   size?: number;
-  fileType?:FileType;
+  fileType?: FileType;
   uploadId?: string;
 }

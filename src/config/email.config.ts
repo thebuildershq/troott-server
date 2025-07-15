@@ -13,6 +13,7 @@ export function getEmailConfig(): EmailConfig {
       apiKey: process.env.MAILSEND_API_KEY!,
       templateId: process.env.MAILSEND_TEMPLATE_ID,
       sendingDomain: process.env.EMAIL_DOMAIN,
+      clientUrl: process.env.CLIENT_APP_URL as string,
       isTestMode: false,
     };
   }
@@ -26,6 +27,7 @@ export function getEmailConfig(): EmailConfig {
       apiKey: process.env.MAILERSEND_STAGING_API_KEY!,
       templateId: process.env.MAILSEND_TEMPLATE_ID,
       sendingDomain: process.env.MAILERSEND_STAGING_DOMAIN,
+      clientUrl: process.env.CLIENT_STAGING_URL as string,
       isTestMode: false,
     };
   }
@@ -39,11 +41,11 @@ export function getEmailConfig(): EmailConfig {
       apiKey: process.env.MAILERSEND_STAGING_API_KEY as string,
       templateId: process.env.MAILSEND_TEMPLATE_ID,
       sendingDomain: process.env.MAILERSEND_STAGING_DOMAIN,
+      clientUrl: process.env.CLIENT_LOCAL_URL as string,
       isTestMode: false,
     };
   }
-
-
+  
   throw new Error("Invalid NODE_ENV. Email config not set.");
 }
 

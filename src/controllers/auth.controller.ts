@@ -21,7 +21,6 @@ import {
 import emailService from "../services/email.service";
 import tokenService from "../services/token.service";
 import { IUserDoc } from "../utils/interface.util";
-import otpService from "../services/otp.service";
 
 /**
  * @name registerUser
@@ -83,20 +82,13 @@ export const registerUser = asyncHandler(
 
     await userService.updateUserType(user, userType as UserType);
 
-    const OTP = await userService.generateOTPCode(user, OtpType.REGISTER);
+    const Otp = await userService.generateOTPCode(user, OtpType.REGISTER);
 
-    if (OTP) {
-      const sendOTP = await otpService.sendOTPEmail({
-        driver: EmailService.MAILSEND,
-        user: user,
-        template: EmailTemplate.VERIFY_EMAIL,
-        code: OTP,
-        options: {
-          otpType: OtpType.REGISTER,
-          salute: `${user.firstName}`,
-          bodyOne:
-            "Verify your troott account using the One-Time Password code below",
-        },
+    if (Otp) {
+      const sendOTP = await emailService.sendOTPEmail({
+        user,
+        code: Otp,
+        otpType: OtpType.REGISTER,
       });
 
       if (sendOTP.error) {
@@ -136,12 +128,14 @@ export const activateUserAccount = asyncHandler(
     }
     // Check if account is already active
     if (user.isActive) {
-      return next(
-        new ErrorResponse("Account is already activated", 400, [])
-      );
+      return next(new ErrorResponse("Account is already activated", 400, []));
     }
 
-    const otpVerification = await userService.verifyOTP({email: user.email, otp: otp, otpType});
+    const otpVerification = await userService.verifyOTP({
+      email: user.email,
+      otp: otp,
+      otpType,
+    });
     if (otpVerification.error) {
       return next(
         new ErrorResponse(otpVerification.message, otpVerification.code!, [])
@@ -159,13 +153,11 @@ export const activateUserAccount = asyncHandler(
       return next(new ErrorResponse(token.message, token.code!, []));
     }
 
-    // // Send welcome email after activation
-    // const welcomEmail = await emailService.sendUserWelcomEmail(user);
-    // if (welcomEmail.error) {
-    //   return next(
-    //     new ErrorResponse(welcomEmail.message, welcomEmail.code, [])
-    //   );
-    // }
+    // Send welcome email after activation
+    const welcomEmail = await emailService.sendUserWelcomeEmail(user);
+    if (welcomEmail.error) {
+      return next(new ErrorResponse(welcomEmail.message, welcomEmail.code, []));
+    }
 
     await user.save();
 
@@ -202,9 +194,7 @@ export const loginUser = asyncHandler(
 
     const validate = await userService.validateLogin(req.body);
     if (validate.error) {
-      return next(
-        new ErrorResponse(validate.message, validate.code!, [])
-      );
+      return next(new ErrorResponse(validate.message, validate.code!, []));
     }
 
     const userExist = await User.findOne({ email: email.toLowerCase() }).select(
@@ -223,9 +213,7 @@ export const loginUser = asyncHandler(
 
     // Check if account is deactivated
     if (userExist.isDeactivated) {
-      return next(
-        new ErrorResponse("Account has been deactivated", 403, [])
-      );
+      return next(new ErrorResponse("Account has been deactivated", 403, []));
     }
 
     // check password is correct
@@ -240,7 +228,11 @@ export const loginUser = asyncHandler(
 
     if (!userExist.isActive) {
       return next(
-        new ErrorResponse("Inactive account, kindly verify otp to activate account.", 206, [])
+        new ErrorResponse(
+          "Inactive account, kindly verify otp to activate account.",
+          206,
+          []
+        )
       );
     }
 
@@ -283,9 +275,8 @@ export const loginUser = asyncHandler(
  */
 export const logoutUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    
     const userId = (req as any).user.id as IUserDoc;
-    
+
     const user = await User.findById(userId);
     if (!user) {
       return next(new ErrorResponse("User not found", 404, []));
@@ -321,17 +312,13 @@ export const refreshToken = asyncHandler(
     const accessToken = req.headers.authorization?.split(" ")[1];
 
     if (!accessToken) {
-      return next(
-        new ErrorResponse("Unauthorized", 401, [])
-      );
+      return next(new ErrorResponse("Unauthorized", 401, []));
     }
 
     const sendToken = await tokenService.refreshToken(accessToken);
 
     if (sendToken.error) {
-      return next(
-        new ErrorResponse(sendToken.message, sendToken.code, [])
-      );
+      return next(new ErrorResponse(sendToken.message, sendToken.code, []));
     }
 
     res.status(200).json({
@@ -371,32 +358,20 @@ export const forgotPassword = asyncHandler(
     }
 
     if (user.isDeactivated) {
-      return next(
-        new ErrorResponse("Account has been deactivated", 403, [])
-      );
+      return next(new ErrorResponse("Account has been deactivated", 403, []));
     }
 
     const OTP = await userService.generateOTPCode(user, OtpType.FORGOTPASSWORD);
 
     if (OTP) {
-      const sendOTP = await otpService.sendOTPEmail({
-        driver: EmailService.MAILSEND,
-        user: user,
-        template: EmailTemplate.VERIFY_EMAIL,
+      const sendOTP = await emailService.sendOTPEmail({
+        user,
         code: OTP,
-        options: {
-          otpType: OtpType.PASSWORD_RESET,
-          salute: `${user.firstName}`,
-          bodyOne:
-            "You are receiving this email because you requested a password reset. Your OTP code will expire in 10 minutes.",
-          bodyTwo: "Please enter the code below to reset your password.",
-        },
+        otpType: OtpType.FORGOTPASSWORD,
       });
 
       if (sendOTP.error) {
-        return next(
-          new ErrorResponse(sendOTP.message, sendOTP.code!, [])
-        );
+        return next(new ErrorResponse(sendOTP.message, sendOTP.code!, []));
       }
     }
 
@@ -429,7 +404,11 @@ export const resetPassword = asyncHandler(
     const passCheck = await userService.checkPassword(newPassword);
     if (!passCheck) {
       return next(
-        new ErrorResponse("Password must contain at least 8 characters, 1 lowercase letter, 1 uppercase letter, 1 special character and 1 number", 400, [])
+        new ErrorResponse(
+          "Password must contain at least 8 characters, 1 lowercase letter, 1 uppercase letter, 1 special character and 1 number",
+          400,
+          []
+        )
       );
     }
 
@@ -441,13 +420,10 @@ export const resetPassword = asyncHandler(
     await userService.encryptUserPassword(user, newPassword);
 
     const sendEmail = await emailService.sendPasswordResetNotificationEmail(
-      user,
-      email
+      user
     );
     if (sendEmail.error) {
-      return next(
-        new ErrorResponse(sendEmail.message, sendEmail.code, [])
-      );
+      return next(new ErrorResponse(sendEmail.message, sendEmail.code, []));
     }
 
     res.status(200).json({
@@ -487,27 +463,27 @@ export const changePassword = asyncHandler(
       user: user,
     });
     if (!isMatch) {
-      return next(
-        new ErrorResponse("Current password is incorrect", 400, [])
-      );
+      return next(new ErrorResponse("Current password is incorrect", 400, []));
     }
 
     const passCheck = await userService.checkPassword(newPassword);
     if (!passCheck) {
       return next(
-        new ErrorResponse("Password must contain at least 8 characters, 1 lowercase letter, 1 uppercase letter, 1 special character and 1 number", 400, [])
+        new ErrorResponse(
+          "Password must contain at least 8 characters, 1 lowercase letter, 1 uppercase letter, 1 special character and 1 number",
+          400,
+          []
+        )
       );
     }
 
     await userService.encryptUserPassword(user, newPassword);
 
     const sendEmail = await emailService.sendPasswordChangeNotificationEmail(
-      user.email
+      user
     );
     if (sendEmail.error) {
-      return next(
-        new ErrorResponse(sendEmail.message, sendEmail.code, [])
-      );
+      return next(new ErrorResponse(sendEmail.message, sendEmail.code, []));
     }
 
     await user.save();
@@ -538,7 +514,11 @@ export const verifyOTP = asyncHandler(
       );
     }
 
-    const otpVerification = await userService.verifyOTP({email, otp, otpType});
+    const otpVerification = await userService.verifyOTP({
+      email,
+      otp,
+      otpType,
+    });
     if (otpVerification.error) {
       return next(
         new ErrorResponse(otpVerification.message, otpVerification.code!, [])
@@ -576,16 +556,10 @@ export const resendOTP = asyncHandler(
     const OTP = await userService.generateOTPCode(user, otpType);
 
     if (OTP) {
-      const sendOTP = await otpService.sendOTPEmail({
-        driver: EmailService.MAILSEND,
-        user: user,
-        template: EmailTemplate.VERIFY_EMAIL,
+      const sendOTP = await emailService.sendOTPEmail({
+        user,
         code: OTP,
-        options: {
-          otpType: otpType,
-          salute: `${user.firstName}`,
-          bodyOne: "Verify your account with the code below.",
-        },
+        otpType,
       });
 
       if (sendOTP.error) {

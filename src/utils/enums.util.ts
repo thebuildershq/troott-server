@@ -279,6 +279,8 @@ export enum EmailService {
 }
 export enum EmailTemplate {
   WELCOME = "welcome",
+  WELCOME_LISTENER = "welcome-listener",
+  WELCOME_PREACHER = "welcome-preacher",
   USER_INVITE = "user-invite",
   PASSWORD_RESET = "password-reset",
   PASSWORD_CHANGED = "password-changed",
@@ -286,6 +288,17 @@ export enum EmailTemplate {
   INVITE = "invite",
   OTP = "otp",
   VERIFY_EMAIL = "verify-email",
+  GENERIC = "generic",
+  SUBSCRIPTION_CONFIRMED = "subscription-confirmed",
+  SUBSCRIPTION_CANCELLED = "subscription-cancelled",
+  SUBSCRIPTION_EXPIRED = "subscription-expired",
+  SUBSCRIPTION_UPGRADED = "subscription-upgraded",
+  SUBSCRIPTION_DOWNGRADED = "subscription-downgraded",
+  SUBSCRIPTION_RENEWED = "subscription-renewed",
+  TRIAL_STARTED = "trial-started",
+  RECOMMENDATION = "recommendation",
+
+
 }
 export enum EmailStatus {
   SENT = "sent",
