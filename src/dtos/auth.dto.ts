@@ -1,5 +1,5 @@
 import { ObjectId } from "mongoose";
-import { EUserType } from "../utils/enums.util";
+import { OtpType, UserType } from "../utils/enums.util";
 import { IUserDoc } from "../utils/interface.util";
 
 export interface RegisterUserDTO {
@@ -7,7 +7,7 @@ export interface RegisterUserDTO {
   lastName: string;
   email: string;
   password: string;
-  userType?: EUserType;
+  userType?: UserType;
 }
 export interface LoginDTO {
   email: string;
@@ -19,12 +19,13 @@ export interface ForgotPasswordDTO {
 }
 export interface verifyOtpDTO {
   email: string;
-  OTP: number;
+  otp: number;
+  otpType: OtpType
 }
 
 export interface resendOtpDTO {
   email: string;
-  OTP: number;
+  otpType: OtpType
 }
 export interface ResetPasswordDTO {
   email: string;
@@ -83,7 +84,7 @@ export interface MapRegisteredUserDTO {
   gender: string;
 
   avatar?: string;
-  userType: EUserType;
+  userType: UserType;
   passwordType: string;
 
   isSuper: boolean;

@@ -6,9 +6,9 @@ const ListenerSchema = new Schema<IListenerDoc>(
   {
     firstName: { type: String },
     lastName: { type: String },
-    email: { type: String, required: true, unique: true },
+    email: { type: String },
 
-    phoneNumber: { type: String, unique: true, },
+    phoneNumber: { type: String,},
     phoneCode: { type: String, default: "+234" },
     country: { type: String },
     countryPhone: { type: String },
@@ -64,12 +64,7 @@ const ListenerSchema = new Schema<IListenerDoc>(
   }
 );
 
-ListenerSchema.index({
-  firstName: "text",
-  lastName: "text",
-  email: "text",
-  description: "text",
-});
+ListenerSchema.index({ user: 1, type: 1 }, { unique: true });
 
 const Listener: Model<IListenerDoc> = mongoose.model<IListenerDoc>(
   DbModels.LISTENER,

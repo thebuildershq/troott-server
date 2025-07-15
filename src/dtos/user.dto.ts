@@ -1,11 +1,11 @@
-import { EPasswordType, EUserType } from "../utils/enums.util";
+import { PasswordType, UserType } from "../utils/enums.util";
 
 export interface inviteUserDTO {
   firstName: string;
   lastName: string;
   email: string;
   password: string;
-  userType: EUserType;
+  userType: UserType;
   role?: string;
   permissions?: Array<string>;
 }
@@ -15,8 +15,8 @@ export interface createUserDTO {
   lastName: string;
   email: string;
   password: string;
-  passwordType: EPasswordType
-  userType: EUserType;
+  passwordType: PasswordType
+  userType: UserType;
   createdBy?: string
   role?: string;
   permissions?: Array<string>;

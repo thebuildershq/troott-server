@@ -38,10 +38,11 @@
 </head>
 <body>
     <div class="container">
-        <h2><%= emailSalute %></h2>
+        <h3><%= emailSalute %></h3>
         <p><%= bodyOne %></p>
         <p><%= bodyTwo %></p>
-        <p><strong>OTP Code: <%= code %></strong></p>
+        <p><OTP Code: <%= code %></p>
+        <h1><strong><%= code %></strong></h1>
         <p><%= bodyThree %></p>
         <% if (buttonUrl) { %>
             <a href="<%= buttonUrl %>" class="btn"><%= buttonText %></a>

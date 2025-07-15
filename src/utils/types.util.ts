@@ -7,13 +7,6 @@ import {
 } from "./interface.util";
 
 
-export type VerifyOTPType =
-  | "register"
-  | "password-reset"
-  | "change-password"
-  | "login"
-  | "verify";
-
 export type IUploadMetadata =
   | IAudioMetadata
   | IImageMetadata

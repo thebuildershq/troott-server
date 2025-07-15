@@ -1,12 +1,11 @@
 import { EmailService, ENVType } from "../utils/enums.util";
 import { EmailConfig } from "../utils/interface.util";
 
+export function getEmailConfig(): EmailConfig {
+  const env = process.env.NODE_ENV;
 
-let config: EmailConfig;
-
-switch (process.env.NODE_ENV) {
-  case ENVType.PRODUCTION:
-    config = {
+  if (env === ENVType.PRODUCTION) {
+    return {
       service: EmailService.MAILSEND,
       fromEmail: process.env.MAIL_FROM_EMAIL!,
       fromName: process.env.MAIL_FROM_NAME!,
@@ -14,39 +13,38 @@ switch (process.env.NODE_ENV) {
       apiKey: process.env.MAILSEND_API_KEY!,
       templateId: process.env.MAILSEND_TEMPLATE_ID,
       sendingDomain: process.env.EMAIL_DOMAIN,
-      
       isTestMode: false,
     };
-    break;
+  }
 
-  case ENVType.STAGING:
-    config = {
-      service: EmailService.SENDGRID,
+  if (env === ENVType.STAGING) {
+    return {
+      service: EmailService.MAILSEND,
       fromEmail: process.env.MAIL_FROM_EMAIL!,
       fromName: process.env.MAIL_FROM_NAME!,
       replyTo: process.env.MAIL_REPLY_TO,
-      apiKey: process.env.SENDGRID_API_KEY!,
-      templateId: process.env.SENDGRID_TEMPLATE_ID,
-      isTestMode: true,
+      apiKey: process.env.MAILERSEND_STAGING_API_KEY!,
+      templateId: process.env.MAILSEND_TEMPLATE_ID,
+      sendingDomain: process.env.MAILERSEND_STAGING_DOMAIN,
+      isTestMode: false,
     };
-    break;
+  }
 
-  case ENVType.DEVELOPMENT:
-    config = {
-      service: EmailService.SMTP,
-      fromEmail: process.env.MAIL_FROM_EMAIL!,
-      fromName: process.env.MAIL_FROM_NAME!,
-      replyTo: process.env.MAIL_REPLY_TO,
-      smtpHost: process.env.SMTP_HOST!,
-      smtpPort: Number(process.env.SMTP_PORT!),
-      smtpUser: process.env.SMTP_USER!,
-      smtpPass: process.env.SMTP_PASS!,
-      isTestMode: true,
+  if (env === ENVType.DEVELOPMENT) {
+    return {
+      service: EmailService.MAILSEND,
+      fromEmail: process.env.EMAIL_FROM_EMAIL!,
+      fromName: process.env.EMAIL_FROM_NAME as string,
+      replyTo: process.env.EMAIL_REPLY_TO as string,
+      apiKey: process.env.MAILERSEND_STAGING_API_KEY as string,
+      templateId: process.env.MAILSEND_TEMPLATE_ID,
+      sendingDomain: process.env.MAILERSEND_STAGING_DOMAIN,
+      isTestMode: false,
     };
-    break;
+  }
 
-  default:
-    throw new Error("Invalid NODE_ENV. Email config not set.");
+
+  throw new Error("Invalid NODE_ENV. Email config not set.");
 }
 
-export const EMAIL_CONFIG = config;
+export const EMAIL_CONFIG = getEmailConfig();

@@ -1,16 +1,9 @@
-import {
-  createListenerProfileDTO,
-  updateListenerProfileDTO,
-} from "../dtos/profile.dto";
+import { createListenerDTO, updateListenerDTO } from "../dtos/profile.dto";
 import Listener from "../models/Listener.model";
 import User from "../models/User.model";
-import { EUserType } from "../utils/enums.util";
+import { UserType } from "../utils/enums.util";
 import { generateRandomChars } from "../utils/helper.util";
-import {
-  IListenerDoc,
-  IResult,
-  IUserDoc,
-} from "../utils/interface.util";
+import { IListenerDoc, IResult, IUserDoc } from "../utils/interface.util";
 
 class ListenerService {
   constructor() {}
@@ -33,52 +26,55 @@ class ListenerService {
       code: 200,
       data: null,
     };
-  
-    const { firstName, lastName, email, gender, avatar, user }: createListenerDTO = data;
-  
+
+    const {
+      user,
+    }: createListenerDTO = data;
+
     if (!user) {
       return {
         error: true,
         message: "User information is required to create a listener ",
         code: 400,
-        data: null,
+        data: {},
       };
     }
+
+    const existingListener = await Listener.findOne({ user: user._id })
   
-    const existingListener = await Listener.findOne({ user: user._id });
     if (existingListener) {
       return {
         error: true,
-        message: "Listener  already exists for this user",
+        message: "Listener already exists for this user.",
         code: 400,
-        data: null,
+        data: {},
       };
     }
-  
+
     const listenerData = {
       _id: user._id,
       id: user.id,
       listenerID: generateRandomChars(12),
-      firstName: firstName,
-      lastName: lastName,
-      email: email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
       country: user.country,
       dateOfBirth: user.dateOfBirth,
-      gender: gender,
-      avatar: avatar,
-      type: EUserType.LISTENER,
+      gender: user.gender,
+      avatar: user.avatar,
       user: user._id,
       createdBy: user._id,
     };
-  
+
     const listener = await Listener.create(listenerData);
-  
-    user.s = {
-      ...user.s,
-      listener: listener._id,
-    };
-    await user.save();
-  
+    if (!listener) {
+      return {
+        error: true,
+        message: "Failed to create listener profile",
+        code: 500,
+        data: {},
+      };
+    }
     return {
       error: false,
       message: "Listener profile created",
@@ -86,7 +82,6 @@ class ListenerService {
       data: { listener, user },
     };
   }
-  
 
   /**
    * @name updateListenerProfile
@@ -100,7 +95,7 @@ class ListenerService {
    */
   public async updateListenerProfile(
     userId: string,
-    data: updateListenerProfileDTO
+    data: updateListenerDTO
   ): Promise<IResult> {
     const result: IResult = { error: false, message: "", code: 200, data: {} };
 

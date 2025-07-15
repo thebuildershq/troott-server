@@ -1,97 +1,102 @@
 import { ObjectId } from "mongoose";
 import { IDebitCard, ILocationInfo, IUserDoc } from "../utils/interface.util";
-import { EUserType } from "../utils/enums.util";
+import { UserType } from "../utils/enums.util";
 
 // Listener Profile DTO
 export interface createListenerDTO {
-  user: IUserDoc
-  userType: EUserType
-  email: string;
-
+  user: IUserDoc;
+  userType?: UserType;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  gender?: string;
+  avatar?: string;
+  dateOfBirth?: Date;
+  country?: string;
+  phoneNumber?: string;
+  phoneCode?: string;
+  location?: ILocationInfo;
+  slug?: string;
+  type?: string;
 }
 
 export interface updateListenerDTO {
-    user: ObjectId;
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    gender?: string;
-    avatar?: string;
-    dateOfBirth?: Date;
-    country?: string;
-    phoneNumber?: string;
-    phoneCode?: string;
-    location?: ILocationInfo;
-    slug?: string;
-    type?: string;
-    card?: IDebitCard;
-
-  }
+  user: ObjectId;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  gender?: string;
+  avatar?: string;
+  dateOfBirth?: Date;
+  country?: string;
+  phoneNumber?: string;
+  phoneCode?: string;
+  location?: ILocationInfo;
+  slug?: string;
+  type?: string;
+  card?: IDebitCard;
+}
 
 // Preacher  DTO
 export interface createPreacherDTO {
-  user: IUserDoc
-  userType: EUserType
+  user: IUserDoc;
+  userType: UserType;
   email: string;
 }
 
 export interface updatePreacherDTO {
-    user: ObjectId;
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    gender?: string;
-    avatar?: string;
-    dateOfBirth?: Date;
-    country?: string;
-    phoneNumber?: string;
-    phoneCode?: string;
-    location?: ILocationInfo;
-    slug?: string;
-    type?: string;
-    card?: IDebitCard;
-
-  }
+  user: ObjectId;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  gender?: string;
+  avatar?: string;
+  dateOfBirth?: Date;
+  country?: string;
+  phoneNumber?: string;
+  phoneCode?: string;
+  location?: ILocationInfo;
+  slug?: string;
+  type?: string;
+  card?: IDebitCard;
+}
 
 // Creator Profile DTO
 export interface createCreatoreDTO {
-  user: IUserDoc
-  type: EUserType
+  user: IUserDoc;
+  type: UserType;
   email: string;
 }
 
 export interface updateCreatoreDTO {
-  user: IUserDoc
-  userType: EUserType
-  email: string;
-
-  }
-
-// Staff e DTO
-export interface createStaffDTO {
-  user: IUserDoc
-  
+  user: IUserDoc;
+  userType: UserType;
   email: string;
 }
 
+// Staff e DTO
+export interface createStaffDTO {
+  user: IUserDoc;
+
+  email: string;
+}
 
 export interface updateStaffeDTO {
-    user: ObjectId;
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    gender?: string;
-    avatar?: string;
-    dateOfBirth?: Date;
-    country?: string;
-    phoneNumber?: string;
-    phoneCode?: string;
-    location?: ILocationInfo;
-    slug?: string;
-    type?: string;
-    card?: IDebitCard;
-
-  }
+  user: ObjectId;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  gender?: string;
+  avatar?: string;
+  dateOfBirth?: Date;
+  country?: string;
+  phoneNumber?: string;
+  phoneCode?: string;
+  location?: ILocationInfo;
+  slug?: string;
+  type?: string;
+  card?: IDebitCard;
+}
 
 //listener e dto
 //   // Engagement Tracking
@@ -124,7 +129,6 @@ export interface updateStaffeDTO {
 //   transactions: Array<ObjectId>;
 //   createdBy: ObjectId;
 //   settings: ObjectId;
-
 
 //preacher profile dto
 // Ministry & Content
@@ -173,7 +177,6 @@ export interface updateStaffeDTO {
 //   createdBy: ObjectId;
 //   settings: ObjectId;
 
-
 //creator profile dto
 //   // Content
 //   description: string;
@@ -212,7 +215,6 @@ export interface updateStaffeDTO {
 //   transactions: Array<ObjectId>;
 //   createdBy: ObjectId;
 //   settings: ObjectId;
-
 
 //staff profile dto
 //   // Staff Role & Access

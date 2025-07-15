@@ -16,6 +16,7 @@ import {
   LoginDTO,
   MatchEncryptedPasswordDTO,
   RegisterUserDTO,
+  verifyOtpDTO,
 } from "../dtos/auth.dto";
 import { createUserDTO } from "../dtos/user.dto";
 import User from "../models/User.model";
@@ -28,6 +29,7 @@ import creatorService from "./creator.service";
 import preacherService from "./preacher.service";
 import staffService from "./staff.service";
 import ErrorResponse from "../utils/error.util";
+import { createListenerDTO } from "../dtos/profile.dto";
 
 class UserService {
   public result: IResult;
@@ -190,12 +192,15 @@ class UserService {
       user = permissionUpdate.data as IUserDoc;
     }
 
+    const listenerData: createListenerDTO = {
+      user: user,
+      type: UserType.LISTENER,
+    };
+
     if (user.userType === UserType.LISTENER) {
-      const listenerProfile = await listenerService.createListener({
-        user: user,
-        type: UserType.LISTENER,
-        email: user.email,
-      });
+      const listenerProfile = await listenerService.createListener(
+        listenerData
+      );
       if (listenerProfile.error) {
         throw new Error(listenerProfile.message);
       }
@@ -579,10 +584,7 @@ class UserService {
    * @param user
    * @returns
    */
-  public async generateOTPCode(
-    user: IUserDoc,
-    type: OtpType
-  ): Promise<string> {
+  public async generateOTPCode(user: IUserDoc, type: OtpType): Promise<string> {
     const gencode = Random.randomNum(6);
     user.Otp = gencode.toString();
     user.OtpExpiry = Date.now() + 15 * 60 * 1000;
@@ -614,11 +616,17 @@ class UserService {
    * @param code
    * @returns
    */
-  public async verifyOTP(email: string, code: string): Promise<IResult> {
+  public async verifyOTP(data: verifyOtpDTO): Promise<IResult> {
     let result: IResult = { error: false, message: "", code: 200, data: {} };
+
+    const { email, otp: code, otpType } = data;
     const today = Date.now();
 
-    const user = await User.findOne({ email: email, Otp: code.toString() });
+    const user = await User.findOne({
+      email: email,
+      Otp: code.toString(),
+      otpType: otpType,
+    });
 
     if (!user) {
       result.error = true;

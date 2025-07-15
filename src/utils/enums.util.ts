@@ -203,11 +203,14 @@ export enum DeviceType {
 export enum OtpType {
   REGISTER = "register",
   LOGIN = "login",
+  VERIFY = "verify",
   GENERIC = "generic",
+  PASSWORD_RESET = "password-reset",
   ACTIVATEACCOUNT = "activate-account",
   CHANGEPASSWORD = "change-password",
   FORGOTPASSWORD = "forgot-password",
 }
+
 
 export enum UploadStatus {
   PENDING = "pending",
@@ -311,14 +314,6 @@ export enum EmailStatus {
   UNKNOWN = "unknown",
   SUCCESS = "success",
   FAILURE = "failure",
-}
-
-export enum VerifyOTP {
-  REGISTER = "register",
-  PASSWORD_RESET = "password-reset",
-  CHANGE_PASSWORD = "change-password",
-  LOGIN = "login",
-  VERIFY = "verify",
 }
 
 export enum APIKeyEnvironment {

@@ -3,11 +3,9 @@ import {
   ISermonDoc,
   IUploadDoc,
   IUploadFile,
-  IUserDoc,
 } from "../utils/interface.util";
 import UploadSession from "../models/Upload.model";
 import StorageService from "./storage.service";
-import mm from "music-metadata";
 import { UploadStatus, FileType } from "../utils/enums.util";
 import { PublishSermonDTO } from "../dtos/sermon.dto";
 import { PassThrough } from "stream";

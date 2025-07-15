@@ -17,7 +17,6 @@ import {
   OtpType,
   PasswordType,
   UserType,
-  VerifyOTP,
 } from "../utils/enums.util";
 import emailService from "../services/email.service";
 import tokenService from "../services/token.service";
@@ -43,19 +42,19 @@ export const registerUser = asyncHandler(
 
     const mailCheck = await userService.checkEmail(email);
     if (!mailCheck) {
-      return next(new ErrorResponse("a valid email is required", 400, []));
+      return next(new ErrorResponse("A valid email is required", 400, []));
     }
 
     const userExist = await User.findOne({ email: email.toLowerCase() });
     if (userExist) {
       if (userExist.userType === UserType.SUPERADMIN) {
         return next(
-          new ErrorResponse("forbidden!, user already exist", 400, [])
+          new ErrorResponse("Forbidden!, use another email", 400, [])
         );
       }
 
       return next(
-        new ErrorResponse("email already exist, use another email", 400, [])
+        new ErrorResponse("User already exist, use another email", 400, [])
       );
     }
 
@@ -88,12 +87,12 @@ export const registerUser = asyncHandler(
 
     if (OTP) {
       const sendOTP = await otpService.sendOTPEmail({
-        driver: EmailService.SENDGRID,
+        driver: EmailService.MAILSEND,
         user: user,
         template: EmailTemplate.VERIFY_EMAIL,
         code: OTP,
         options: {
-          otpType: VerifyOTP.REGISTER,
+          otpType: OtpType.REGISTER,
           salute: `${user.firstName}`,
           bodyOne:
             "Verify your troott account using the One-Time Password code below",
@@ -115,7 +114,6 @@ export const registerUser = asyncHandler(
   }
 );
 
-
 /**
  * @name activateUserAccount
  * @description Activates a user account using OTP
@@ -124,33 +122,29 @@ export const registerUser = asyncHandler(
  */
 export const activateUserAccount = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { email, OTP }: verifyOtpDTO = req.body;
+    const { email, otp, otpType }: verifyOtpDTO = req.body;
 
-    if (!email || !OTP) {
-      return next(
-        new ErrorResponse("Error", 400, ["Email and OTP are required"])
-      );
+    if (!email || !otp) {
+      return next(new ErrorResponse("Email and OTP are required", 400, []));
     }
 
     // use OTP to find the user
 
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      return next(new ErrorResponse("Error", 404, ["User not found"]));
+      return next(new ErrorResponse("User not found", 404, []));
     }
     // Check if account is already active
     if (user.isActive) {
       return next(
-        new ErrorResponse("Error", 400, ["Account is already activated"])
+        new ErrorResponse("Account is already activated", 400, [])
       );
     }
 
-    const otpVerification = await userService.verifyOTP(email, OTP.toString());
+    const otpVerification = await userService.verifyOTP({email: user.email, otp: otp, otpType});
     if (otpVerification.error) {
       return next(
-        new ErrorResponse("Error", otpVerification.code!, [
-          otpVerification.message,
-        ])
+        new ErrorResponse(otpVerification.message, otpVerification.code!, [])
       );
     }
 
@@ -162,14 +156,14 @@ export const activateUserAccount = asyncHandler(
     // assign token to the user
     const token = await tokenService.attachToken(user);
     if (token.error) {
-      return next(new ErrorResponse("Error", token.code!, [token.message]));
+      return next(new ErrorResponse(token.message, token.code!, []));
     }
 
     // // Send welcome email after activation
     // const welcomEmail = await emailService.sendUserWelcomEmail(user);
     // if (welcomEmail.error) {
     //   return next(
-    //     new ErrorResponse("Error", welcomEmail.code, [welcomEmail.message])
+    //     new ErrorResponse(welcomEmail.message, welcomEmail.code, [])
     //   );
     // }
 
@@ -209,7 +203,7 @@ export const loginUser = asyncHandler(
     const validate = await userService.validateLogin(req.body);
     if (validate.error) {
       return next(
-        new ErrorResponse("Error", validate.code!, [validate.message])
+        new ErrorResponse(validate.message, validate.code!, [])
       );
     }
 
@@ -217,22 +211,20 @@ export const loginUser = asyncHandler(
       "+password"
     );
     if (!userExist) {
-      return next(new ErrorResponse("Error", 400, ["invalid credentials"]));
+      return next(new ErrorResponse("invalid credentials", 400, []));
     }
 
     // Check if account is locked
     if (await userService.checkLockedStatus(userExist)) {
       return next(
-        new ErrorResponse("Error", 423, [
-          "Account is locked. Please try again later",
-        ])
+        new ErrorResponse("Account is locked. Please try again later", 423, [])
       );
     }
 
     // Check if account is deactivated
     if (userExist.isDeactivated) {
       return next(
-        new ErrorResponse("Error", 403, ["Account has been deactivated"])
+        new ErrorResponse("Account has been deactivated", 403, [])
       );
     }
 
@@ -243,14 +235,12 @@ export const loginUser = asyncHandler(
     });
     if (!verifyPassword) {
       await userService.increaseLoginLimit(userExist);
-      return next(new ErrorResponse("Error", 400, ["invalid credentials"]));
+      return next(new ErrorResponse("invalid credentials", 400, []));
     }
 
     if (!userExist.isActive) {
       return next(
-        new ErrorResponse("Error", 206, [
-          "Inactive account, kindly verify otp to activate account.",
-        ])
+        new ErrorResponse("Inactive account, kindly verify otp to activate account.", 206, [])
       );
     }
 
@@ -263,7 +253,7 @@ export const loginUser = asyncHandler(
 
     const token = await tokenService.attachToken(userExist);
     if (token.error) {
-      return next(new ErrorResponse("Error", token.code!, [token.message]));
+      return next(new ErrorResponse(token.message, token.code!, []));
     }
 
     res.status(200).json({
@@ -293,16 +283,17 @@ export const loginUser = asyncHandler(
  */
 export const logoutUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
+    
     const userId = (req as any).user.id as IUserDoc;
+    
     const user = await User.findById(userId);
-
     if (!user) {
-      return next(new ErrorResponse("Error", 404, ["User not found"]));
+      return next(new ErrorResponse("User not found", 404, []));
     }
 
     const result = await tokenService.detachToken(user);
     if (result.error) {
-      return next(new ErrorResponse("Error", result.code, [result.message]));
+      return next(new ErrorResponse(result.message, result.code, []));
     }
 
     await userService.updateLastLogin(user);
@@ -331,7 +322,7 @@ export const refreshToken = asyncHandler(
 
     if (!accessToken) {
       return next(
-        new ErrorResponse("Unauthorized", 401, ["Access token required"])
+        new ErrorResponse("Unauthorized", 401, [])
       );
     }
 
@@ -339,7 +330,7 @@ export const refreshToken = asyncHandler(
 
     if (sendToken.error) {
       return next(
-        new ErrorResponse("Error", sendToken.code, [sendToken.message])
+        new ErrorResponse(sendToken.message, sendToken.code, [])
       );
     }
 
@@ -368,38 +359,33 @@ export const forgotPassword = asyncHandler(
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       return next(
-        new ErrorResponse("Error", 404, ["User with this email does not exist"])
+        new ErrorResponse("User with this email does not exist", 404, [])
       );
     }
 
     // Check if account is locked or deactivated}
     if (await userService.checkLockedStatus(user)) {
       return next(
-        new ErrorResponse("Error", 423, [
-          "Account is locked. Please try again later",
-        ])
+        new ErrorResponse("Account is locked. Please try again later", 423, [])
       );
     }
 
     if (user.isDeactivated) {
       return next(
-        new ErrorResponse("Error", 403, ["Account has been deactivated"])
+        new ErrorResponse("Account has been deactivated", 403, [])
       );
     }
 
-    const OTP = await userService.generateOTPCode(
-      user,
-      OtpType.FORGOTPASSWORD
-    );
+    const OTP = await userService.generateOTPCode(user, OtpType.FORGOTPASSWORD);
 
     if (OTP) {
       const sendOTP = await otpService.sendOTPEmail({
-        driver: EmailService.SENDGRID,
+        driver: EmailService.MAILSEND,
         user: user,
         template: EmailTemplate.VERIFY_EMAIL,
         code: OTP,
         options: {
-          otpType: VerifyOTP.PASSWORD_RESET,
+          otpType: OtpType.PASSWORD_RESET,
           salute: `${user.firstName}`,
           bodyOne:
             "You are receiving this email because you requested a password reset. Your OTP code will expire in 10 minutes.",
@@ -409,7 +395,7 @@ export const forgotPassword = asyncHandler(
 
       if (sendOTP.error) {
         return next(
-          new ErrorResponse("Error", sendOTP.code!, [sendOTP.message])
+          new ErrorResponse(sendOTP.message, sendOTP.code!, [])
         );
       }
     }
@@ -436,24 +422,20 @@ export const resetPassword = asyncHandler(
 
     if (!email || !newPassword) {
       return next(
-        new ErrorResponse("Error", 400, [
-          "Email, OTP, and new password are required",
-        ])
+        new ErrorResponse("Email, OTP, and new password are required", 400, [])
       );
     }
 
     const passCheck = await userService.checkPassword(newPassword);
     if (!passCheck) {
       return next(
-        new ErrorResponse("Error", 400, [
-          "Password must contain at least 8 characters, 1 lowercase letter, 1 uppercase letter, 1 special character and 1 number",
-        ])
+        new ErrorResponse("Password must contain at least 8 characters, 1 lowercase letter, 1 uppercase letter, 1 special character and 1 number", 400, [])
       );
     }
 
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      return next(new ErrorResponse("Error", 404, ["User not found"]));
+      return next(new ErrorResponse("User not found", 404, []));
     }
 
     await userService.encryptUserPassword(user, newPassword);
@@ -464,7 +446,7 @@ export const resetPassword = asyncHandler(
     );
     if (sendEmail.error) {
       return next(
-        new ErrorResponse("Error", sendEmail.code, [sendEmail.message])
+        new ErrorResponse(sendEmail.message, sendEmail.code, [])
       );
     }
 
@@ -491,15 +473,13 @@ export const changePassword = asyncHandler(
     const { currentPassword, newPassword }: ChangePasswordDTO = req.body;
     if (!currentPassword || !newPassword) {
       return next(
-        new ErrorResponse("Error", 400, [
-          "Missing fields, Current and new password are required",
-        ])
+        new ErrorResponse("Current and new password are required", 400, [])
       );
     }
 
     const user = await User.findById(userId).select("+password");
     if (!user) {
-      return next(new ErrorResponse("Error", 404, ["User not found"]));
+      return next(new ErrorResponse("User not found", 404, []));
     }
 
     const isMatch = await await userService.matchEncryptedPassword({
@@ -508,16 +488,14 @@ export const changePassword = asyncHandler(
     });
     if (!isMatch) {
       return next(
-        new ErrorResponse("Error", 400, ["Current password is incorrect"])
+        new ErrorResponse("Current password is incorrect", 400, [])
       );
     }
 
     const passCheck = await userService.checkPassword(newPassword);
     if (!passCheck) {
       return next(
-        new ErrorResponse("Error", 400, [
-          "Password must contain at least 8 characters, 1 lowercase letter, 1 uppercase letter, 1 special character and 1 number",
-        ])
+        new ErrorResponse("Password must contain at least 8 characters, 1 lowercase letter, 1 uppercase letter, 1 special character and 1 number", 400, [])
       );
     }
 
@@ -528,7 +506,7 @@ export const changePassword = asyncHandler(
     );
     if (sendEmail.error) {
       return next(
-        new ErrorResponse("Error", sendEmail.code, [sendEmail.message])
+        new ErrorResponse(sendEmail.message, sendEmail.code, [])
       );
     }
 
@@ -552,20 +530,18 @@ export const changePassword = asyncHandler(
  */
 export const verifyOTP = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { email, OTP }: verifyOtpDTO = req.body;
+    const { email, otp, otpType }: verifyOtpDTO = req.body;
 
-    if (!email || !OTP) {
+    if (!email || !otp || !otpType) {
       return next(
-        new ErrorResponse("Error", 400, ["Email and reset code are required"])
+        new ErrorResponse("Email and reset code are required", 400, [])
       );
     }
 
-    const otpVerification = await userService.verifyOTP(email, OTP.toString());
+    const otpVerification = await userService.verifyOTP({email, otp, otpType});
     if (otpVerification.error) {
       return next(
-        new ErrorResponse("Error", otpVerification.code!, [
-          otpVerification.message,
-        ])
+        new ErrorResponse(otpVerification.message, otpVerification.code!, [])
       );
     }
 
@@ -586,39 +562,34 @@ export const verifyOTP = asyncHandler(
  */
 export const resendOTP = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { email }: resendOtpDTO = req.body;
+    const { email, otpType }: resendOtpDTO = req.body;
 
     if (!email) {
-      return next(
-        new ErrorResponse("Error", 400, ["Email and reset code are required"])
-      );
+      return next(new ErrorResponse("Email is required", 400, []));
     }
 
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      return next(new ErrorResponse("Error", 400, ["user doesn't exist"]));
+      return next(new ErrorResponse("User doesn't exist", 400, []));
     }
 
-    const OTP = await userService.generateOTPCode(user, OtpType.GENERIC);
+    const OTP = await userService.generateOTPCode(user, otpType);
 
     if (OTP) {
       const sendOTP = await otpService.sendOTPEmail({
-        driver: EmailService.SENDGRID,
+        driver: EmailService.MAILSEND,
         user: user,
         template: EmailTemplate.VERIFY_EMAIL,
         code: OTP,
         options: {
-          otpType: VerifyOTP.REGISTER,
+          otpType: otpType,
           salute: `${user.firstName}`,
-          bodyOne:
-            "Verify your troott account using the One-Time Password code below",
+          bodyOne: "Verify your account with the code below.",
         },
       });
 
       if (sendOTP.error) {
-        return next(
-          new ErrorResponse("Error", sendOTP.code!, [sendOTP.message])
-        );
+        return next(new ErrorResponse(sendOTP.message, sendOTP.code!, []));
       }
     }
 
