@@ -3,17 +3,17 @@ import Redis from "ioredis";
 import { REDIS_CONFIG } from "../config/redis.config";
 import EmailService from "../services/email.service";
 import { IEmailJob } from "../utils/interface.util";
+import IORedis from "ioredis";
 
-const redis = new Redis(REDIS_CONFIG);
+const redis = new IORedis(REDIS_CONFIG);
 const emailService = EmailService;
 
 export const emailWorker = new Worker<IEmailJob>(
   "email-queue",
   async (job) => {
     try {
-      
       const jobData = job.data;
-      
+
       const result = await emailService.sendEmail({
         driver: jobData.driver,
         user: jobData.user,
@@ -33,9 +33,7 @@ export const emailWorker = new Worker<IEmailJob>(
       throw err;
     }
   },
-  {
-    connection: redis,
-  }
+  { connection: redis }
 );
 
 // Optional: log failed jobs

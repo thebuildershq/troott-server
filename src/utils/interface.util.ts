@@ -847,6 +847,7 @@ export interface IOptions {
   port: number | string;
   password: string;
   user: string;
+  family?: number
 }
 export interface IData {
   key: string;
@@ -1026,9 +1027,11 @@ export interface OAuthProvidersConfig {
 }
 
 export interface RedisConfig {
+  family?: number;
   host: string;
   port: number;
-  password?: string;
+  user: string;
+  password: string;
   db: number;
 }
 

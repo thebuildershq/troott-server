@@ -548,6 +548,8 @@ export const resendOTP = asyncHandler(
       return next(new ErrorResponse("Email is required", 400, []));
     }
 
+    if (!otpType) return next(new ErrorResponse("otptype is required", 400, []));
+
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       return next(new ErrorResponse("User doesn't exist", 400, []));

@@ -6,19 +6,23 @@ let config: RedisConfig;
 switch (process.env.APP_ENV) {
   case ENVType.PRODUCTION:
     config = {
+      family: 0,
       host: process.env.REDIS_HOST_PROD!,
       port: Number(process.env.REDIS_PORT),
-      password: process.env.REDIS_PASSWORD_PROD,
-      db: Number(process.env.REDIS_DB),
+      user: process.env.REDIS_USER!,
+      password: process.env.REDIS_PASSWORD_PROD!,
+      db: Number(process.env.REDIS_DB!),
     };
     break;
 
   case ENVType.STAGING:
     config = {
+      family: 0,
       host: process.env.REDIS_HOST_STAGING!,
       port: Number(process.env.REDIS_PORT),
-      password: process.env.REDIS_PASSWORD_STAGING,
-      db: Number(process.env.REDIS_DB),
+      user: process.env.REDIS_USER!,
+      password: process.env.REDIS_PASSWORD_STAGING!,
+      db: Number(process.env.REDIS_DB!),
     };
     break;
 
@@ -26,8 +30,9 @@ switch (process.env.APP_ENV) {
     config = {
       host: process.env.REDIS_HOST_STAGING!,
       port: Number(process.env.REDIS_PORT),
-      password: process.env.REDIS_PASSWORD_STAGING,
-      db: Number(process.env.REDIS_DB),
+      user: process.env.REDIS_USER!,
+      password: process.env.REDIS_PASSWORD_STAGING!,
+      db: Number(process.env.REDIS_DB!),
     };
     break;
 

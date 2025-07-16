@@ -9,7 +9,12 @@ class redisWrapper {
     if (this.client?.isOpen) return;
 
     this.client = createClient({
-      url: `rediss://${options.user}:${options.password}@${options.host}:${options.port}`,
+      url: "redis://localhost:6379" ,
+    //  url: `redis://${options.user}:${options.password}@${options.host}:${options.port}`,
+      socket: {
+        //tls: true,
+        connectTimeout: 10000, // optional: increase timeout
+      },
     });
 
     this.client.on("error", (err: any) => {
@@ -37,6 +42,12 @@ class redisWrapper {
   public async exists(key: string): Promise<boolean> {
     const exists = await this.client!.exists(key);
     return exists === 1;
+  }
+
+  public async paginate(data: any[], page = 1, limit = 10) {
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    return data.slice(start, end);
   }
 }
 

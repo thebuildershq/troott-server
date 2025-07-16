@@ -65,7 +65,7 @@ class AppEmailService {
       const templatePath = `${BASE_FOLDER}/views/emails/authentication/${data.template}.ejs`;
 
       const html = await new Promise<string>((resolve, reject) => {
-        renderFile(templatePath, data, {}, (err, str) => {
+        renderFile(templatePath, { ...data.payload, user: data.user, code: data.code, subject: data.subject }, {}, (err, str) => {
           if (err || !str)
             return reject(err || new Error("Failed to render template"));
           resolve(str);
@@ -146,20 +146,20 @@ class AppEmailService {
 
       const emailContent: IEmailJob = {
         user,
-        subject,
-        driver,
+        subject: subject,
+        driver: driver,
         template: _template,
-        code,
+        code: code,
         metadata,
         payload: {
           email: user.email,
-          fromName: this.config.fromName,
+          fromName: fromName,
           emailTitle: subject,
           emailSalute: salute,
           preheaderText: subject.toLowerCase(),
-          bodyOne: options?.bodyOne || "",
-          bodyTwo: options?.bodyTwo || "",
-          bodyThree: options?.bodyThree || "",
+          bodyOne: options?.bodyOne,
+          bodyTwo: options?.bodyTwo,
+          bodyThree: options?.bodyThree,
           buttonText,
           buttonUrl: url,
         },
