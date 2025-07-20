@@ -20,7 +20,7 @@ const connectDB = async () => {
   } else if (process.env.NODE_ENV === ENVType.STAGING) {
     dataBaseURI = process.env.MONGODB_STAGING_URI as string;
   } else if (process.env.NODE_ENV === ENVType.DEVELOPMENT) {
-    dataBaseURI = process.env.MONGODB_STAGING_URI as string;
+    dataBaseURI = process.env.MONGODB_DEV_URI as string;
   }
 
   if (!dataBaseURI) {

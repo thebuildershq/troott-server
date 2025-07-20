@@ -7,12 +7,12 @@ export function getEmailConfig(): EmailConfig {
   if (env === ENVType.PRODUCTION) {
     return {
       service: EmailService.MAILSEND,
-      fromEmail: process.env.MAIL_FROM_EMAIL!,
-      fromName: process.env.MAIL_FROM_NAME!,
-      replyTo: process.env.MAIL_REPLY_TO,
-      apiKey: process.env.MAILSEND_API_KEY!,
-      templateId: process.env.MAILSEND_TEMPLATE_ID,
-      sendingDomain: process.env.EMAIL_DOMAIN,
+      fromEmail: process.env.MAIL_FROM_EMAIL as string,
+      fromName: process.env.MAIL_FROM_NAME as string,
+      replyTo: process.env.MAIL_REPLY_TO as string,
+      apiKey: process.env.MAILSEND_API_KEY as string,
+      templateId: process.env.MAILSEND_TEMPLATE_ID as string,
+      sendingDomain: process.env.EMAIL_DOMAIN  as string,
       clientUrl: process.env.CLIENT_APP_URL as string,
       isTestMode: false,
     };
@@ -21,28 +21,28 @@ export function getEmailConfig(): EmailConfig {
   if (env === ENVType.STAGING) {
     return {
       service: EmailService.MAILSEND,
-      fromEmail: process.env.MAIL_FROM_EMAIL!,
-      fromName: process.env.MAIL_FROM_NAME!,
-      replyTo: process.env.MAIL_REPLY_TO,
-      apiKey: process.env.MAILERSEND_STAGING_API_KEY!,
-      templateId: process.env.MAILSEND_TEMPLATE_ID,
-      sendingDomain: process.env.MAILERSEND_STAGING_DOMAIN,
+      fromEmail: process.env.MAIL_FROM_EMAIL as string,
+      fromName: process.env.MAIL_FROM_NAME as string,
+      replyTo: process.env.MAIL_REPLY_TO  as string,
+      apiKey: process.env.MAILERSEND_API_KEY as string,
+      templateId: process.env.MAILSEND_TEMPLATE_ID  as string,
+      sendingDomain: process.env.EMAIL_DOMAIN  as string,
       clientUrl: process.env.CLIENT_STAGING_URL as string,
       isTestMode: false,
     };
   }
-
+  
   if (env === ENVType.DEVELOPMENT) {
     return {
       service: EmailService.MAILSEND,
-      fromEmail: process.env.EMAIL_FROM_EMAIL!,
+      fromEmail: process.env.EMAIL_FROM_EMAIL as string,
       fromName: process.env.EMAIL_FROM_NAME as string,
       replyTo: process.env.EMAIL_REPLY_TO as string,
       apiKey: process.env.MAILERSEND_STAGING_API_KEY as string,
-      templateId: process.env.MAILSEND_TEMPLATE_ID,
-      sendingDomain: process.env.MAILERSEND_STAGING_DOMAIN,
+      templateId: process.env.MAILSEND_TEMPLATE_ID as string,
+      sendingDomain: process.env.EMAIL_DOMAIN as string,
       clientUrl: process.env.CLIENT_LOCAL_URL as string,
-      isTestMode: false,
+      isTestMode: true,
     };
   }
   

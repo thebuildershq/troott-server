@@ -6,7 +6,7 @@ let config: FrontendURLConfig;
 switch (process.env.APP_ENV) {
   case ENVType.PRODUCTION:
     config = {
-      baseUrl: process.env.CLIENT_BASE_URL!,
+      baseUrl: process.env.CLIENT_APP_URL!,
       apiUrl: process.env.CLIENT_API_URL!,
       paymentRedirectUrl: process.env.CLIENT_PAYMENT_REDIRECT_URL!,
       dashboardUrl: process.env.CLIENT_DASHBOARD_URL!,
@@ -24,7 +24,7 @@ switch (process.env.APP_ENV) {
 
   case ENVType.DEVELOPMENT:
     config = {
-      baseUrl: process.env.CLIENT_LOCAL_BASE_URL!,
+      baseUrl: process.env.CLIENT_LOCAL_URL!,
       apiUrl: process.env.CLIENT_LOCAL_API_URL!,
       paymentRedirectUrl: process.env.CLIENT_LOCAL_PAYMENT_REDIRECT_URL!,
       dashboardUrl: process.env.CLIENT_LOCAL_DASHBOARD_URL!,

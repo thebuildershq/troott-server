@@ -28,10 +28,10 @@ switch (process.env.APP_ENV) {
 
   case ENVType.DEVELOPMENT:
     config = {
-      host: process.env.REDIS_HOST_STAGING!,
+      host: process.env.REDIS_HOST_DEV!,
       port: Number(process.env.REDIS_PORT),
       user: process.env.REDIS_USER!,
-      password: process.env.REDIS_PASSWORD_STAGING!,
+      password: process.env.REDIS_PASSWORD_DEV!,
       db: Number(process.env.REDIS_DB!),
     };
     break;

@@ -7,7 +7,6 @@ import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
 import transporter from "../utils/sendgrid.util";
 import {
   SendEmailDTO,
-  SendgridEmailDataDTO,
   SendOtpDTO,
 } from "../dtos/email.dto";
 import { EmailService, EmailTemplate, OtpType } from "../utils/enums.util";

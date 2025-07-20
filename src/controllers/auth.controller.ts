@@ -12,8 +12,6 @@ import {
 } from "../dtos/auth.dto";
 import userService from "../services/user.service";
 import {
-  EmailService,
-  EmailTemplate,
   OtpType,
   PasswordType,
   UserType,
