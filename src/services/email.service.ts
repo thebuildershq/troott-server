@@ -31,7 +31,7 @@ class AppEmailService {
 
     switch (this.config.service) {
       case EmailService.MAILSEND:
-        this.mailersend = new MailerSend({ apiKey: this.config.apiKey! });
+        this.mailersend = new MailerSend({ apiKey: this.config.apiKey as string });
         break;
 
       case EmailService.SENDGRID:

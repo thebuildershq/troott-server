@@ -4,7 +4,7 @@
   "main": "server.ts",
   "scripts": {
     "prod": "NODE_ENV=production ts-node --transpile-only src/server.ts",
-    "start": "NODE_ENV=production ts-node --transpile-only src/server.ts",
+    "staging": "NODE_ENV=staging ts-node --transpile-only src/server.ts",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
   },
   "keywords": [
