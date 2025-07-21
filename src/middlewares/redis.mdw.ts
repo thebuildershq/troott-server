@@ -9,8 +9,8 @@ class redisWrapper {
     if (this.client?.isOpen) return;
 
     this.client = createClient({
-      url: "redis://localhost:6379" ,
-    //  url: `redis://${options.user}:${options.password}@${options.host}:${options.port}`,
+      //url: "redis://localhost:6379" ,
+      url: `redis://${options.user}:${options.password}@${options.host}:${options.port}`,
       socket: {
         //tls: true,
         connectTimeout: 10000, // optional: increase timeout
